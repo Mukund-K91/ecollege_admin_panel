@@ -1,4 +1,4 @@
-
+import 'package:ecollege_admin_panel/dashboard_home.dart';
 import 'package:flutter/material.dart';
 import 'add_faculty.dart';
 import 'student_management.dart';
@@ -12,6 +12,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
+    Home(),
     AdmissionForm(),
     AddFaculty(),
     SettingsScreen(),
@@ -65,26 +66,37 @@ class SideMenu extends StatelessWidget {
             color: Colors.white,
           ),
           MenuItem(
-            title: 'Student Management',
+            title: 'Dashboard',
             index: 0,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),
-          MenuItem(
-            title: 'Faculty Management',
-            index: 1,
-            selectedIndex: selectedIndex,
-            onMenuItemSelected: onMenuItemSelected,
+          ExpansionTile(title: Text("Student Management"),
+            children: [
+              MenuItem(
+                title: 'Add Student',
+                index: 1,
+                selectedIndex: selectedIndex,
+                onMenuItemSelected: onMenuItemSelected,
+              ),
+            ],
+
           ),
           MenuItem(
-            title: 'Settings',
+            title: 'Faculty Management',
             index: 2,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),
           MenuItem(
-            title: 'Logout',
+            title: 'Settings',
             index: 3,
+            selectedIndex: selectedIndex,
+            onMenuItemSelected: onMenuItemSelected,
+          ),
+          MenuItem(
+            title: 'Logout',
+            index: 4,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),

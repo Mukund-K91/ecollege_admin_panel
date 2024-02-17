@@ -1,3 +1,4 @@
+import 'package:ecollege_admin_panel/demo.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -28,8 +29,9 @@ class MyApp extends StatelessWidget {
             //TextFieldColorChangeDemo()
             //DOBTextField()
             //ImageUpload()
-        //    LoginScreen()
-        DashboardScreen(),
+            //LoginScreen()
+            DashboardScreen(),
+            //Demo()
         );
   }
 }
