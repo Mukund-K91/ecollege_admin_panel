@@ -2,6 +2,7 @@ import 'dart:html' as html;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -413,42 +414,41 @@ class _AdmissionFormState extends State<AdmissionForm> {
                       ],
                     ),
                     const SizedBox(
-                      height: 4,
+                      height: 15,
                     ),
-                    SizedBox(
-                      height: 60,
-                      width: 150,
+                    Align(
+                      alignment: Alignment.topLeft,
                       child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
+                            maximumSize: Size(180, 65),
+                            minimumSize: Size(150, 60),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5)),
+                                borderRadius: BorderRadius.all(Radius.zero)),
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
                             await _db.add({
-                              "First Name": _firstNameController.text,
-                              "Middle Name": _middleNameController.text,
-                              "Last Name": _lastNameController.text,
-                              "Gender": _selectedGender.toString(),
-                              "Profile": _fileNameController.text,
-                              "Email": _emailController.text,
-                              "Mobile": _phoneController.text,
-                              "DOB": _dobController.text,
-                              "Program": _selProgram.toString(),
-                              "Program Term": _selProgramTerm.toString(),
-                              "Division": _seldiv.toString()
-                            });
+                            '287':{
+                            "First Name": _firstNameController.text,
+                            "Middle Name": _middleNameController.text,
+                            "Last Name": _lastNameController.text,
+                            "Gender": _selectedGender.toString(),
+                            "Profile": _fileNameController.text,
+                            "Email": _emailController.text,
+                            "Mobile": _phoneController.text,
+                            "DOB": _dobController.text,
+                            "Program": _selProgram.toString(),
+                            "Program Term": _selProgramTerm.toString(),
+                            "Division": _seldiv.toString()
+                            }});
                           },
                           child: const Text(
                             "Register",
-                            style: TextStyle(color: Colors.white, fontSize: 20),
+                            style: TextStyle(color: Colors.white, fontSize: 15),
                           )),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(
-                height: 20,
               ),
             ],
           ),
