@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'add_faculty.dart';
-import 'admission_form.dart';
+import 'student_management.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override

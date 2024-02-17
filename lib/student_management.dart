@@ -56,6 +56,9 @@ class _AdmissionFormState extends State<AdmissionForm> {
       _fileNameController.text = file.name;
     });
   }
+  Map<String,dynamic> data={
+
+  };
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -75,7 +78,8 @@ class _AdmissionFormState extends State<AdmissionForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
+      body:
+      SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -428,7 +432,6 @@ class _AdmissionFormState extends State<AdmissionForm> {
                           ),
                           onPressed: () async {
                             await _db.add({
-                            '287':{
                             "First Name": _firstNameController.text,
                             "Middle Name": _middleNameController.text,
                             "Last Name": _lastNameController.text,
@@ -440,7 +443,7 @@ class _AdmissionFormState extends State<AdmissionForm> {
                             "Program": _selProgram.toString(),
                             "Program Term": _selProgramTerm.toString(),
                             "Division": _seldiv.toString()
-                            }});
+                            });
                           },
                           child: const Text(
                             "Register",
@@ -450,6 +453,7 @@ class _AdmissionFormState extends State<AdmissionForm> {
                   ],
                 ),
               ),
+              Text("")
             ],
           ),
         ),
