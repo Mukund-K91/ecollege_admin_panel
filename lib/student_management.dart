@@ -14,6 +14,8 @@ class AdmissionForm extends StatefulWidget {
 class _AdmissionFormState extends State<AdmissionForm> {
   final CollectionReference _db =
       FirebaseFirestore.instance.collection('students');
+  late final DocumentReference _rollnoDoc;
+  int _lastRollNo = 0;
   String? _selectedGender;
   DateTime? _selectedDate;
   final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
@@ -51,14 +53,15 @@ class _AdmissionFormState extends State<AdmissionForm> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _fileNameController = TextEditingController();
 
+  int _totalStudent = 0;
+
   void _handleFileUpload(html.File file) {
     setState(() {
       _fileNameController.text = file.name;
     });
   }
-  Map<String,dynamic> data={
 
-  };
+
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -78,8 +81,7 @@ class _AdmissionFormState extends State<AdmissionForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-      SingleChildScrollView(
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -431,18 +433,20 @@ class _AdmissionFormState extends State<AdmissionForm> {
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
+                            String _lastrollno=_lastRollNo.toString();
                             await _db.add({
-                            "First Name": _firstNameController.text,
-                            "Middle Name": _middleNameController.text,
-                            "Last Name": _lastNameController.text,
-                            "Gender": _selectedGender.toString(),
-                            "Profile": _fileNameController.text,
-                            "Email": _emailController.text,
-                            "Mobile": _phoneController.text,
-                            "DOB": _dobController.text,
-                            "Program": _selProgram.toString(),
-                            "Program Term": _selProgramTerm.toString(),
-                            "Division": _seldiv.toString()
+                              "First Name": _firstNameController.text,
+                              "Middle Name": _middleNameController.text,
+                              "Last Name": _lastNameController.text,
+                              "Gender": _selectedGender.toString(),
+                              "Profile": _fileNameController.text,
+                              "Email": _emailController.text,
+                              "Mobile": _phoneController.text,
+                              "DOB": _dobController.text,
+                              "RollNo":_lastrollno,
+                              "Program": _selProgram.toString(),
+                              "Program Term": _selProgramTerm.toString(),
+                              "Division": _seldiv.toString()
                             });
                           },
                           child: const Text(

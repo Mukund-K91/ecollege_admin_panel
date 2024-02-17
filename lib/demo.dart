@@ -1,81 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-
-class Demo extends StatefulWidget {
+class StudentEntryScreen extends StatefulWidget {
   @override
-  _DemoState createState() => _DemoState();
+  _StudentEntryScreenState createState() => _StudentEntryScreenState();
 }
 
-class _DemoState extends State<Demo> {
-  int _selectedMainMenuItemIndex = 0;
-  int _selectedSubMenuItemIndex = 0;
+class _StudentEntryScreenState extends State<StudentEntryScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late CollectionReference _studentsCollection;
+  late DocumentReference _rollNumberDoc;
+
+  int _lastRollNumber = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _studentsCollection = _firestore.collection('student');
+    _rollNumberDoc = _firestore.collection('metadata').doc('rollNumber');
+    _getRollNumber();
+  }
+
+  Future<void> _getRollNumber() async {
+    final rollNumberDocSnapshot = await _rollNumberDoc.get();
+    setState(() {
+      _lastRollNumber =
+          rollNumberDocSnapshot.exists && rollNumberDocSnapshot.data() != null
+              ? (rollNumberDocSnapshot.data()
+                      as Map<String, dynamic>)['lastRollNumber'] ??
+                  0
+              : 0;
+    });
+  }
+
+  Future<void> _incrementRollNumber() async {
+    _lastRollNumber++;
+    await _rollNumberDoc.set({'lastRollNumber': _lastRollNumber});
+  }
+
+  Future<void> _addStudentEntry() async {
+    await _studentsCollection.add({
+      'rollNumber': _lastRollNumber,
+      // Add other student details here
+    });
+    await _incrementRollNumber();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Admin Dashboard'),
+        title: Text('Student Roll Number Generator'),
       ),
-      body: Row(
-        children: [
-          // Side Menu
-          Container(
-            width: 200,
-            color: Colors.grey[200],
-            child: ListView.builder(
-              itemCount: mainMenuItems.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(mainMenuItems[index]),
-                  selected: _selectedMainMenuItemIndex == index,
-                  onTap: () {
-                    setState(() {
-                      _selectedMainMenuItemIndex = index;
-                      _selectedSubMenuItemIndex = 0; // Reset sub-menu selection
-                    });
-                  },
-                );
-              },
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'Last Generated Roll Number: $_lastRollNumber',
+              style: TextStyle(fontSize: 20),
             ),
-          ),
-          // Sub Menu
-          Container(
-            width: 200,
-            color: Colors.grey[300],
-            child: ListView.builder(
-              itemCount: subMenuItems[_selectedMainMenuItemIndex].length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(subMenuItems[_selectedMainMenuItemIndex][index]),
-                  selected: _selectedSubMenuItemIndex == index,
-                  onTap: () {
-                    setState(() {
-                      _selectedSubMenuItemIndex = index;
-                    });
-                  },
-                );
-              },
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _addStudentEntry,
+              child: Text('Add Student Entry'),
             ),
-          ),
-          // Main Content
-          Expanded(
-            child: Center(
-              child: Text(
-                'Main Content: ${mainMenuItems[_selectedMainMenuItemIndex]} > '
-                    '${subMenuItems[_selectedMainMenuItemIndex][_selectedSubMenuItemIndex]}',
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
-
-List<String> mainMenuItems = ['Menu 1', 'Menu 2', 'Menu 3'];
-
-List<List<String>> subMenuItems = [
-  ['Sub-menu 1', 'Sub-menu 2'],
-  ['Sub-menu 3', 'Sub-menu 4', 'Sub-menu 5'],
-  ['Sub-menu 6'],
-];
