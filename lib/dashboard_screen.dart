@@ -1,9 +1,19 @@
 import 'package:ecollege_admin_panel/dashboard_home.dart';
+import 'package:ecollege_admin_panel/demo.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'add_faculty.dart';
+import 'firebase_options.dart';
 import 'student_management.dart';
 
 class DashboardScreen extends StatefulWidget {
+  void main() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    //  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: SystemUiOverlay.values);
+  }
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
@@ -16,7 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     AdmissionForm(),
     AddFaculty(),
     SettingsScreen(),
-    LogoutScreen(),
+    StudentEntryScreen()
   ];
 
   @override

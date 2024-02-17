@@ -11,7 +11,7 @@ class _StudentEntryScreenState extends State<StudentEntryScreen> {
   late CollectionReference _studentsCollection;
   late DocumentReference _rollNumberDoc;
 
-  int _lastRollNumber = 0;
+  int _lastRollNumber = 101;
 
   @override
   void initState() {
@@ -28,8 +28,8 @@ class _StudentEntryScreenState extends State<StudentEntryScreen> {
           rollNumberDocSnapshot.exists && rollNumberDocSnapshot.data() != null
               ? (rollNumberDocSnapshot.data()
                       as Map<String, dynamic>)['lastRollNumber'] ??
-                  0
-              : 0;
+                  101
+              : 101;
     });
   }
 

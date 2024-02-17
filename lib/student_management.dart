@@ -13,9 +13,11 @@ class AdmissionForm extends StatefulWidget {
 
 class _AdmissionFormState extends State<AdmissionForm> {
   final CollectionReference _db =
-      FirebaseFirestore.instance.collection('students');
-  late final DocumentReference _rollnoDoc;
-  int _lastRollNo = 0;
+  FirebaseFirestore.instance.collection('students');
+  late CollectionReference _studentsCollection;
+  late DocumentReference _rollNumberDoc;
+  int _lastRollNumber = 101;
+
   String? _selectedGender;
   DateTime? _selectedDate;
   final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
@@ -49,7 +51,7 @@ class _AdmissionFormState extends State<AdmissionForm> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _rollNo = TextEditingController();
+  late TextEditingController _rollNumberController;
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _fileNameController = TextEditingController();
 
@@ -61,7 +63,38 @@ class _AdmissionFormState extends State<AdmissionForm> {
     });
   }
 
+  void initState() {
+    super.initState();
+    _studentsCollection = _db;
+    _rollNumberDoc =
+        FirebaseFirestore.instance.collection('metadata').doc('rollNumber');
+    _getRollNumber();
+    _rollNumberController = TextEditingController();
+  }
 
+  Future<void> _getRollNumber() async {
+    final rollNumberDocSnapshot = await _rollNumberDoc.get();
+    setState(() {
+      _lastRollNumber =
+      rollNumberDocSnapshot.exists && rollNumberDocSnapshot.data() != null
+          ? (rollNumberDocSnapshot.data()
+      as Map<String, dynamic>)['lastRollNumber'] ??
+          101
+          : 101;
+      _rollNumberController.text = _lastRollNumber.toString();
+    });
+  }
+
+  Future<void> _incrementRollNumber() async {
+    _lastRollNumber++;
+    await _rollNumberDoc.set({'lastRollNumber': _lastRollNumber});
+  }
+
+  @override
+  void dispose() {
+    _rollNumberController.dispose();
+    super.dispose();
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -157,61 +190,62 @@ class _AdmissionFormState extends State<AdmissionForm> {
                       children: [
                         Expanded(
                             child: Padding(
-                          padding: const EdgeInsets.all(15),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Gender:",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                ),
-                              ),
-                              Row(
+                              padding: const EdgeInsets.all(15),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Radio<String>(
-                                        value: 'Male',
-                                        groupValue: _selectedGender,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _selectedGender = value;
-                                          });
-                                        },
-                                      ),
-                                      const Text(
-                                        'Male',
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 15),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    width: 15,
+                                  const Text(
+                                    "Gender:",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                    ),
                                   ),
                                   Row(
                                     children: [
-                                      Radio<String>(
-                                        value: 'Female',
-                                        groupValue: _selectedGender,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _selectedGender = value;
-                                          });
-                                        },
+                                      Row(
+                                        children: [
+                                          Radio<String>(
+                                            value: 'Male',
+                                            groupValue: _selectedGender,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _selectedGender = value;
+                                              });
+                                            },
+                                          ),
+                                          const Text(
+                                            'Male',
+                                            style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 15),
+                                          ),
+                                        ],
                                       ),
-                                      const Text('Female',
-                                          style: TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 15)),
+                                      SizedBox(
+                                        width: 15,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Radio<String>(
+                                            value: 'Female',
+                                            groupValue: _selectedGender,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _selectedGender = value;
+                                              });
+                                            },
+                                          ),
+                                          const Text('Female',
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 15)),
+                                        ],
+                                      ),
                                     ],
-                                  ),
+                                  )
                                 ],
-                              )
-                            ],
-                          ),
-                        )),
+                              ),
+                            )),
                         const SizedBox(
                           width: 15,
                         ),
@@ -221,46 +255,47 @@ class _AdmissionFormState extends State<AdmissionForm> {
                             children: <Widget>[
                               Expanded(
                                   child: Column(
-                                children: [
-                                  ReusableTextField(
-                                    readOnly: true,
-                                    controller: _fileNameController,
-                                    title: 'Image',
-                                    sufIcon: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                              minimumSize: Size(100, 50),
-                                              backgroundColor:
+                                    children: [
+                                      ReusableTextField(
+                                        readOnly: true,
+                                        controller: _fileNameController,
+                                        title: 'Image',
+                                        sufIcon: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                  minimumSize: Size(100, 50),
+                                                  backgroundColor:
                                                   const Color(0xff002233),
-                                              shape:
+                                                  shape:
                                                   ContinuousRectangleBorder()),
-                                          onPressed: () {
-                                            html.FileUploadInputElement
+                                              onPressed: () {
+                                                html.FileUploadInputElement
                                                 uploadInput =
                                                 html.FileUploadInputElement()
                                                   ..accept = 'image/*';
-                                            uploadInput.click();
-                                            uploadInput.onChange
-                                                .listen((event) {
-                                              final files = uploadInput.files;
-                                              if (files != null &&
-                                                  files.length == 1) {
-                                                final file = files[0];
-                                                _handleFileUpload(file);
-                                              }
-                                            });
-                                          },
-                                          child: const Text(
-                                            "Upload",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 15),
-                                          )),
-                                    ),
-                                  ),
-                                ],
-                              )),
+                                                uploadInput.click();
+                                                uploadInput.onChange
+                                                    .listen((event) {
+                                                  final files = uploadInput
+                                                      .files;
+                                                  if (files != null &&
+                                                      files.length == 1) {
+                                                    final file = files[0];
+                                                    _handleFileUpload(file);
+                                                  }
+                                                });
+                                              },
+                                              child: const Text(
+                                                "Upload",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 15),
+                                              )),
+                                        ),
+                                      ),
+                                    ],
+                                  )),
                             ],
                           ),
                         ),
@@ -269,7 +304,7 @@ class _AdmissionFormState extends State<AdmissionForm> {
                         ),
                         Expanded(
                           child: ReusableTextField(
-                            controller: _rollNo,
+                            controller: _rollNumberController,
                             maxLength: 10,
                             keyboardType: TextInputType.phone,
                             readOnly: true,
@@ -342,13 +377,14 @@ class _AdmissionFormState extends State<AdmissionForm> {
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius:
-                                            BorderRadius.all(Radius.zero))),
+                                        BorderRadius.all(Radius.zero))),
                                 value: _selProgram,
                                 items: _programs
-                                    .map((e) => DropdownMenuItem(
-                                          value: e,
-                                          child: Text(e),
-                                        ))
+                                    .map((e) =>
+                                    DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ))
                                     .toList(),
                                 onChanged: (val) {
                                   setState(() {
@@ -367,13 +403,14 @@ class _AdmissionFormState extends State<AdmissionForm> {
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius:
-                                            BorderRadius.all(Radius.zero))),
+                                        BorderRadius.all(Radius.zero))),
                                 value: _selProgramTerm,
                                 items: _programTerm
-                                    .map((e) => DropdownMenuItem(
-                                          value: e,
-                                          child: Text(e),
-                                        ))
+                                    .map((e) =>
+                                    DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ))
                                     .toList(),
                                 onChanged: (val) {
                                   setState(() {
@@ -392,24 +429,27 @@ class _AdmissionFormState extends State<AdmissionForm> {
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius:
-                                            BorderRadius.all(Radius.zero))),
+                                        BorderRadius.all(Radius.zero))),
                                 value: _seldiv,
                                 items: _selProgram == "BCA"
-                                    ? _Bcadivision.map((e) => DropdownMenuItem(
+                                    ? _Bcadivision.map((e) =>
+                                    DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    )).toList()
+                                    : _selProgram == "B-Com"
+                                    ? _Bcomdivision.map(
+                                        (e) =>
+                                        DropdownMenuItem(
                                           value: e,
                                           child: Text(e),
                                         )).toList()
-                                    : _selProgram == "B-Com"
-                                        ? _Bcomdivision.map(
-                                            (e) => DropdownMenuItem(
-                                                  value: e,
-                                                  child: Text(e),
-                                                )).toList()
-                                        : _Bbadivision.map(
-                                            (e) => DropdownMenuItem(
-                                                  value: e,
-                                                  child: Text(e),
-                                                )).toList(),
+                                    : _Bbadivision.map(
+                                        (e) =>
+                                        DropdownMenuItem(
+                                          value: e,
+                                          child: Text(e),
+                                        )).toList(),
                                 onChanged: (val) {
                                   setState(() {
                                     _seldiv = val as String;
@@ -433,21 +473,35 @@ class _AdmissionFormState extends State<AdmissionForm> {
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
-                            String _lastrollno=_lastRollNo.toString();
                             await _db.add({
                               "First Name": _firstNameController.text,
                               "Middle Name": _middleNameController.text,
                               "Last Name": _lastNameController.text,
                               "Gender": _selectedGender.toString(),
                               "Profile": _fileNameController.text,
+                              "Roll No": _lastRollNumber,
                               "Email": _emailController.text,
                               "Mobile": _phoneController.text,
                               "DOB": _dobController.text,
-                              "RollNo":_lastrollno,
                               "Program": _selProgram.toString(),
                               "Program Term": _selProgramTerm.toString(),
                               "Division": _seldiv.toString()
                             });
+                            _firstNameController.text="";
+                            _middleNameController.text="";
+                            _lastNameController.text="";
+                            _selectedGender="";
+                            _emailController.text="";
+                            _phoneController.text="";
+                            _dobController.text="";
+                            _selProgram="--Please Select--";
+
+                            await _incrementRollNumber();
+                            // Update TextField value after increment
+                            _rollNumberController.text =
+                            _lastRollNumber.toString
+                            (
+                            );
                           },
                           child: const Text(
                             "Register",
@@ -457,7 +511,6 @@ class _AdmissionFormState extends State<AdmissionForm> {
                   ],
                 ),
               ),
-              Text("")
             ],
           ),
         ),

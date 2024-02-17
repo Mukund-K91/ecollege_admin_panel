@@ -30,9 +30,9 @@ class MyApp extends StatelessWidget {
             //DOBTextField()
             //ImageUpload()
             //LoginScreen()
-            //DashboardScreen(),
+            DashboardScreen(),
             //Demo()
-      StudentEntryScreen()
+      //StudentEntryScreen()
         );
   }
 }
