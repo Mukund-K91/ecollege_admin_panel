@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "958032766959",
+    "project_id": "ecollege-dd3a3",
+    "storage_bucket": "ecollege-dd3a3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958032766959:android:8933c75b2044fbc34db81a",
+        "android_client_info": {
+          "package_name": "com.example.clg_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUiu22FqaiPwRfZ0J5obtz0md2Er93D0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958032766959:android:2040b0a3905a4dce4db81a",
+        "android_client_info": {
+          "package_name": "com.example.ecollege_admin_panel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUiu22FqaiPwRfZ0J5obtz0md2Er93D0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
