@@ -23,7 +23,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   final List<Widget> _screens = [
     Home(),
-    AdmissionForm(),
+    AddStudents(),
+    UpdateStudentDetails(),
     AddFaculty(),
     SettingsScreen(),
     StudentEntryScreen()
@@ -89,24 +90,30 @@ class SideMenu extends StatelessWidget {
                 selectedIndex: selectedIndex,
                 onMenuItemSelected: onMenuItemSelected,
               ),
+              MenuItem(
+                title: 'Student Details',
+                index: 2,
+                selectedIndex: selectedIndex,
+                onMenuItemSelected: onMenuItemSelected,
+              ),
             ],
 
           ),
           MenuItem(
             title: 'Faculty Management',
-            index: 2,
-            selectedIndex: selectedIndex,
-            onMenuItemSelected: onMenuItemSelected,
-          ),
-          MenuItem(
-            title: 'Settings',
             index: 3,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),
           MenuItem(
-            title: 'Logout',
+            title: 'Settings',
             index: 4,
+            selectedIndex: selectedIndex,
+            onMenuItemSelected: onMenuItemSelected,
+          ),
+          MenuItem(
+            title: 'Logout',
+            index: 5,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),

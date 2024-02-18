@@ -6,17 +6,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class AdmissionForm extends StatefulWidget {
+class AddStudents extends StatefulWidget {
   @override
-  _AdmissionFormState createState() => _AdmissionFormState();
+  _AddStudentsState createState() => _AddStudentsState();
 }
 
-class _AdmissionFormState extends State<AdmissionForm> {
+class _AddStudentsState extends State<AddStudents> {
   final CollectionReference _db =
-  FirebaseFirestore.instance.collection('students');
+      FirebaseFirestore.instance.collection('students');
   late CollectionReference _studentsCollection;
   late DocumentReference _rollNumberDoc;
   int _lastRollNumber = 101;
+  int _totalStudent = 0;
 
   String? _selectedGender;
   DateTime? _selectedDate;
@@ -55,8 +56,6 @@ class _AdmissionFormState extends State<AdmissionForm> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _fileNameController = TextEditingController();
 
-  int _totalStudent = 0;
-
   void _handleFileUpload(html.File file) {
     setState(() {
       _fileNameController.text = file.name;
@@ -76,18 +75,20 @@ class _AdmissionFormState extends State<AdmissionForm> {
     final rollNumberDocSnapshot = await _rollNumberDoc.get();
     setState(() {
       _lastRollNumber =
-      rollNumberDocSnapshot.exists && rollNumberDocSnapshot.data() != null
-          ? (rollNumberDocSnapshot.data()
-      as Map<String, dynamic>)['lastRollNumber'] ??
-          101
-          : 101;
+          rollNumberDocSnapshot.exists && rollNumberDocSnapshot.data() != null
+              ? (rollNumberDocSnapshot.data()
+                      as Map<String, dynamic>)['lastRollNumber'] ??
+                  101
+              : 101;
       _rollNumberController.text = _lastRollNumber.toString();
     });
   }
 
   Future<void> _incrementRollNumber() async {
     _lastRollNumber++;
-    await _rollNumberDoc.set({'lastRollNumber': _lastRollNumber});
+    _totalStudent++;
+    await _rollNumberDoc.set(
+        {'lastRollNumber': _lastRollNumber, 'Total Students': _totalStudent});
   }
 
   @override
@@ -190,62 +191,61 @@ class _AdmissionFormState extends State<AdmissionForm> {
                       children: [
                         Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.all(15),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Gender:",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Row(
                                 children: [
-                                  const Text(
-                                    "Gender:",
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Radio<String>(
+                                        value: 'Male',
+                                        groupValue: _selectedGender,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedGender = value;
+                                          });
+                                        },
+                                      ),
+                                      const Text(
+                                        'Male',
+                                        style: TextStyle(
+                                            color: Colors.grey, fontSize: 15),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    width: 15,
                                   ),
                                   Row(
                                     children: [
-                                      Row(
-                                        children: [
-                                          Radio<String>(
-                                            value: 'Male',
-                                            groupValue: _selectedGender,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                _selectedGender = value;
-                                              });
-                                            },
-                                          ),
-                                          const Text(
-                                            'Male',
-                                            style: TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 15),
-                                          ),
-                                        ],
+                                      Radio<String>(
+                                        value: 'Female',
+                                        groupValue: _selectedGender,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedGender = value;
+                                          });
+                                        },
                                       ),
-                                      SizedBox(
-                                        width: 15,
-                                      ),
-                                      Row(
-                                        children: [
-                                          Radio<String>(
-                                            value: 'Female',
-                                            groupValue: _selectedGender,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                _selectedGender = value;
-                                              });
-                                            },
-                                          ),
-                                          const Text('Female',
-                                              style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 15)),
-                                        ],
-                                      ),
+                                      const Text('Female',
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 15)),
                                     ],
-                                  )
+                                  ),
                                 ],
-                              ),
-                            )),
+                              )
+                            ],
+                          ),
+                        )),
                         const SizedBox(
                           width: 15,
                         ),
@@ -255,47 +255,46 @@ class _AdmissionFormState extends State<AdmissionForm> {
                             children: <Widget>[
                               Expanded(
                                   child: Column(
-                                    children: [
-                                      ReusableTextField(
-                                        readOnly: true,
-                                        controller: _fileNameController,
-                                        title: 'Image',
-                                        sufIcon: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                  minimumSize: Size(100, 50),
-                                                  backgroundColor:
+                                children: [
+                                  ReusableTextField(
+                                    readOnly: true,
+                                    controller: _fileNameController,
+                                    title: 'Image',
+                                    sufIcon: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                              minimumSize: Size(100, 50),
+                                              backgroundColor:
                                                   const Color(0xff002233),
-                                                  shape:
+                                              shape:
                                                   ContinuousRectangleBorder()),
-                                              onPressed: () {
-                                                html.FileUploadInputElement
+                                          onPressed: () {
+                                            html.FileUploadInputElement
                                                 uploadInput =
                                                 html.FileUploadInputElement()
                                                   ..accept = 'image/*';
-                                                uploadInput.click();
-                                                uploadInput.onChange
-                                                    .listen((event) {
-                                                  final files = uploadInput
-                                                      .files;
-                                                  if (files != null &&
-                                                      files.length == 1) {
-                                                    final file = files[0];
-                                                    _handleFileUpload(file);
-                                                  }
-                                                });
-                                              },
-                                              child: const Text(
-                                                "Upload",
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 15),
-                                              )),
-                                        ),
-                                      ),
-                                    ],
-                                  )),
+                                            uploadInput.click();
+                                            uploadInput.onChange
+                                                .listen((event) {
+                                              final files = uploadInput.files;
+                                              if (files != null &&
+                                                  files.length == 1) {
+                                                final file = files[0];
+                                                _handleFileUpload(file);
+                                              }
+                                            });
+                                          },
+                                          child: const Text(
+                                            "Upload",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15),
+                                          )),
+                                    ),
+                                  ),
+                                ],
+                              )),
                             ],
                           ),
                         ),
@@ -377,14 +376,13 @@ class _AdmissionFormState extends State<AdmissionForm> {
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius:
-                                        BorderRadius.all(Radius.zero))),
+                                            BorderRadius.all(Radius.zero))),
                                 value: _selProgram,
                                 items: _programs
-                                    .map((e) =>
-                                    DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e),
-                                    ))
+                                    .map((e) => DropdownMenuItem(
+                                          value: e,
+                                          child: Text(e),
+                                        ))
                                     .toList(),
                                 onChanged: (val) {
                                   setState(() {
@@ -403,14 +401,13 @@ class _AdmissionFormState extends State<AdmissionForm> {
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius:
-                                        BorderRadius.all(Radius.zero))),
+                                            BorderRadius.all(Radius.zero))),
                                 value: _selProgramTerm,
                                 items: _programTerm
-                                    .map((e) =>
-                                    DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e),
-                                    ))
+                                    .map((e) => DropdownMenuItem(
+                                          value: e,
+                                          child: Text(e),
+                                        ))
                                     .toList(),
                                 onChanged: (val) {
                                   setState(() {
@@ -429,27 +426,24 @@ class _AdmissionFormState extends State<AdmissionForm> {
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius:
-                                        BorderRadius.all(Radius.zero))),
+                                            BorderRadius.all(Radius.zero))),
                                 value: _seldiv,
                                 items: _selProgram == "BCA"
-                                    ? _Bcadivision.map((e) =>
-                                    DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e),
-                                    )).toList()
-                                    : _selProgram == "B-Com"
-                                    ? _Bcomdivision.map(
-                                        (e) =>
-                                        DropdownMenuItem(
+                                    ? _Bcadivision.map((e) => DropdownMenuItem(
                                           value: e,
                                           child: Text(e),
                                         )).toList()
-                                    : _Bbadivision.map(
-                                        (e) =>
-                                        DropdownMenuItem(
-                                          value: e,
-                                          child: Text(e),
-                                        )).toList(),
+                                    : _selProgram == "B-Com"
+                                        ? _Bcomdivision.map(
+                                            (e) => DropdownMenuItem(
+                                                  value: e,
+                                                  child: Text(e),
+                                                )).toList()
+                                        : _Bbadivision.map(
+                                            (e) => DropdownMenuItem(
+                                                  value: e,
+                                                  child: Text(e),
+                                                )).toList(),
                                 onChanged: (val) {
                                   setState(() {
                                     _seldiv = val as String;
@@ -487,21 +481,19 @@ class _AdmissionFormState extends State<AdmissionForm> {
                               "Program Term": _selProgramTerm.toString(),
                               "Division": _seldiv.toString()
                             });
-                            _firstNameController.text="";
-                            _middleNameController.text="";
-                            _lastNameController.text="";
-                            _selectedGender="";
-                            _emailController.text="";
-                            _phoneController.text="";
-                            _dobController.text="";
-                            _selProgram="--Please Select--";
+                            _firstNameController.text = "";
+                            _middleNameController.text = "";
+                            _lastNameController.text = "";
+                            _selectedGender = "";
+                            _emailController.text = "";
+                            _phoneController.text = "";
+                            _dobController.text = "";
+                            _selProgram = "--Please Select--";
 
                             await _incrementRollNumber();
                             // Update TextField value after increment
                             _rollNumberController.text =
-                            _lastRollNumber.toString
-                            (
-                            );
+                                _lastRollNumber.toString();
                           },
                           child: const Text(
                             "Register",
@@ -516,5 +508,15 @@ class _AdmissionFormState extends State<AdmissionForm> {
         ),
       ),
     );
+  }
+}
+
+
+class UpdateStudentDetails extends StatelessWidget {
+  const UpdateStudentDetails({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
   }
 }
