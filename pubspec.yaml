@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   firebase_core: ^2.25.4
   lottie: ^2.6.0
+  firebase: ^9.0.3
   loading_animation_widget: ^1.2.0+4
   font_awesome_flutter: ^10.5.0
   intl: ^0.17.0

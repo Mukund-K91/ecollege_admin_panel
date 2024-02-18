@@ -1,9 +1,17 @@
-import 'dart:html' as html;
+import 'dart:async';
+import 'dart:developer';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
+import 'package:ecollege_admin_panel/storage_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class AddStudents extends StatefulWidget {
@@ -14,10 +22,17 @@ class AddStudents extends StatefulWidget {
 class _AddStudentsState extends State<AddStudents> {
   final CollectionReference _db =
       FirebaseFirestore.instance.collection('students');
+
+  final TextEditingController _searchController = TextEditingController();
+  final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+  StorageService service = StorageService();
+
+  StorageService storageService = StorageService();
   late CollectionReference _studentsCollection;
   late DocumentReference _rollNumberDoc;
   int _lastRollNumber = 101;
   int _totalStudent = 0;
+  late String imhUrl='';
 
   String? _selectedGender;
   DateTime? _selectedDate;
@@ -56,11 +71,11 @@ class _AddStudentsState extends State<AddStudents> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _fileNameController = TextEditingController();
 
-  void _handleFileUpload(html.File file) {
-    setState(() {
-      _fileNameController.text = file.name;
-    });
-  }
+  // void _handleFileUpload(html.File file) {
+  //   setState(() {
+  //     _fileNameController.text = file.name;
+  //   });
+  // }
 
   void initState() {
     super.initState();
@@ -269,21 +284,82 @@ class _AddStudentsState extends State<AddStudents> {
                                                   const Color(0xff002233),
                                               shape:
                                                   ContinuousRectangleBorder()),
-                                          onPressed: () {
-                                            html.FileUploadInputElement
-                                                uploadInput =
-                                                html.FileUploadInputElement()
-                                                  ..accept = 'image/*';
-                                            uploadInput.click();
-                                            uploadInput.onChange
-                                                .listen((event) {
-                                              final files = uploadInput.files;
-                                              if (files != null &&
-                                                  files.length == 1) {
-                                                final file = files[0];
-                                                _handleFileUpload(file);
+                                          onPressed: () async {
+                                            final result = await FilePicker
+                                                .platform
+                                                .pickFiles(
+                                                    allowMultiple: true,
+                                                    type: FileType.image);
+                                            if (result == null) {
+                                              print("Error: No file selected");
+                                            } else {
+                                              var path =
+                                                  result.files.single.bytes;
+                                              final fileName =
+                                                  result.files.single.name;
+
+                                              try {
+                                                await firebaseStorage
+                                                    .ref('Profiles/$fileName')
+                                                    .putData(path!)
+                                                    .then((p0) async {
+                                                  log("Uploaded");
+                                                  String imgurl =
+                                                      await firebaseStorage
+                                                          .ref(
+                                                              'Profiles/$fileName')
+                                                          .getDownloadURL();
+                                                  print(imgurl);
+                                                  imhUrl=imgurl.toString();
+                                                });
+                                              } catch (e) {
+                                                log("Error: $e");
                                               }
-                                            });
+
+                                              // Reference referenceRoot =
+                                              //     FirebaseStorage.instance
+                                              //         .ref();
+                                              // Reference referenceDireImage =
+                                              //     referenceRoot
+                                              //         .child('Profiles');
+                                              // Reference referenceToUplode =
+                                              //     referenceDireImage
+                                              //         .child(fileName);
+                                              //
+                                              // referenceToUplode.putData(path!);
+                                              //
+                                              // imgUrl = await referenceToUplode
+                                              //     .getDownloadURL()
+                                              //     .toString();
+
+                                              service.uplaodFile(
+                                                  fileName, path);
+
+                                              Timer(Duration(seconds: 5), () {
+                                                Navigator.pushReplacement(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (BuildContext
+                                                              context) =>
+                                                          super.widget,
+                                                    ));
+                                              });
+                                            }
+
+                                            // html.FileUploadInputElement
+                                            //     uploadInput =
+                                            //     html.FileUploadInputElement()
+                                            //       ..accept = 'image/*';
+                                            // uploadInput.click();
+                                            // uploadInput.onChange
+                                            //     .listen((event) {
+                                            //   final files = uploadInput.files;
+                                            //   if (files != null &&
+                                            //       files.length == 1) {
+                                            //     final file = files[0];
+                                            //     _handleFileUpload(file);
+                                            //   }
+                                            // });
                                           },
                                           child: const Text(
                                             "Upload",
@@ -474,6 +550,7 @@ class _AddStudentsState extends State<AddStudents> {
                               "Gender": _selectedGender.toString(),
                               "Profile": _fileNameController.text,
                               "Roll No": _lastRollNumber,
+                              "Image": imhUrl,
                               "Email": _emailController.text,
                               "Mobile": _phoneController.text,
                               "DOB": _dobController.text,
@@ -511,7 +588,6 @@ class _AddStudentsState extends State<AddStudents> {
   }
 }
 
-
 class StudentList extends StatefulWidget {
   @override
   _StudentListState createState() => _StudentListState();
@@ -544,7 +620,7 @@ class _StudentListState extends State<StudentList> {
 
   Future<void> _fetchStudents() async {
     final QuerySnapshot<Map<String, dynamic>> querySnapshot =
-    await _firestore.collection('students').get();
+        await _firestore.collection('students').get();
     final List<Student> students = querySnapshot.docs.map((doc) {
       return Student(
         name: doc['First Name'],
@@ -594,9 +670,9 @@ class _StudentListState extends State<StudentList> {
                     },
                     items: ['All', 'A', 'B']
                         .map((className) => DropdownMenuItem<String>(
-                      value: className,
-                      child: Text(className),
-                    ))
+                              value: className,
+                              child: Text(className),
+                            ))
                         .toList(),
                   ),
                   SizedBox(width: 16),
@@ -638,4 +714,3 @@ class _StudentListState extends State<StudentList> {
     );
   }
 }
-
