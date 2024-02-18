@@ -21,7 +21,7 @@ class AddStudents extends StatefulWidget {
 
 class _AddStudentsState extends State<AddStudents> {
   final CollectionReference _db =
-      FirebaseFirestore.instance.collection('students');
+      FirebaseFirestore.instance.collection('student');
 
   final TextEditingController _searchController = TextEditingController();
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
@@ -32,7 +32,7 @@ class _AddStudentsState extends State<AddStudents> {
   late DocumentReference _rollNumberDoc;
   int _lastRollNumber = 101;
   int _totalStudent = 0;
-  late String imhUrl='';
+  late String imjUrl;
 
   String? _selectedGender;
   DateTime? _selectedDate;
@@ -304,14 +304,16 @@ class _AddStudentsState extends State<AddStudents> {
                                                     .putData(path!)
                                                     .then((p0) async {
                                                   log("Uploaded");
-                                                  String imgurl =
-                                                      await firebaseStorage
-                                                          .ref(
-                                                              'Profiles/$fileName')
-                                                          .getDownloadURL();
-                                                  print(imgurl);
-                                                  imhUrl=imgurl.toString();
                                                 });
+                                                var imgurl =
+                                                await firebaseStorage
+                                                    .ref(
+                                                    'Profiles/$fileName')
+                                                    .getDownloadURL();
+                                                print(imgurl);
+                                                imjUrl=imgurl.toString();
+                                                print("imj"+imjUrl);
+
                                               } catch (e) {
                                                 log("Error: $e");
                                               }
@@ -550,7 +552,7 @@ class _AddStudentsState extends State<AddStudents> {
                               "Gender": _selectedGender.toString(),
                               "Profile": _fileNameController.text,
                               "Roll No": _lastRollNumber,
-                              "Image": imhUrl,
+                              "Image": imjUrl,
                               "Email": _emailController.text,
                               "Mobile": _phoneController.text,
                               "DOB": _dobController.text,
