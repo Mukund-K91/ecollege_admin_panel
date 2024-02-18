@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   runApp(StudentList());
+}
+
+class StudentList extends StatefulWidget {
+  @override
+  _StudentListState createState() => _StudentListState();
 }
 
 class Student {
@@ -11,12 +17,9 @@ class Student {
   Student({required this.name, required this.className});
 }
 
-class StudentList extends StatefulWidget {
-  @override
-  _StudentListState createState() => _StudentListState();
-}
-
 class _StudentListState extends State<StudentList> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   late List<Student> _students;
   late List<Student> _filteredStudents;
   late String _selectedClass;
@@ -25,15 +28,26 @@ class _StudentListState extends State<StudentList> {
   @override
   void initState() {
     super.initState();
-    _students = [
-      Student(name: 'John Doe', className: 'Class A'),
-      Student(name: 'Jane Smith', className: 'Class B'),
-      Student(name: 'Alice Johnson', className: 'Class A'),
-      Student(name: 'Bob Williams', className: 'Class B'),
-    ];
-    _filteredStudents = _students;
+    _students = [];
+    _filteredStudents = [];
     _selectedClass = 'All';
     _searchController = TextEditingController();
+    _fetchStudents();
+  }
+
+  Future<void> _fetchStudents() async {
+    final QuerySnapshot<Map<String, dynamic>> querySnapshot =
+    await _firestore.collection('students').get();
+    final List<Student> students = querySnapshot.docs.map((doc) {
+      return Student(
+        name: doc['First Name'],
+        className: doc['Division'],
+      );
+    }).toList();
+    setState(() {
+      _students = students;
+      _filteredStudents = _students;
+    });
   }
 
   void _filterStudents() {
@@ -71,7 +85,7 @@ class _StudentListState extends State<StudentList> {
                         _filterStudents();
                       });
                     },
-                    items: ['All', 'Class A', 'Class B']
+                    items: ['All', 'A', 'B']
                         .map((className) => DropdownMenuItem<String>(
                       value: className,
                       child: Text(className),
