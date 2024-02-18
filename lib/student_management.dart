@@ -1,17 +1,13 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:ecollege_admin_panel/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class AddStudents extends StatefulWidget {
@@ -21,7 +17,7 @@ class AddStudents extends StatefulWidget {
 
 class _AddStudentsState extends State<AddStudents> {
   final CollectionReference _db =
-      FirebaseFirestore.instance.collection('student');
+      FirebaseFirestore.instance.collection('students');
 
   final TextEditingController _searchController = TextEditingController();
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
@@ -69,9 +65,11 @@ class _AddStudentsState extends State<AddStudents> {
   final TextEditingController _phoneController = TextEditingController();
   late TextEditingController _rollNumberController;
   final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _fileNameController = TextEditingController();
+  late TextEditingController _fileNameController = TextEditingController();
+  final TextEditingController _totalStudentsController =
+      TextEditingController();
 
-  // void _handleFileUpload(html.File file) {
+  // void _handleFileUpload(File file) {
   //   setState(() {
   //     _fileNameController.text = file.name;
   //   });
@@ -96,6 +94,13 @@ class _AddStudentsState extends State<AddStudents> {
                   101
               : 101;
       _rollNumberController.text = _lastRollNumber.toString();
+      _totalStudent =
+          rollNumberDocSnapshot.exists && rollNumberDocSnapshot.data() != null
+              ? (rollNumberDocSnapshot.data()
+                      as Map<String, dynamic>)['Total Students'] ??
+                  0
+              : 0;
+      _totalStudentsController.text = _totalStudent.toString();
     });
   }
 
@@ -109,6 +114,7 @@ class _AddStudentsState extends State<AddStudents> {
   @override
   void dispose() {
     _rollNumberController.dispose();
+    _totalStudentsController.dispose();
     super.dispose();
   }
 
@@ -298,6 +304,11 @@ class _AddStudentsState extends State<AddStudents> {
                                               final fileName =
                                                   result.files.single.name;
 
+                                              setState(() {
+                                                _fileNameController.text =
+                                                    fileName;
+                                              });
+
                                               try {
                                                 await firebaseStorage
                                                     .ref('Profiles/$fileName')
@@ -305,47 +316,18 @@ class _AddStudentsState extends State<AddStudents> {
                                                     .then((p0) async {
                                                   log("Uploaded");
                                                 });
-                                                var imgurl =
-                                                await firebaseStorage
-                                                    .ref(
-                                                    'Profiles/$fileName')
-                                                    .getDownloadURL();
-                                                print(imgurl);
-                                                imjUrl=imgurl.toString();
-                                                print("imj"+imjUrl);
 
                                               } catch (e) {
                                                 log("Error: $e");
                                               }
-
-                                              // Reference referenceRoot =
-                                              //     FirebaseStorage.instance
-                                              //         .ref();
-                                              // Reference referenceDireImage =
-                                              //     referenceRoot
-                                              //         .child('Profiles');
-                                              // Reference referenceToUplode =
-                                              //     referenceDireImage
-                                              //         .child(fileName);
-                                              //
-                                              // referenceToUplode.putData(path!);
-                                              //
-                                              // imgUrl = await referenceToUplode
-                                              //     .getDownloadURL()
-                                              //     .toString();
-
-                                              service.uplaodFile(
-                                                  fileName, path);
-
-                                              Timer(Duration(seconds: 5), () {
-                                                Navigator.pushReplacement(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (BuildContext
-                                                              context) =>
-                                                          super.widget,
-                                                    ));
-                                              });
+                                              var imgurl =
+                                              await firebaseStorage
+                                                  .ref(
+                                                  'Profiles/$fileName')
+                                                  .getDownloadURL();
+                                              print(imgurl);
+                                              imjUrl = imgurl.toString();
+                                              print("imj" + imjUrl);
                                             }
 
                                             // html.FileUploadInputElement
@@ -382,6 +364,15 @@ class _AddStudentsState extends State<AddStudents> {
                         Expanded(
                           child: ReusableTextField(
                             controller: _rollNumberController,
+                            maxLength: 10,
+                            keyboardType: TextInputType.phone,
+                            readOnly: true,
+                            title: 'Roll No.',
+                          ),
+                        ),
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: _totalStudentsController,
                             maxLength: 10,
                             keyboardType: TextInputType.phone,
                             readOnly: true,
