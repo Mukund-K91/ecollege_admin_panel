@@ -66,9 +66,7 @@ class _AddStudentsState extends State<AddStudents> {
   late TextEditingController _rollNumberController;
   final TextEditingController _dobController = TextEditingController();
   late TextEditingController _fileNameController = TextEditingController();
-  late TextEditingController _totalStudentsController =
-      TextEditingController();
-
+  late TextEditingController _totalStudentsController = TextEditingController();
 
   void initState() {
     super.initState();
@@ -77,7 +75,7 @@ class _AddStudentsState extends State<AddStudents> {
         FirebaseFirestore.instance.collection('metadata').doc('rollNumber');
     _getRollNumber();
     _rollNumberController = TextEditingController();
-    _totalStudentsController=TextEditingController();
+    _totalStudentsController = TextEditingController();
   }
 
   Future<void> _getRollNumber() async {
@@ -303,7 +301,7 @@ class _AddStudentsState extends State<AddStudents> {
                                               setState(() {
                                                 _fileNameController.text =
                                                     fileName;
-                                                result=null;
+                                                result = null;
                                               });
 
                                               try {
@@ -313,14 +311,11 @@ class _AddStudentsState extends State<AddStudents> {
                                                     .then((p0) async {
                                                   log("Uploaded");
                                                 });
-
                                               } catch (e) {
                                                 log("Error: $e");
                                               }
-                                              var imgurl =
-                                              await firebaseStorage
-                                                  .ref(
-                                                  'Profiles/$fileName')
+                                              var imgurl = await firebaseStorage
+                                                  .ref('Profiles/$fileName')
                                                   .getDownloadURL();
                                               print(imgurl);
                                               imjUrl = imgurl.toString();
@@ -549,7 +544,7 @@ class _AddStudentsState extends State<AddStudents> {
                               "Division": _seldiv.toString()
                             });
                             _firstNameController.text = "";
-                            _fileNameController.text="";
+                            _fileNameController.text = "";
                             _middleNameController.text = "";
                             _lastNameController.text = "";
                             _selectedGender = "";
@@ -579,129 +574,176 @@ class _AddStudentsState extends State<AddStudents> {
   }
 }
 
+/*===============================================*/
+/*===============================================*/
+/*===============================================*/
+
 class StudentList extends StatefulWidget {
   @override
   _StudentListState createState() => _StudentListState();
 }
 
-class Student {
-  final String name;
-  final String className;
-
-  Student({required this.name, required this.className});
-}
-
 class _StudentListState extends State<StudentList> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  late List<Student> _students;
-  late List<Student> _filteredStudents;
-  late String _selectedClass;
   late TextEditingController _searchController;
+  late String _selectedProgram;
+  late String _selectedClass;
 
   @override
   void initState() {
     super.initState();
-    _students = [];
-    _filteredStudents = [];
-    _selectedClass = 'All';
     _searchController = TextEditingController();
-    _fetchStudents();
-  }
-
-  Future<void> _fetchStudents() async {
-    final QuerySnapshot<Map<String, dynamic>> querySnapshot =
-        await _firestore.collection('students').get();
-    final List<Student> students = querySnapshot.docs.map((doc) {
-      return Student(
-        name: doc['First Name'],
-        className: doc['Division'],
-      );
-    }).toList();
-    setState(() {
-      _students = students;
-      _filteredStudents = _students;
-    });
-  }
-
-  void _filterStudents() {
-    setState(() {
-      _filteredStudents = _students.where((student) {
-        if (_selectedClass == 'All' || student.className == _selectedClass) {
-          final query = _searchController.text.toLowerCase();
-          return student.name.toLowerCase().contains(query);
-        }
-        return false;
-      }).toList();
-    });
+    _selectedProgram = '--All--';
+    _selectedClass = '--All--';
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Student List',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Student List'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  DropdownButton<String>(
-                    value: _selectedClass,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedClass = value!;
-                        _filterStudents();
-                      });
-                    },
-                    items: ['All', 'A', 'B']
-                        .map((className) => DropdownMenuItem<String>(
-                              value: className,
-                              child: Text(className),
-                            ))
-                        .toList(),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) => _filterStudents(),
-                      decoration: InputDecoration(
-                        hintText: 'Search by name',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    columns: [
-                      DataColumn(label: Text('Name')),
-                      DataColumn(label: Text('Class')),
-                    ],
-                    rows: _filteredStudents.map((student) {
-                      return DataRow(
-                        cells: [
-                          DataCell(Text(student.name)),
-                          DataCell(Text(student.className)),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Student List'),
       ),
+      body: Column(
+        children: [
+          _buildFilters(),
+          Expanded(
+            child: _buildStudentList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilters() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) {
+                setState(() {});
+              },
+            ),
+          ),
+          SizedBox(width: 8),
+          DropdownButton<String>(
+            value: _selectedProgram,
+            onChanged: (String? value) {
+              setState(() {
+                _selectedProgram = value!;
+              });
+            },
+            items: ['--All--','BCA', 'B-Com', 'BBA']
+                .map<DropdownMenuItem<String>>(
+              (String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              },
+            ).toList(),
+            hint: Text('Program'),
+          ),
+          SizedBox(width: 8),
+          DropdownButton<String>(
+            value: _selectedClass,
+            onChanged: (String? value) {
+              setState(() {
+                _selectedClass = value!;
+              });
+            },
+            items: ['--All--', 'A', 'B', 'C', 'D', 'E', 'F', 'G']
+                .map<DropdownMenuItem<String>>(
+              (String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              },
+            ).toList(),
+            hint: Text('Class'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStudentList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('students').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        final students = snapshot.data!.docs
+            .map((doc) => Student.fromFirestore(doc))
+            .where((student) {
+          void _filterStudents() {
+            setState(() {
+              _s = _students.where((student) {
+                if (_selectedClass == 'All' || student.className == _selectedClass) {
+                  final query = _searchController.text.toLowerCase();
+                  return student.name.toLowerCase().contains(query);
+                }
+                return false;
+              }).toList();
+            });
+          }
+          final searchQuery = _searchController.text.toLowerCase();
+          final programFilter = _selectedProgram.isNotEmpty|| _selectedProgram=='--All--' ||student.program==_selectedProgram
+              ? student.program.toLowerCase() == _selectedProgram.toLowerCase()
+              : true;
+          final classFilter = _selectedClass.isNotEmpty ||
+                  _selectedClass == '--All--'
+              ? student.classname.toLowerCase() == _selectedClass.toLowerCase()
+              : true;
+          return student.name.toLowerCase().contains(searchQuery) &&
+              programFilter &&
+              classFilter;
+        }).toList();
+        return DataTable(
+          columns: [
+            DataColumn(label: Text('Name')),
+            DataColumn(label: Text('Program')),
+            DataColumn(label: Text('Class')),
+          ],
+          rows: students.map((student) {
+            return DataRow(cells: [
+              DataCell(Text(student.name)),
+              DataCell(Text(student.program)),
+              DataCell(Text(student.classname)),
+            ]);
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+class Student {
+  final String name;
+  final String program;
+  final String classname;
+
+  Student({
+    required this.name,
+    required this.program,
+    required this.classname,
+  });
+
+  factory Student.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Student(
+      name: data['First Name'] ?? '',
+      program: data['Program'] ?? '',
+      classname: data['Division'] ?? '',
     );
   }
 }

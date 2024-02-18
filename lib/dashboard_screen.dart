@@ -24,6 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> _screens = [
     Home(),
     AddStudents(),
+    StudentList(),
     AddFaculty(),
     SettingsScreen(),
     LogoutScreen()
