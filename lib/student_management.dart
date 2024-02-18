@@ -578,6 +578,7 @@ class _AddStudentsState extends State<AddStudents> {
 /*===============================================*/
 /*===============================================*/
 
+
 class StudentList extends StatefulWidget {
   @override
   _StudentListState createState() => _StudentListState();
@@ -585,15 +586,14 @@ class StudentList extends StatefulWidget {
 
 class _StudentListState extends State<StudentList> {
   late TextEditingController _searchController;
-  late String _selectedProgram;
-  late String _selectedClass;
+  String _selectedProgram = '--Program--';
+  String _selectedProgramTerm = '--Program Term--';
+  String _selectedClass = '--Division--';
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _selectedProgram = '--All--';
-    _selectedClass = '--All--';
   }
 
   @override
@@ -636,11 +636,12 @@ class _StudentListState extends State<StudentList> {
             onChanged: (String? value) {
               setState(() {
                 _selectedProgram = value!;
+                _selectedProgramTerm = '';
               });
             },
-            items: ['--All--','BCA', 'B-Com', 'BBA']
+            items: ['--Program--','BCA', 'BBA', 'B-Com']
                 .map<DropdownMenuItem<String>>(
-              (String value) {
+                  (String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -651,15 +652,37 @@ class _StudentListState extends State<StudentList> {
           ),
           SizedBox(width: 8),
           DropdownButton<String>(
+            value: _selectedProgramTerm,
+            onChanged: (String? value) {
+              setState(() {
+                _selectedProgramTerm = value!;
+              });
+            },
+            items: _selectedProgram.isEmpty
+                ? []
+                : ['--Program Term--','FY', 'SY', 'TY']
+                .map<DropdownMenuItem<String>>(
+                  (String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              },
+            )
+                .toList(),
+            hint: Text('Program Term'),
+          ),
+          SizedBox(width: 8),
+          DropdownButton<String>(
             value: _selectedClass,
             onChanged: (String? value) {
               setState(() {
                 _selectedClass = value!;
               });
             },
-            items: ['--All--', 'A', 'B', 'C', 'D', 'E', 'F', 'G']
+            items: ['--Division--','A', 'B', 'C']
                 .map<DropdownMenuItem<String>>(
-              (String value) {
+                  (String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -682,43 +705,51 @@ class _StudentListState extends State<StudentList> {
             child: CircularProgressIndicator(),
           );
         }
-        final students = snapshot.data!.docs
-            .map((doc) => Student.fromFirestore(doc))
-            .where((student) {
-          void _filterStudents() {
-            setState(() {
-              _s = _students.where((student) {
-                if (_selectedClass == 'All' || student.className == _selectedClass) {
-                  final query = _searchController.text.toLowerCase();
-                  return student.name.toLowerCase().contains(query);
-                }
-                return false;
-              }).toList();
-            });
-          }
+
+        List<DocumentSnapshot> students = snapshot.data!.docs;
+
+        // Filter students based on selected program
+        if (_selectedProgram.isNotEmpty) {
+          students = students.where((student) {
+            return student['Program'] == _selectedProgram;
+          }).toList();
+        }
+
+        // Filter students based on selected program term
+        if (_selectedProgramTerm.isNotEmpty) {
+          students = students.where((student) {
+            return student['Program Term'] == _selectedProgramTerm;
+          }).toList();
+        }
+
+        // Filter students based on selected class
+        if (_selectedClass.isNotEmpty) {
+          students = students.where((student) {
+            return student['Division'] == _selectedClass;
+          }).toList();
+        }
+
+        // Filter students based on search query
+        if (_searchController.text.isNotEmpty) {
           final searchQuery = _searchController.text.toLowerCase();
-          final programFilter = _selectedProgram.isNotEmpty|| _selectedProgram=='--All--' ||student.program==_selectedProgram
-              ? student.program.toLowerCase() == _selectedProgram.toLowerCase()
-              : true;
-          final classFilter = _selectedClass.isNotEmpty ||
-                  _selectedClass == '--All--'
-              ? student.classname.toLowerCase() == _selectedClass.toLowerCase()
-              : true;
-          return student.name.toLowerCase().contains(searchQuery) &&
-              programFilter &&
-              classFilter;
-        }).toList();
+          students = students.where((student) {
+            return student['First Name'].toLowerCase().contains(searchQuery);
+          }).toList();
+        }
+
         return DataTable(
           columns: [
             DataColumn(label: Text('Name')),
             DataColumn(label: Text('Program')),
+            DataColumn(label: Text('Program Term')),
             DataColumn(label: Text('Class')),
           ],
           rows: students.map((student) {
             return DataRow(cells: [
-              DataCell(Text(student.name)),
-              DataCell(Text(student.program)),
-              DataCell(Text(student.classname)),
+              DataCell(Text(student['First Name'])),
+              DataCell(Text(student['Program'])),
+              DataCell(Text(student['Program Term'])),
+              DataCell(Text(student['Division'])),
             ]);
           }).toList(),
         );
@@ -727,23 +758,3 @@ class _StudentListState extends State<StudentList> {
   }
 }
 
-class Student {
-  final String name;
-  final String program;
-  final String classname;
-
-  Student({
-    required this.name,
-    required this.program,
-    required this.classname,
-  });
-
-  factory Student.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return Student(
-      name: data['First Name'] ?? '',
-      program: data['Program'] ?? '',
-      classname: data['Division'] ?? '',
-    );
-  }
-}
