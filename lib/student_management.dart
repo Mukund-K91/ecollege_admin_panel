@@ -66,14 +66,9 @@ class _AddStudentsState extends State<AddStudents> {
   late TextEditingController _rollNumberController;
   final TextEditingController _dobController = TextEditingController();
   late TextEditingController _fileNameController = TextEditingController();
-  final TextEditingController _totalStudentsController =
+  late TextEditingController _totalStudentsController =
       TextEditingController();
 
-  // void _handleFileUpload(File file) {
-  //   setState(() {
-  //     _fileNameController.text = file.name;
-  //   });
-  // }
 
   void initState() {
     super.initState();
@@ -82,6 +77,7 @@ class _AddStudentsState extends State<AddStudents> {
         FirebaseFirestore.instance.collection('metadata').doc('rollNumber');
     _getRollNumber();
     _rollNumberController = TextEditingController();
+    _totalStudentsController=TextEditingController();
   }
 
   Future<void> _getRollNumber() async {
@@ -291,7 +287,7 @@ class _AddStudentsState extends State<AddStudents> {
                                               shape:
                                                   ContinuousRectangleBorder()),
                                           onPressed: () async {
-                                            final result = await FilePicker
+                                            var result = await FilePicker
                                                 .platform
                                                 .pickFiles(
                                                     allowMultiple: true,
@@ -307,6 +303,7 @@ class _AddStudentsState extends State<AddStudents> {
                                               setState(() {
                                                 _fileNameController.text =
                                                     fileName;
+                                                result=null;
                                               });
 
                                               try {
@@ -552,6 +549,7 @@ class _AddStudentsState extends State<AddStudents> {
                               "Division": _seldiv.toString()
                             });
                             _firstNameController.text = "";
+                            _fileNameController.text="";
                             _middleNameController.text = "";
                             _lastNameController.text = "";
                             _selectedGender = "";
