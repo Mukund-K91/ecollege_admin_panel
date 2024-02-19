@@ -1,4 +1,5 @@
 import 'package:ecollege_admin_panel/demo.dart';
+import 'package:ecollege_admin_panel/student_management.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -31,10 +32,11 @@ class MyApp extends StatelessWidget {
             //ImageUpload()
             //LoginScreen()
       //UploadImageAndMore()
-            DashboardScreen(),
+        DashboardScreen(),
       //UploadImageForm()
-            //StudentList()
+          //  StudentList()
         //Demo()
+      //StudentListScreen()
         //StudentEntryScreen()
         );
   }

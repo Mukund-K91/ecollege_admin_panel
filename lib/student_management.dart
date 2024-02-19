@@ -578,7 +578,6 @@ class _AddStudentsState extends State<AddStudents> {
 /*===============================================*/
 /*===============================================*/
 
-
 class StudentList extends StatefulWidget {
   @override
   _StudentListState createState() => _StudentListState();
@@ -586,9 +585,9 @@ class StudentList extends StatefulWidget {
 
 class _StudentListState extends State<StudentList> {
   late TextEditingController _searchController;
-  String _selectedProgram = '--Program--';
-  String _selectedProgramTerm = '--Program Term--';
-  String _selectedClass = '--Division--';
+  late String _selectedProgram = '--Program--';
+  late String _selectedProgramTerm = '--Program Term';
+  late String _selectedClass = '--Division--';
 
   @override
   void initState() {
@@ -636,12 +635,12 @@ class _StudentListState extends State<StudentList> {
             onChanged: (String? value) {
               setState(() {
                 _selectedProgram = value!;
-                _selectedProgramTerm = '';
+                _selectedProgramTerm = '--Program Term--';
               });
             },
-            items: ['--Program--','BCA', 'BBA', 'B-Com']
+            items: ['--Program--', 'BCA', 'BBA', 'B-Com']
                 .map<DropdownMenuItem<String>>(
-                  (String value) {
+              (String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -658,18 +657,24 @@ class _StudentListState extends State<StudentList> {
                 _selectedProgramTerm = value!;
               });
             },
-            items: _selectedProgram.isEmpty
+            items: _selectedProgram.isEmpty || _selectedProgram == '--Program--'
                 ? []
-                : ['--Program Term--','FY', 'SY', 'TY']
-                .map<DropdownMenuItem<String>>(
-                  (String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              },
-            )
-                .toList(),
+                : [
+                    '--Program Term--',
+                    'Sem-1',
+                    'Sem-2',
+                    'Sem-3',
+                    'Sem-4',
+                    'Sem-5',
+                    'Sem-6'
+                  ].map<DropdownMenuItem<String>>(
+                    (String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    },
+                  ).toList(),
             hint: Text('Program Term'),
           ),
           SizedBox(width: 8),
@@ -680,15 +685,18 @@ class _StudentListState extends State<StudentList> {
                 _selectedClass = value!;
               });
             },
-            items: ['--Division--','A', 'B', 'C']
-                .map<DropdownMenuItem<String>>(
-                  (String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              },
-            ).toList(),
+            items: _selectedProgramTerm.isEmpty ||
+                    _selectedProgramTerm == '--Program Term'
+                ? []
+                : ['--Division--', 'A', 'B', 'C', 'D']
+                    .map<DropdownMenuItem<String>>(
+                    (String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    },
+                  ).toList(),
             hint: Text('Class'),
           ),
         ],
@@ -698,7 +706,10 @@ class _StudentListState extends State<StudentList> {
 
   Widget _buildStudentList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('students').snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('students')
+          .orderBy('Roll No')
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(
@@ -733,12 +744,19 @@ class _StudentListState extends State<StudentList> {
         if (_searchController.text.isNotEmpty) {
           final searchQuery = _searchController.text.toLowerCase();
           students = students.where((student) {
-            return student['First Name'].toLowerCase().contains(searchQuery);
+            return student['Roll No'].toLowerCase().contains(searchQuery);
           }).toList();
+        }
+
+        if (students.isEmpty) {
+          return Center(
+            child: Text('No data found'),
+          );
         }
 
         return DataTable(
           columns: [
+            DataColumn(label: Text('Roll No')),
             DataColumn(label: Text('Name')),
             DataColumn(label: Text('Program')),
             DataColumn(label: Text('Program Term')),
@@ -746,6 +764,7 @@ class _StudentListState extends State<StudentList> {
           ],
           rows: students.map((student) {
             return DataRow(cells: [
+              DataCell(Text(student['Roll No'].toString())),
               DataCell(Text(student['First Name'])),
               DataCell(Text(student['Program'])),
               DataCell(Text(student['Program Term'])),
@@ -757,4 +776,3 @@ class _StudentListState extends State<StudentList> {
     );
   }
 }
-
