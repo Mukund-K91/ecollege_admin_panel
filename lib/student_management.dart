@@ -362,15 +362,6 @@ class _AddStudentsState extends State<AddStudents> {
                             title: 'User Id',
                           ),
                         ),
-                        Expanded(
-                          child: ReusableTextField(
-                            controller: _totalStudentsController,
-                            maxLength: 10,
-                            keyboardType: TextInputType.phone,
-                            readOnly: true,
-                            title: 'Total Students',
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(
