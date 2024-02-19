@@ -1,10 +1,46 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class Home extends StatelessWidget {
-  const Home({super.key});
+class Home extends StatefulWidget {
+  Home({super.key});
 
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  late DocumentReference _UserIdDoc;
+
+  late TextEditingController _totalStudentsController = TextEditingController();
+
+  int _totalStudent = 0;
+
+  void initState() {
+    super.initState();
+    _UserIdDoc =
+        FirebaseFirestore.instance.collection('metadata').doc('userId');
+    _getUserId();
+    _totalStudentsController = TextEditingController();
+  }
+
+  Future<void> _getUserId() async {
+    final userIdDocSnapshot = await _UserIdDoc.get();
+    setState(() {
+      _totalStudent =
+      userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
+          ? (userIdDocSnapshot.data()
+      as Map<String, dynamic>)['Total Students'] ??
+          0
+          : 0;
+      _totalStudentsController.text = _totalStudent.toString();
+    });
+  }
+  void dispose() {
+    _totalStudentsController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,7 +82,7 @@ class Home extends StatelessWidget {
                                 fontSize: 20,color: Colors.white),
                           ),
                           subtitle: Text(
-                            "5",
+                            _totalStudent.toString(),
                             style: TextStyle(
                                 fontSize: 25, fontWeight: FontWeight.bold,color: Colors.white),
                           ),
