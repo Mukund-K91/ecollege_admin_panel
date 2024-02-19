@@ -590,6 +590,8 @@ class _StudentListState extends State<StudentList> {
   late String _selectedProgram = '--Program--';
   late String _selectedProgramTerm = '--Program Term';
   late String _selectedClass = '--Division--';
+  ScrollController _dataController1 = ScrollController();
+  ScrollController _dataController2 = ScrollController();
 
   @override
   void initState() {
@@ -756,38 +758,59 @@ class _StudentListState extends State<StudentList> {
           );
         }
 
-        return DataTable(
-          columns: [
-            DataColumn(label: Text('User Id')),
-            DataColumn(label: Text('Name')),
-            DataColumn(label: Text('Profile')),
-            DataColumn(label: Text('Program')),
-            DataColumn(label: Text('Program Term')),
-            DataColumn(label: Text('Class')),
-            DataColumn(label: Text('Activation Date')),
-          ],
-          rows: students.map((student) {
-            return DataRow(cells: [
-              DataCell(Text(student['User Id'].toString())),
-              DataCell(
-                  Text(student['First Name'] + " " + student['Last Name'])),
-              DataCell(CircleAvatar(
-                radius: 27,
-                child: ClipOval(
-                  child: Image.network(
-                    student['Image'],
-                    fit: BoxFit.cover,
-                    height: 50,
-                    width: 50,
-                  ),
-                ),
-              )),
-              DataCell(Text(student['Program'])),
-              DataCell(Text(student['Program Term'])),
-              DataCell(Text(student['Division'])),
-              DataCell(Text(student['Activation Date'])),
-            ]);
-          }).toList(),
+        return RawScrollbar(
+          trackVisibility: true,
+          controller: _dataController2,
+          padding: EdgeInsets.all(10),
+          thumbVisibility: true,
+          thumbColor: Colors.blue,
+          child: SingleChildScrollView(
+            controller: _dataController2,
+            scrollDirection: Axis.horizontal,
+            child: SingleChildScrollView(
+              controller: _dataController1,
+              child: DataTable(
+                border: TableBorder.all(color: Colors.black,style: BorderStyle.solid),
+                columns: [
+                  DataColumn(label: Text('User Id')),
+                  DataColumn(label: Text('Name')),
+                  DataColumn(label: Text('Profile')),
+                  DataColumn(label: Text('Program')),
+                  DataColumn(label: Text('Program Term')),
+                  DataColumn(label: Text('Division')),
+                  DataColumn(label: Text('Activation Date')),
+                  DataColumn(label: Text('DOB')),
+                  DataColumn(label: Text('Mobile')),
+                  DataColumn(label: Text('Email')),
+                ],
+                rows: students.map((student) {
+                  return DataRow(cells: [
+                    DataCell(Text(student['User Id'].toString())),
+                    DataCell(
+                        Text(student['First Name'] + " " + student['Last Name'])),
+                    DataCell(CircleAvatar(
+                      radius: 27,
+                      child: ClipOval(
+                        child: Image.network(
+                          student['Image'],
+                          fit: BoxFit.cover,
+                          height: 70,
+                          width: 70,
+                        ),
+                      ),
+                    )),
+                    DataCell(Text(student['Program'])),
+                    DataCell(Text(student['Program Term'])),
+                    DataCell(Text(student['Division'])),
+                    DataCell(Text(student['Activation Date'])),
+                    DataCell(Text(student['DOB'])),
+                    DataCell(Text(student['Mobile'])),
+                    DataCell(Text(student['Email'])),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
         );
       },
     );
