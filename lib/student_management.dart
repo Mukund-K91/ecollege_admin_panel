@@ -25,8 +25,8 @@ class _AddStudentsState extends State<AddStudents> {
 
   StorageService storageService = StorageService();
   late CollectionReference _studentsCollection;
-  late DocumentReference _rollNumberDoc;
-  int _lastRollNumber = 101;
+  late DocumentReference _UserIdDoc;
+  int _lastUserId = 202400101;
   int _totalStudent = 0;
   late String imjUrl;
 
@@ -63,34 +63,35 @@ class _AddStudentsState extends State<AddStudents> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  late TextEditingController _rollNumberController;
+  late TextEditingController _UserIdController;
   final TextEditingController _dobController = TextEditingController();
   late TextEditingController _fileNameController = TextEditingController();
   late TextEditingController _totalStudentsController = TextEditingController();
+  DateTime _activationDate=DateTime.now();
+  TextEditingController _activeDate=TextEditingController();
+
 
   void initState() {
     super.initState();
     _studentsCollection = _db;
-    _rollNumberDoc =
-        FirebaseFirestore.instance.collection('metadata').doc('rollNumber');
-    _getRollNumber();
-    _rollNumberController = TextEditingController();
+    _UserIdDoc =
+        FirebaseFirestore.instance.collection('metadata').doc('userId');
+    _getUserId();
+    _UserIdController = TextEditingController();
     _totalStudentsController = TextEditingController();
   }
 
-  Future<void> _getRollNumber() async {
-    final rollNumberDocSnapshot = await _rollNumberDoc.get();
+  Future<void> _getUserId() async {
+    final userIdDocSnapshot = await _UserIdDoc.get();
     setState(() {
-      _lastRollNumber =
-          rollNumberDocSnapshot.exists && rollNumberDocSnapshot.data() != null
-              ? (rollNumberDocSnapshot.data()
-                      as Map<String, dynamic>)['lastRollNumber'] ??
-                  101
-              : 101;
-      _rollNumberController.text = _lastRollNumber.toString();
+      _lastUserId = userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
+          ? (userIdDocSnapshot.data() as Map<String, dynamic>)['lastUserId'] ??
+              202400101
+          : 202400101;
+      _UserIdController.text = _lastUserId.toString();
       _totalStudent =
-          rollNumberDocSnapshot.exists && rollNumberDocSnapshot.data() != null
-              ? (rollNumberDocSnapshot.data()
+          userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
+              ? (userIdDocSnapshot.data()
                       as Map<String, dynamic>)['Total Students'] ??
                   0
               : 0;
@@ -99,15 +100,15 @@ class _AddStudentsState extends State<AddStudents> {
   }
 
   Future<void> _incrementRollNumber() async {
-    _lastRollNumber++;
+    _lastUserId++;
     _totalStudent++;
-    await _rollNumberDoc.set(
-        {'lastRollNumber': _lastRollNumber, 'Total Students': _totalStudent});
+    await _UserIdDoc.set(
+        {'lastUserId': _lastUserId, 'Total Students': _totalStudent});
   }
 
   @override
   void dispose() {
-    _rollNumberController.dispose();
+    _UserIdController.dispose();
     _totalStudentsController.dispose();
     super.dispose();
   }
@@ -355,11 +356,11 @@ class _AddStudentsState extends State<AddStudents> {
                         ),
                         Expanded(
                           child: ReusableTextField(
-                            controller: _rollNumberController,
+                            controller: _UserIdController,
                             maxLength: 10,
                             keyboardType: TextInputType.phone,
                             readOnly: true,
-                            title: 'Roll No.',
+                            title: 'User Id',
                           ),
                         ),
                         Expanded(
@@ -368,7 +369,7 @@ class _AddStudentsState extends State<AddStudents> {
                             maxLength: 10,
                             keyboardType: TextInputType.phone,
                             readOnly: true,
-                            title: 'Roll No.',
+                            title: 'Total Students',
                           ),
                         ),
                       ],
@@ -528,13 +529,15 @@ class _AddStudentsState extends State<AddStudents> {
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
+                            final _activedate=DateFormat('dd-MMMM-yyyy').format(_activationDate);
                             await _db.add({
                               "First Name": _firstNameController.text,
                               "Middle Name": _middleNameController.text,
                               "Last Name": _lastNameController.text,
                               "Gender": _selectedGender.toString(),
                               "Profile": _fileNameController.text,
-                              "Roll No": _lastRollNumber,
+                              "User Id": _lastUserId,
+                              "Activation Date":_activedate.toString(),
                               "Image": imjUrl,
                               "Email": _emailController.text,
                               "Mobile": _phoneController.text,
@@ -555,8 +558,7 @@ class _AddStudentsState extends State<AddStudents> {
 
                             await _incrementRollNumber();
                             // Update TextField value after increment
-                            _rollNumberController.text =
-                                _lastRollNumber.toString();
+                            _UserIdController.text = _lastUserId.toString();
                           },
                           child: const Text(
                             "Register",
@@ -708,7 +710,7 @@ class _StudentListState extends State<StudentList> {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('students')
-          .orderBy('Roll No')
+          .orderBy('User Id')
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -744,7 +746,7 @@ class _StudentListState extends State<StudentList> {
         if (_searchController.text.isNotEmpty) {
           final searchQuery = _searchController.text.toLowerCase();
           students = students.where((student) {
-            return student['Roll No'].toLowerCase().contains(searchQuery);
+            return student['User Id'].toLowerCase().contains(searchQuery);
           }).toList();
         }
 
@@ -756,7 +758,7 @@ class _StudentListState extends State<StudentList> {
 
         return DataTable(
           columns: [
-            DataColumn(label: Text('Roll No')),
+            DataColumn(label: Text('User Id')),
             DataColumn(label: Text('Name')),
             DataColumn(label: Text('Program')),
             DataColumn(label: Text('Program Term')),
@@ -764,8 +766,9 @@ class _StudentListState extends State<StudentList> {
           ],
           rows: students.map((student) {
             return DataRow(cells: [
-              DataCell(Text(student['Roll No'].toString())),
-              DataCell(Text(student['First Name'])),
+              DataCell(Text(student['User Id'].toString())),
+              DataCell(
+                  Text(student['First Name'] + " " + student['Last Name'])),
               DataCell(Text(student['Program'])),
               DataCell(Text(student['Program Term'])),
               DataCell(Text(student['Division'])),

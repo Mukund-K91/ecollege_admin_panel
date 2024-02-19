@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
       //UploadImageAndMore()
         DashboardScreen(),
       //UploadImageForm()
-          //  StudentList()
+        //    StudentList()
         //Demo()
       //StudentListScreen()
         //StudentEntryScreen()
