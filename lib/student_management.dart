@@ -67,9 +67,8 @@ class _AddStudentsState extends State<AddStudents> {
   final TextEditingController _dobController = TextEditingController();
   late TextEditingController _fileNameController = TextEditingController();
   late TextEditingController _totalStudentsController = TextEditingController();
-  DateTime _activationDate=DateTime.now();
-  TextEditingController _activeDate=TextEditingController();
-
+  DateTime _activationDate = DateTime.now();
+  TextEditingController _activeDate = TextEditingController();
 
   void initState() {
     super.initState();
@@ -529,7 +528,8 @@ class _AddStudentsState extends State<AddStudents> {
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
-                            final _activedate=DateFormat('dd-MMMM-yyyy').format(_activationDate);
+                            final _activedate = DateFormat('dd-MMMM-yyyy')
+                                .format(_activationDate);
                             await _db.add({
                               "First Name": _firstNameController.text,
                               "Middle Name": _middleNameController.text,
@@ -537,7 +537,7 @@ class _AddStudentsState extends State<AddStudents> {
                               "Gender": _selectedGender.toString(),
                               "Profile": _fileNameController.text,
                               "User Id": _lastUserId,
-                              "Activation Date":_activedate.toString(),
+                              "Activation Date": _activedate.toString(),
                               "Image": imjUrl,
                               "Email": _emailController.text,
                               "Mobile": _phoneController.text,
@@ -760,18 +760,32 @@ class _StudentListState extends State<StudentList> {
           columns: [
             DataColumn(label: Text('User Id')),
             DataColumn(label: Text('Name')),
+            DataColumn(label: Text('Profile')),
             DataColumn(label: Text('Program')),
             DataColumn(label: Text('Program Term')),
             DataColumn(label: Text('Class')),
+            DataColumn(label: Text('Activation Date')),
           ],
           rows: students.map((student) {
             return DataRow(cells: [
               DataCell(Text(student['User Id'].toString())),
               DataCell(
                   Text(student['First Name'] + " " + student['Last Name'])),
+              DataCell(CircleAvatar(
+                radius: 27,
+                child: ClipOval(
+                  child: Image.network(
+                    student['Image'],
+                    fit: BoxFit.cover,
+                    height: 50,
+                    width: 50,
+                  ),
+                ),
+              )),
               DataCell(Text(student['Program'])),
               DataCell(Text(student['Program Term'])),
               DataCell(Text(student['Division'])),
+              DataCell(Text(student['Activation Date'])),
             ]);
           }).toList(),
         );
