@@ -4,11 +4,65 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:ecollege_admin_panel/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+
+import 'firebase_options.dart';
+
+class Student {
+  final String firstname;
+  final String middlename;
+  final String lastname;
+  final String gender;
+  final int userId;
+  final String activationDate;
+  final String profile;
+  final String email;
+  final int mobile;
+  final String DOB;
+  final String program;
+  final String programTerm;
+  final String division;
+
+  Student(
+      {required this.firstname,
+      required this.middlename,
+      required this.lastname,
+      required this.gender,
+      required this.userId,
+      required this.activationDate,
+      required this.profile,
+      required this.email,
+      required this.mobile,
+      required this.DOB,
+      required this.program,
+      required this.programTerm,
+      required this.division});
+
+  // Convert Student object to a Map for Firestore
+  Map<String, dynamic> toMap() {
+    return {
+      "First Name": firstname,
+      "Middle Name": middlename,
+      "Last Name": lastname,
+      "Gender": gender,
+      "User Id": userId,
+      "Activation Date":activationDate,
+      "Profile Img": profile,
+      "Email": email,
+      "Mobile": mobile,
+      "DOB": DOB,
+      'program': program,
+      'programTerm': programTerm,
+      'division': division,
+    };
+  }
+}
 
 class AddStudents extends StatefulWidget {
   @override
@@ -16,8 +70,7 @@ class AddStudents extends StatefulWidget {
 }
 
 class _AddStudentsState extends State<AddStudents> {
-  final CollectionReference _db =
-      FirebaseFirestore.instance.collection('students');
+  final FirebaseFirestore _firestore=FirebaseFirestore.instance;
 
   final TextEditingController _searchController = TextEditingController();
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
@@ -572,6 +625,14 @@ class _AddStudentsState extends State<AddStudents> {
 /*===============================================*/
 
 class StudentList extends StatefulWidget {
+  void main() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    //  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: SystemUiOverlay.values);
+  }
+
   @override
   _StudentListState createState() => _StudentListState();
 }
@@ -761,7 +822,8 @@ class _StudentListState extends State<StudentList> {
             child: SingleChildScrollView(
               controller: _dataController1,
               child: DataTable(
-                border: TableBorder.all(color: Colors.black,style: BorderStyle.solid),
+                border: TableBorder.all(
+                    color: Colors.black, style: BorderStyle.solid),
                 columns: [
                   DataColumn(label: Text('User Id')),
                   DataColumn(label: Text('Name')),
@@ -773,12 +835,13 @@ class _StudentListState extends State<StudentList> {
                   DataColumn(label: Text('DOB')),
                   DataColumn(label: Text('Mobile')),
                   DataColumn(label: Text('Email')),
+                  DataColumn(label: Text('Action')),
                 ],
                 rows: students.map((student) {
                   return DataRow(cells: [
                     DataCell(Text(student['User Id'].toString())),
-                    DataCell(
-                        Text(student['First Name'] + " " + student['Last Name'])),
+                    DataCell(Text(
+                        student['First Name'] + " " + student['Last Name'])),
                     DataCell(CircleAvatar(
                       radius: 27,
                       child: ClipOval(
@@ -797,6 +860,24 @@ class _StudentListState extends State<StudentList> {
                     DataCell(Text(student['DOB'])),
                     DataCell(Text(student['Mobile'])),
                     DataCell(Text(student['Email'])),
+                    DataCell(Row(
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              _showUpdateDialog(context);
+                            },
+                            icon: Icon(
+                              FontAwesomeIcons.edit,
+                              color: Colors.green,
+                            )),
+                        IconButton(
+                            onPressed: () {},
+                            icon: Icon(
+                              FontAwesomeIcons.trash,
+                              color: Colors.redAccent,
+                            )),
+                      ],
+                    )),
                   ]);
                 }).toList(),
               ),
@@ -807,3 +888,46 @@ class _StudentListState extends State<StudentList> {
     );
   }
 }
+
+void _showUpdateDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Update Student Details'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: InputDecoration(labelText: 'Name'),
+            ),
+            TextField(
+              decoration: InputDecoration(labelText: 'Age'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              decoration: InputDecoration(labelText: 'Address'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _updateStudentDetails();
+              Navigator.of(context).pop();
+            },
+            child: Text('Submit'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Close'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _updateStudentDetails() {}

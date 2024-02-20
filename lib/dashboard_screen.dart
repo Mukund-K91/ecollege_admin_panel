@@ -25,8 +25,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Home(),
     AddStudents(),
     StudentList(),
-    AddFaculty(),
-    SettingsScreen(),
+    AddStudentPage(),
+    DisplayStudentsPage(),
     LogoutScreen()
   ];
 

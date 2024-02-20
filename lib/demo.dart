@@ -1,197 +1,318 @@
+// import 'package:flutter/material.dart';
+//
+// class Student {
+//   String name;
+//   int age;
+//   String address;
+//
+//   Student({required this.name, required this.age, required this.address});
+// }
+//
+// class UpdateStudentDetails extends StatefulWidget {
+//   @override
+//   _UpdateStudentDetailsState createState() => _UpdateStudentDetailsState();
+// }
+//
+// class _UpdateStudentDetailsState extends State<UpdateStudentDetails> {
+//   late TextEditingController _nameController;
+//   late TextEditingController _ageController;
+//   late TextEditingController _addressController;
+//
+//   // Mock student data
+//   Student _student = Student(name: 'John Doe', age: 20, address: '123 Main St');
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _nameController = TextEditingController(text: _student.name);
+//     _ageController = TextEditingController(text: _student.age.toString());
+//     _addressController = TextEditingController(text: _student.address);
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Update Student Details'),
+//       ),
+//       body: Center(
+//         child: ElevatedButton(
+//           onPressed: () {
+//             _showUpdateDialog(context);
+//           },
+//           child: Text('Update Student'),
+//         ),
+//       ),
+//     );
+//   }
+//
+//   void _showUpdateDialog(BuildContext context) {
+//     showDialog(
+//       context: context,
+//       builder: (BuildContext context) {
+//         return AlertDialog(
+//           title: Text('Update Student Details'),
+//           content: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               TextField(
+//                 controller: _nameController,
+//                 decoration: InputDecoration(labelText: 'Name'),
+//               ),
+//               TextField(
+//                 controller: _ageController,
+//                 decoration: InputDecoration(labelText: 'Age'),
+//                 keyboardType: TextInputType.number,
+//               ),
+//               TextField(
+//                 controller: _addressController,
+//                 decoration: InputDecoration(labelText: 'Address'),
+//               ),
+//             ],
+//           ),
+//           actions: [
+//             TextButton(
+//               onPressed: () {
+//                 _resetFields();
+//                 Navigator.of(context).pop();
+//               },
+//               child: Text('Reset'),
+//             ),
+//             TextButton(
+//               onPressed: () {
+//                 _updateStudentDetails();
+//                 Navigator.of(context).pop();
+//               },
+//               child: Text('Submit'),
+//             ),
+//             TextButton(
+//               onPressed: () {
+//                 Navigator.of(context).pop();
+//               },
+//               child: Text('Close'),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+//
+//   void _resetFields() {
+//     _nameController.text = _student.name;
+//     _ageController.text = _student.age.toString();
+//     _addressController.text = _student.address;
+//   }
+//
+//   void _updateStudentDetails() {
+//     setState(() {
+//       _student.name = _nameController.text;
+//       _student.age = int.tryParse(_ageController.text) ?? 0;
+//       _student.address = _addressController.text;
+//     });
+//   }
+//
+//   @override
+//   void dispose() {
+//     _nameController.dispose();
+//     _ageController.dispose();
+//     _addressController.dispose();
+//     super.dispose();
+//   }
+// }
+//
+// void main() {
+//   runApp(MaterialApp(
+//     debugShowCheckedModeBanner: false,
+//     home: UpdateStudentDetails(),
+//   ));
+// }
+
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'dart:io';
+import 'firebase_options.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+class Student {
+  final String name;
+  final String program;
+  final String programTerm;
+  final String division;
 
-class UploadImageAndMore extends StatefulWidget {
-  const UploadImageAndMore({super.key});
+  Student(
+      {required this.name,
+      required this.program,
+      required this.programTerm,
+      required this.division});
 
-  @override
-  State<UploadImageAndMore> createState() => _UploadImageAndMoreState();
+  // Convert Student object to a Map for Firestore
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'program': program,
+      'programTerm': programTerm,
+      'division': division,
+    };
+  }
 }
 
-class _UploadImageAndMoreState extends State<UploadImageAndMore> {
-  // text fiedl controller
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _numberController = TextEditingController();
+class FirestoreService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  final CollectionReference _items =
-  FirebaseFirestore.instance.collection("Upload_Items");
-  // collection name must be same as firebase collection name
-
-  String imageUrl = '';
-
-  Future<void> _create([DocumentSnapshot? documentSnapshot]) async {
-    await showModalBottomSheet(
-        isScrollControlled: true,
-        context: context,
-        builder: (BuildContext ctx) {
-          return Padding(
-            padding: EdgeInsets.only(
-                top: 20,
-                right: 20,
-                left: 20,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Center(
-                  child: Text("Create your Items"),
-                ),
-                TextField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                      labelText: 'Name', hintText: 'eg Elon'),
-                ),
-                TextField(
-                  controller: _numberController,
-                  decoration: const InputDecoration(
-                      labelText: 'Number', hintText: 'eg 10'),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Center(
-                    child: IconButton(
-                        onPressed: () async {
-                          // add the package image_picker
-                          final file = await ImagePicker()
-                              .pickImage(source: ImageSource.gallery);
-                          if (file == null) return;
-
-                          String fileName =
-                          DateTime.now().microsecondsSinceEpoch.toString();
-
-                          // Get the reference to storage root
-                          // We create the image folder first and insider folder we upload the image
-                          Reference referenceRoot =
-                          FirebaseStorage.instance.ref();
-                          Reference referenceDireImages =
-                          referenceRoot.child('Profiles');
-
-                          // we have creata reference for the image to be stored
-                          Reference referenceImageaToUpload =
-                          referenceDireImages.child(fileName);
-
-                          // For errors handled and/or success
-                          try {
-                            await referenceImageaToUpload
-                                .putFile(File(file.path));
-
-                            // We have successfully upload the image now
-                            // make this upload image link in firebase database
-
-                            imageUrl =
-                            await referenceImageaToUpload.getDownloadURL();
-                          } catch (error) {
-                            //some error
-                          }
-                        },
-                        icon: const Icon(Icons.camera_alt))),
-                Center(
-                    child: ElevatedButton(
-                        onPressed: () async {
-                          if (imageUrl.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        "Please select and upload image")));
-                            return;
-                          }
-                          final String name = _nameController.text;
-                          final int? number =
-                          int.tryParse(_numberController.text);
-                          if (number != null) {
-                            await _items.add({
-                              // Add items in you firebase firestore
-                              "name": name,
-                              "number": number,
-                              "image": imageUrl,
-                            });
-                            _nameController.text = '';
-                            _numberController.text = '';
-                            Navigator.of(context).pop();
-                          }
-                        },
-                        child: const Text('Create')))
-              ],
-            ),
-          );
-        });
+  // Add student to Firestore
+  Future<void> addStudent(Student student) async {
+    try {
+      await _firestore
+          .collection('student')
+          .doc(student.program)
+          .collection(student.programTerm)
+          .doc(student.division)
+          .collection('student')
+          .doc(student.name)
+          .set(student.toMap());
+    } catch (e) {
+      print('Error adding student: $e');
+    }
   }
 
-  late Stream<QuerySnapshot> _stream;
-  @override
-  void initState() {
-    super.initState();
-    _stream = FirebaseFirestore.instance.collection('Upload_Items').snapshots();
+  // Fetch students from Firestore based on program, program term, and division
+  Stream<List<Student>> getStudents(
+      String program, String programTerm, String division) {
+    return _firestore
+        .collection('student')
+        .doc(program)
+        .collection(programTerm)
+        .doc(division)
+        .collection('student')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Student(
+                  name: doc['name'],
+                  program: doc['program'],
+                  programTerm: doc['programTerm'],
+                  division: doc['division'],
+                ))
+            .toList());
   }
+}
+
+class AddStudentPage extends StatelessWidget {
+  void main() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    //  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: SystemUiOverlay.values);
+  }
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController programController = TextEditingController();
+  final TextEditingController programTermController = TextEditingController();
+  final TextEditingController divisionController = TextEditingController();
+
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Upload and display Items"),
+        title: Text('Add Student'),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-          stream: _stream,
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Text("Some error occured${snapshot.error}"),
-              );
-            }
-            // Now , Cheeck if datea arrived?
-            if (snapshot.hasData) {
-              QuerySnapshot querySnapshot = snapshot.data;
-              List<QueryDocumentSnapshot> document = querySnapshot.docs;
-
-              // We need to Convert your documnets to Maps to display
-              List<Map> items = document.map((e) => e.data() as Map).toList();
-
-              //At Last, Display the list of items
-              return ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    Map thisItems = items[index];
-                    return ListTile(
-                        title: Text(
-                          "${thisItems['name']}",
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 17),
-                        ),
-                        subtitle: Text("${thisItems['number']}"),
-                        leading: CircleAvatar(
-                          radius: 27,
-                          child: thisItems.containsKey('image')
-                              ? ClipOval(
-                            child: Image.network(
-                              "${thisItems['image']}",
-                              fit: BoxFit.cover,
-                              height: 70,
-                              width: 70,
-                            ),
-                          )
-                              : const CircleAvatar(),
-                        ));
-                  });
-            }
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _create();
-        },
-        child: const Icon(Icons.add),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(labelText: 'Name'),
+            ),
+            TextField(
+              controller: programController,
+              decoration: InputDecoration(labelText: 'Program'),
+            ),
+            TextField(
+              controller: programTermController,
+              decoration: InputDecoration(labelText: 'Program Term'),
+            ),
+            TextField(
+              controller: divisionController,
+              decoration: InputDecoration(labelText: 'Division'),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                Student newStudent = Student(
+                  name: nameController.text,
+                  program: programController.text,
+                  programTerm: programTermController.text,
+                  division: divisionController.text,
+                );
+                _firestoreService.addStudent(newStudent);
+                Navigator.pop(context); // Navigate back after adding student
+              },
+              child: Text('Add Student'),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+class DisplayStudentsPage extends StatelessWidget {
+  final FirestoreService _firestoreService = FirestoreService();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Students'),
+      ),
+      body: StreamBuilder<List<Student>>(
+        stream: _firestoreService.getStudents('BCA', 'Sem-3', 'C'),
+        // Example program, program term, and division
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.data!.isEmpty) {
+            return Center(
+              child: Text('No students found'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(snapshot.data![index].name),
+                subtitle: Text(
+                    'Program: ${snapshot.data![index].program}, Term: ${snapshot.data![index].programTerm}, Division: ${snapshot.data![index].division}'),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+void main() {
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    initialRoute: '/',
+    routes: {
+      '/': (context) => AddStudentPage(),
+      '/displayStudents': (context) => DisplayStudentsPage(),
+    },
+  ));
 }
