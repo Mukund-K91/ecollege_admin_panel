@@ -52,7 +52,7 @@ class Student {
       "Last Name": lastname,
       "Gender": gender,
       "User Id": userId,
-      "Activation Date":activationDate,
+      "Activation Date": activationDate,
       "Profile Img": profile,
       "Email": email,
       "Mobile": mobile,
@@ -64,13 +64,62 @@ class Student {
   }
 }
 
+class FirestoreService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Add student to Firestore
+  Future<void> addStudent(Student student) async {
+    try {
+      await _firestore
+          .collection('student')
+          .doc(student.program)
+          .collection(student.programTerm)
+          .doc(student.division)
+          .collection('student')
+          .doc(student.name)
+          .set(student.toMap());
+    } catch (e) {
+      print('Error adding student: $e');
+    }
+  }
+
+  // Fetch students from Firestore based on program, program term, and division
+  Stream<List<Student>> getStudents(
+      String program, String programTerm, String division) {
+    return _firestore
+        .collection('student')
+        .doc(program)
+        .collection(programTerm)
+        .doc(division)
+        .collection('student')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Student(
+                  firstname: doc['name'],
+                  program: doc['program'],
+                  programTerm: doc['programTerm'],
+                  division: doc['division'],
+                  middlename: '',
+                  lastname: '',
+                  gender: '',
+                  userId: null,
+                  activationDate: '',
+                  profile: '',
+                  email: '',
+                  mobile: '',
+                  DOB: '',
+                ))
+            .toList());
+  }
+}
+
 class AddStudents extends StatefulWidget {
   @override
   _AddStudentsState createState() => _AddStudentsState();
 }
 
 class _AddStudentsState extends State<AddStudents> {
-  final FirebaseFirestore _firestore=FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final TextEditingController _searchController = TextEditingController();
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
