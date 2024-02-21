@@ -23,7 +23,7 @@ class Student {
   final String activationDate;
   final String profile;
   final String email;
-  final int mobile;
+  final String mobile;
   final String DOB;
   final String program;
   final String programTerm;
@@ -71,12 +71,12 @@ class FirestoreService {
   Future<void> addStudent(Student student) async {
     try {
       await _firestore
-          .collection('student')
+          .collection('students')
           .doc(student.program)
           .collection(student.programTerm)
           .doc(student.division)
           .collection('student')
-          .doc(student.name)
+          .doc(student.userId.toString())
           .set(student.toMap());
     } catch (e) {
       print('Error adding student: $e');
@@ -84,36 +84,44 @@ class FirestoreService {
   }
 
   // Fetch students from Firestore based on program, program term, and division
-  Stream<List<Student>> getStudents(
-      String program, String programTerm, String division) {
-    return _firestore
-        .collection('student')
-        .doc(program)
-        .collection(programTerm)
-        .doc(division)
-        .collection('student')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Student(
-                  firstname: doc['name'],
-                  program: doc['program'],
-                  programTerm: doc['programTerm'],
-                  division: doc['division'],
-                  middlename: '',
-                  lastname: '',
-                  gender: '',
-                  userId: null,
-                  activationDate: '',
-                  profile: '',
-                  email: '',
-                  mobile: '',
-                  DOB: '',
-                ))
-            .toList());
-  }
+  // Stream<List<Student>> getStudents(
+  //     String program, String programTerm, String division) {
+  //   return _firestore
+  //       .collection('students')
+  //       .doc(program)
+  //       .collection(programTerm)
+  //       .doc(division)
+  //       .collection('student')
+  //       .snapshots()
+  //       .map((snapshot) => snapshot.docs
+  //           .map((doc) => Student(
+  //                 firstname: doc['name'],
+  //                 program: doc['program'],
+  //                 programTerm: doc['programTerm'],
+  //                 division: doc['division'],
+  //                 middlename: '',
+  //                 lastname: '',
+  //                 gender: '',
+  //                 userId: 01,
+  //                 activationDate: '',
+  //                 profile: '',
+  //                 email: '',
+  //                 mobile: '',
+  //                 DOB: '',
+  //               ))
+  //           .toList());
+  // }
 }
 
 class AddStudents extends StatefulWidget {
+  void main() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    //  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: SystemUiOverlay.values);
+  }
+
   @override
   _AddStudentsState createState() => _AddStudentsState();
 }
@@ -171,10 +179,10 @@ class _AddStudentsState extends State<AddStudents> {
   late TextEditingController _totalStudentsController = TextEditingController();
   DateTime _activationDate = DateTime.now();
   TextEditingController _activeDate = TextEditingController();
+  final FirestoreService _firestoreService = FirestoreService();
 
   void initState() {
     super.initState();
-    _studentsCollection = _db;
     _UserIdDoc =
         FirebaseFirestore.instance.collection('metadata').doc('userId');
     _getUserId();
@@ -623,22 +631,23 @@ class _AddStudentsState extends State<AddStudents> {
                           onPressed: () async {
                             final _activedate = DateFormat('dd-MMMM-yyyy')
                                 .format(_activationDate);
-                            await _db.add({
-                              "First Name": _firstNameController.text,
-                              "Middle Name": _middleNameController.text,
-                              "Last Name": _lastNameController.text,
-                              "Gender": _selectedGender.toString(),
-                              "Profile": _fileNameController.text,
-                              "User Id": _lastUserId,
-                              "Activation Date": _activedate.toString(),
-                              "Image": imjUrl,
-                              "Email": _emailController.text,
-                              "Mobile": _phoneController.text,
-                              "DOB": _dobController.text,
-                              "Program": _selProgram.toString(),
-                              "Program Term": _selProgramTerm.toString(),
-                              "Division": _seldiv.toString()
-                            });
+
+                            Student newStudent = Student(
+                              firstname: _fileNameController.text,
+                              middlename: _middleNameController.text,
+                              lastname: _lastNameController.text,
+                              gender: _selectedGender.toString(),
+                              profile: imjUrl.toString(),
+                              userId: _lastUserId,
+                              email: _emailController.text,
+                              mobile: _phoneController.text,
+                              program: _selProgram.toString(),
+                              programTerm: _selProgramTerm.toString(),
+                              division: _seldiv.toString(),
+                              DOB: _dobController.text,
+                              activationDate: _activedate.toString(),
+                            );
+
                             _firstNameController.text = "";
                             _fileNameController.text = "";
                             _middleNameController.text = "";
