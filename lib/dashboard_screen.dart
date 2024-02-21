@@ -2,7 +2,7 @@ import 'package:ecollege_admin_panel/dashboard_home.dart';
 import 'package:ecollege_admin_panel/demo.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'add_faculty.dart';
+import 'faculty_management.dart';
 import 'firebase_options.dart';
 import 'student_management.dart';
 

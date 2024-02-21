@@ -92,7 +92,7 @@ class FirestoreService {
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('student')
+        .collection('student').orderBy('User Id')
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Student(
@@ -120,7 +120,7 @@ class FirestoreService {
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('student')
+        .collection('student').orderBy('User Id')
         .where('Mobile', isGreaterThanOrEqualTo: searchTerm)
         .where('Mobile', isLessThanOrEqualTo: searchTerm + '\uf8ff')
         .snapshots()
