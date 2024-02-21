@@ -75,7 +75,8 @@ class FirestoreService {
           .doc(student.program)
           .collection(student.programTerm)
           .doc(student.division)
-          .collection('student').doc(student.userId)
+          .collection('student')
+          .doc(student.userId)
           .set(student.toMap());
       print("Done");
     } catch (e) {
@@ -120,8 +121,8 @@ class FirestoreService {
         .collection(programTerm)
         .doc(division)
         .collection('student')
-        .where('User Id', isGreaterThanOrEqualTo: searchTerm)
-        .where('User Id', isLessThanOrEqualTo: searchTerm + '\uf8ff')
+        .where('Mobile', isGreaterThanOrEqualTo: searchTerm)
+        .where('Mobile', isLessThanOrEqualTo: searchTerm + '\uf8ff')
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Student(
@@ -914,8 +915,8 @@ class _StudentListState extends State<StudentList> {
                     .map(
                       (student) => DataRow(cells: [
                         DataCell(Text(student.userId)),
-                        DataCell(Text(
-                            student.firstname + " " + student.lastname)),
+                        DataCell(
+                            Text(student.firstname + " " + student.lastname)),
                         DataCell(CircleAvatar(
                           radius: 27,
                           child: ClipOval(
