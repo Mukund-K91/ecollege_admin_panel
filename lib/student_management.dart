@@ -78,39 +78,40 @@ class FirestoreService {
           .collection('student')
           .doc(student.userId.toString())
           .set(student.toMap());
+      print("Done");
     } catch (e) {
       print('Error adding student: $e');
     }
   }
 
   // Fetch students from Firestore based on program, program term, and division
-  // Stream<List<Student>> getStudents(
-  //     String program, String programTerm, String division) {
-  //   return _firestore
-  //       .collection('students')
-  //       .doc(program)
-  //       .collection(programTerm)
-  //       .doc(division)
-  //       .collection('student')
-  //       .snapshots()
-  //       .map((snapshot) => snapshot.docs
-  //           .map((doc) => Student(
-  //                 firstname: doc['name'],
-  //                 program: doc['program'],
-  //                 programTerm: doc['programTerm'],
-  //                 division: doc['division'],
-  //                 middlename: '',
-  //                 lastname: '',
-  //                 gender: '',
-  //                 userId: 01,
-  //                 activationDate: '',
-  //                 profile: '',
-  //                 email: '',
-  //                 mobile: '',
-  //                 DOB: '',
-  //               ))
-  //           .toList());
-  // }
+  Stream<List<Student>> getStudents(
+      String program, String programTerm, String division) {
+    return _firestore
+        .collection('students')
+        .doc(program)
+        .collection(programTerm)
+        .doc(division)
+        .collection('student')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Student(
+                  firstname: doc['First Name'],
+                  middlename: doc['Middle Name'],
+                  lastname: doc['First Name'],
+                  gender: doc['Gender'],
+                  userId: doc['User Id'],
+                  activationDate: doc['Activation Date'],
+                  profile: doc['Profile Img'],
+                  email: doc['Email'],
+                  mobile: doc['Mobile'],
+                  DOB: doc['DOB'],
+                  program: doc['program'],
+                  programTerm: doc['programTerm'],
+                  division: doc['division'],
+                ))
+            .toList());
+  }
 }
 
 class AddStudents extends StatefulWidget {
@@ -645,8 +646,9 @@ class _AddStudentsState extends State<AddStudents> {
                               programTerm: _selProgramTerm.toString(),
                               division: _seldiv.toString(),
                               DOB: _dobController.text,
-                              activationDate: _activedate.toString(),
+                              activationDate: _activedate,
                             );
+                            _firestoreService.addStudent(newStudent);
 
                             _firstNameController.text = "";
                             _fileNameController.text = "";
@@ -657,6 +659,8 @@ class _AddStudentsState extends State<AddStudents> {
                             _phoneController.text = "";
                             _dobController.text = "";
                             _selProgram = "--Please Select--";
+                            _selProgramTerm = "--Please Select--";
+                            _seldiv = "--Please Select--";
 
                             await _incrementRollNumber();
                             // Update TextField value after increment
