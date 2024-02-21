@@ -97,7 +97,7 @@ class FirestoreService {
             .map((doc) => Student(
                   firstname: doc['First Name'],
                   middlename: doc['Middle Name'],
-                  lastname: doc['First Name'],
+                  lastname: doc['Last Name'],
                   gender: doc['Gender'],
                   userId: doc['User Id'],
                   activationDate: doc['Activation Date'],
@@ -119,15 +119,15 @@ class FirestoreService {
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('students')
-        .where('First Name', isGreaterThanOrEqualTo: searchTerm)
-        .where('First Name', isLessThanOrEqualTo: searchTerm + '\uf8ff')
+        .collection('student')
+        .where('User Id', isGreaterThanOrEqualTo: searchTerm)
+        .where('User Id', isLessThanOrEqualTo: searchTerm + '\uf8ff')
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Student(
                   firstname: doc['First Name'],
                   middlename: doc['Middle Name'],
-                  lastname: doc['First Name'],
+                  lastname: doc['Last Name'],
                   gender: doc['Gender'],
                   userId: doc['User Id'],
                   activationDate: doc['Activation Date'],
@@ -769,13 +769,15 @@ class _StudentListState extends State<StudentList> {
         children: [
           Expanded(
             child: TextField(
-              controller: _searchController,
               decoration: InputDecoration(
                 labelText: 'Search',
+                hintText: 'Search by name',
                 border: OutlineInputBorder(),
               ),
-              onChanged: (_) {
-                setState(() {});
+              onChanged: (value) {
+                setState(() {
+                  _searchTerm = value;
+                });
               },
             ),
           ),
@@ -886,7 +888,7 @@ class _StudentListState extends State<StudentList> {
           padding: EdgeInsets.all(20),
           thumbVisibility: true,
           trackVisibility: true,
-          thumbColor: Colors.green,
+          thumbColor: Color(0xff002233),
           controller: _dataController2,
           child: SingleChildScrollView(
             controller: _dataController2,
@@ -894,19 +896,62 @@ class _StudentListState extends State<StudentList> {
             child: SingleChildScrollView(
               controller: _dataController1,
               child: DataTable(
-                columns: [
+                border: TableBorder.all(),
+                columns: const [
+                  DataColumn(label: Text('User Id')),
                   DataColumn(label: Text('Name')),
+                  DataColumn(label: Text('Profile')),
                   DataColumn(label: Text('Program')),
                   DataColumn(label: Text('Program Term')),
                   DataColumn(label: Text('Division')),
+                  DataColumn(label: Text('Activation Date')),
+                  DataColumn(label: Text('DOB')),
+                  DataColumn(label: Text('Mobile')),
+                  DataColumn(label: Text('Email')),
+                  DataColumn(label: Text('Action')),
                 ],
                 rows: students
                     .map(
                       (student) => DataRow(cells: [
-                        DataCell(Text(student.firstname)),
+                        DataCell(Text(student.userId)),
+                        DataCell(Text(
+                            student.firstname + " " + student.lastname)),
+                        DataCell(CircleAvatar(
+                          radius: 27,
+                          child: ClipOval(
+                            child: Image.network(
+                              student.profile,
+                              fit: BoxFit.cover,
+                              height: 70,
+                              width: 70,
+                            ),
+                          ),
+                        )),
                         DataCell(Text(student.program)),
                         DataCell(Text(student.programTerm)),
                         DataCell(Text(student.division)),
+                        DataCell(Text(student.activationDate)),
+                        DataCell(Text(student.DOB)),
+                        DataCell(Text(student.mobile)),
+                        DataCell(Text(student.email)),
+                        DataCell(Row(
+                          children: [
+                            IconButton(
+                                onPressed: () {
+                                  _showUpdateDialog(context);
+                                },
+                                icon: Icon(
+                                  FontAwesomeIcons.edit,
+                                  color: Colors.green,
+                                )),
+                            IconButton(
+                                onPressed: () {},
+                                icon: Icon(
+                                  FontAwesomeIcons.trash,
+                                  color: Colors.redAccent,
+                                )),
+                          ],
+                        ))
                       ]),
                     )
                     .toList(),
