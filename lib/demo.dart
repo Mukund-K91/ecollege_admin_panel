@@ -127,23 +127,23 @@
 //   ));
 // }
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'firebase_options.dart';
-
 class Student {
+  final String id;
   final String name;
   final String program;
   final String programTerm;
   final String division;
 
-  Student(
-      {required this.name,
-      required this.program,
-      required this.programTerm,
-      required this.division});
+  Student({
+    required this.id,
+    required this.name,
+    required this.program,
+    required this.programTerm,
+    required this.division,
+  });
 
   // Convert Student object to a Map for Firestore
   Map<String, dynamic> toMap() {
@@ -163,12 +163,12 @@ class FirestoreService {
   Future<void> addStudent(Student student) async {
     try {
       await _firestore
-          .collection('student')
+          .collection('students')
           .doc(student.program)
           .collection(student.programTerm)
           .doc(student.division)
-          .collection('student')
-          .doc(student.name)
+          .collection('students')
+          .doc(student.id)
           .set(student.toMap());
     } catch (e) {
       print('Error adding student: $e');
@@ -179,129 +179,213 @@ class FirestoreService {
   Stream<List<Student>> getStudents(
       String program, String programTerm, String division) {
     return _firestore
-        .collection('student')
+        .collection('students')
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('student')
+        .collection('students')
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Student(
-                  name: doc['name'],
-                  program: doc['program'],
-                  programTerm: doc['programTerm'],
-                  division: doc['division'],
-                ))
-            .toList());
+        .map((doc) => Student(
+      id: doc.id,
+      name: doc['name'],
+      program: doc['program'],
+      programTerm: doc['programTerm'],
+      division: doc['division'],
+    ))
+        .toList());
+  }
+
+  // Search students by name
+  Stream<List<Student>> searchStudents(String program, String programTerm,
+      String division, String searchTerm) {
+    return _firestore
+        .collection('students')
+        .doc(program)
+        .collection(programTerm)
+        .doc(division)
+        .collection('students')
+        .where('name', isGreaterThanOrEqualTo: searchTerm)
+        .where('name', isLessThanOrEqualTo: searchTerm + '\uf8ff')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => Student(
+      id: doc.id,
+      name: doc['name'],
+      program: doc['program'],
+      programTerm: doc['programTerm'],
+      division: doc['division'],
+    ))
+        .toList());
   }
 }
 
-class AddStudentPage extends StatelessWidget {
-  void main() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    //  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: SystemUiOverlay.values);
-  }
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController programController = TextEditingController();
-  final TextEditingController programTermController = TextEditingController();
-  final TextEditingController divisionController = TextEditingController();
+class StudentListScreen extends StatefulWidget {
+  @override
+  _StudentListScreenState createState() => _StudentListScreenState();
+}
 
+class _StudentListScreenState extends State<StudentListScreen> {
   final FirestoreService _firestoreService = FirestoreService();
+  late String _selectedProgram;
+  late String _selectedProgramTerm;
+  late String _selectedDivision;
+  late String _searchTerm;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedProgram = '';
+    _selectedProgramTerm = '';
+    _selectedDivision = '';
+    _searchTerm = '';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Student'),
+        title: Text('Student List'),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(labelText: 'Name'),
-            ),
-            TextField(
-              controller: programController,
-              decoration: InputDecoration(labelText: 'Program'),
-            ),
-            TextField(
-              controller: programTermController,
-              decoration: InputDecoration(labelText: 'Program Term'),
-            ),
-            TextField(
-              controller: divisionController,
-              decoration: InputDecoration(labelText: 'Division'),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                Student newStudent = Student(
-                  name: nameController.text,
-                  program: programController.text,
-                  programTerm: programTermController.text,
-                  division: divisionController.text,
-                );
-                _firestoreService.addStudent(newStudent);
-                Navigator.pop(context); // Navigate back after adding student
-              },
-              child: Text('Add Student'),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          _buildFilters(),
+          Expanded(
+            child: _buildStudentList(),
+          ),
+        ],
       ),
     );
   }
-}
 
-class DisplayStudentsPage extends StatelessWidget {
-  final FirestoreService _firestoreService = FirestoreService();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Students'),
-      ),
-      body: StreamBuilder<List<Student>>(
-        stream: _firestoreService.getStudents('BCA', 'Sem-3', 'C'),
-        // Example program, program term, and division
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          if (snapshot.data!.isEmpty) {
-            return Center(
-              child: Text('No students found'),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: snapshot.data!.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(snapshot.data![index].name),
-                subtitle: Text(
-                    'Program: ${snapshot.data![index].program}, Term: ${snapshot.data![index].programTerm}, Division: ${snapshot.data![index].division}'),
-              );
+  Widget _buildFilters() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          DropdownButton<String>(
+            value: _selectedProgram,
+            onChanged: (String? value) {
+              setState(() {
+                _selectedProgram = value!;
+              });
             },
-          );
-        },
+            items: ['BCA', 'BBA', 'BCom']
+                .map<DropdownMenuItem<String>>(
+                  (String value) => DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              ),
+            )
+                .toList(),
+            hint: Text('Program'),
+          ),
+          SizedBox(width: 8),
+          DropdownButton<String>(
+            value: _selectedProgramTerm,
+            onChanged: (String? value) {
+              setState(() {
+                _selectedProgramTerm = value!;
+              });
+            },
+            items: ['Sem-1', 'Sem-2', 'Sem-3', 'Sem-4']
+                .map<DropdownMenuItem<String>>(
+                  (String value) => DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              ),
+            )
+                .toList(),
+            hint: Text('Program Term'),
+          ),
+          SizedBox(width: 8),
+          DropdownButton<String>(
+            value: _selectedDivision,
+            onChanged: (String? value) {
+              setState(() {
+                _selectedDivision = value!;
+              });
+            },
+            items: ['A', 'B', 'C']
+                .map<DropdownMenuItem<String>>(
+                  (String value) => DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              ),
+            )
+                .toList(),
+            hint: Text('Division'),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: 'Search',
+                hintText: 'Search by name',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchTerm = value;
+                });
+              },
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildStudentList() {
+    return StreamBuilder<List<Student>>(
+      stream: _searchTerm.isEmpty
+          ? _firestoreService.getStudents(
+          _selectedProgram, _selectedProgramTerm, _selectedDivision)
+          : _firestoreService.searchStudents(
+          _selectedProgram, _selectedProgramTerm, _selectedDivision, _searchTerm),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        final students = snapshot.data;
+
+        if (students == null || students.isEmpty) {
+          return Center(
+            child: Text('No students found'),
+          );
+        }
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columns: [
+              DataColumn(label: Text('Name')),
+              DataColumn(label: Text('Program')),
+              DataColumn(label: Text('Program Term')),
+              DataColumn(label: Text('Division')),
+            ],
+            rows: students
+                .map(
+                  (student) => DataRow(cells: [
+                DataCell(Text(student.name)),
+                DataCell(Text(student.program)),
+                DataCell(Text(student.programTerm)),
+                DataCell(Text(student.division)),
+              ]),
+            )
+                .toList(),
+          ),
+        );
+      },
     );
   }
 }
@@ -309,10 +393,7 @@ class DisplayStudentsPage extends StatelessWidget {
 void main() {
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
-    initialRoute: '/',
-    routes: {
-      '/': (context) => AddStudentPage(),
-      '/displayStudents': (context) => DisplayStudentsPage(),
-    },
+    home: StudentListScreen(),
   ));
 }
+

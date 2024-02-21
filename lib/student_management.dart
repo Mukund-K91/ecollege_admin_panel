@@ -92,7 +92,7 @@ class FirestoreService {
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('student')
+        .collection('students')
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Student(
@@ -111,6 +111,27 @@ class FirestoreService {
                   division: doc['division'],
                 ))
             .toList());
+  }
+  Stream<List<Student>> searchStudents(String program, String programTerm,
+      String division, String searchTerm) {
+    return _firestore
+        .collection('students')
+        .doc(program)
+        .collection(programTerm)
+        .doc(division)
+        .collection('students')
+        .where('name', isGreaterThanOrEqualTo: searchTerm)
+        .where('name', isLessThanOrEqualTo: searchTerm + '\uf8ff')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => Student(
+      id: doc.id,
+      name: doc['name'],
+      program: doc['program'],
+      programTerm: doc['programTerm'],
+      division: doc['division'],
+    ))
+        .toList());
   }
 }
 
@@ -700,16 +721,22 @@ class StudentList extends StatefulWidget {
 }
 
 class _StudentListState extends State<StudentList> {
+  final FirestoreService _firestoreService = FirestoreService();
   late TextEditingController _searchController;
   late String _selectedProgram = '--Program--';
   late String _selectedProgramTerm = '--Program Term';
-  late String _selectedClass = '--Division--';
+  late String _selectedDivision = '--Division--';
+  late String _searchTerm;
   ScrollController _dataController1 = ScrollController();
   ScrollController _dataController2 = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _selectedProgram = '';
+    _selectedProgramTerm = '';
+    _selectedDivision = '';
+    _selectedProgramTerm = '';
     _searchController = TextEditingController();
   }
 
@@ -797,10 +824,10 @@ class _StudentListState extends State<StudentList> {
           ),
           SizedBox(width: 8),
           DropdownButton<String>(
-            value: _selectedClass,
+            value: _selectedDivision,
             onChanged: (String? value) {
               setState(() {
-                _selectedClass = value!;
+                _selectedDivision = value!;
               });
             },
             items: _selectedProgramTerm.isEmpty ||
@@ -823,127 +850,52 @@ class _StudentListState extends State<StudentList> {
   }
 
   Widget _buildStudentList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('students')
-          .orderBy('User Id')
-          .snapshots(),
+    return StreamBuilder<List<Student>>(
+      stream: _searchTerm.isEmpty
+          ? _firestoreService.getStudents(
+          _selectedProgram, _selectedProgramTerm, _selectedDivision)
+          : _firestoreService.searchStudents(
+          _selectedProgram, _selectedProgramTerm, _selectedDivision, _searchTerm),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
             child: CircularProgressIndicator(),
           );
         }
 
-        List<DocumentSnapshot> students = snapshot.data!.docs;
+        final students = snapshot.data;
 
-        // Filter students based on selected program
-        if (_selectedProgram.isNotEmpty) {
-          students = students.where((student) {
-            return student['Program'] == _selectedProgram;
-          }).toList();
-        }
-
-        // Filter students based on selected program term
-        if (_selectedProgramTerm.isNotEmpty) {
-          students = students.where((student) {
-            return student['Program Term'] == _selectedProgramTerm;
-          }).toList();
-        }
-
-        // Filter students based on selected class
-        if (_selectedClass.isNotEmpty) {
-          students = students.where((student) {
-            return student['Division'] == _selectedClass;
-          }).toList();
-        }
-
-        // Filter students based on search query
-        if (_searchController.text.isNotEmpty) {
-          final searchQuery = _searchController.text.toLowerCase();
-          students = students.where((student) {
-            return student['User Id'].toLowerCase().contains(searchQuery);
-          }).toList();
-        }
-
-        if (students.isEmpty) {
+        if (students == null || students.isEmpty) {
           return Center(
-            child: Text('No data found'),
+            child: Text('No students found'),
           );
         }
 
-        return RawScrollbar(
-          trackVisibility: true,
-          controller: _dataController2,
-          padding: EdgeInsets.all(10),
-          thumbVisibility: true,
-          thumbColor: Colors.blue,
-          child: SingleChildScrollView(
-            controller: _dataController2,
-            scrollDirection: Axis.horizontal,
-            child: SingleChildScrollView(
-              controller: _dataController1,
-              child: DataTable(
-                border: TableBorder.all(
-                    color: Colors.black, style: BorderStyle.solid),
-                columns: [
-                  DataColumn(label: Text('User Id')),
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Profile')),
-                  DataColumn(label: Text('Program')),
-                  DataColumn(label: Text('Program Term')),
-                  DataColumn(label: Text('Division')),
-                  DataColumn(label: Text('Activation Date')),
-                  DataColumn(label: Text('DOB')),
-                  DataColumn(label: Text('Mobile')),
-                  DataColumn(label: Text('Email')),
-                  DataColumn(label: Text('Action')),
-                ],
-                rows: students.map((student) {
-                  return DataRow(cells: [
-                    DataCell(Text(student['User Id'].toString())),
-                    DataCell(Text(
-                        student['First Name'] + " " + student['Last Name'])),
-                    DataCell(CircleAvatar(
-                      radius: 27,
-                      child: ClipOval(
-                        child: Image.network(
-                          student['Image'],
-                          fit: BoxFit.cover,
-                          height: 70,
-                          width: 70,
-                        ),
-                      ),
-                    )),
-                    DataCell(Text(student['Program'])),
-                    DataCell(Text(student['Program Term'])),
-                    DataCell(Text(student['Division'])),
-                    DataCell(Text(student['Activation Date'])),
-                    DataCell(Text(student['DOB'])),
-                    DataCell(Text(student['Mobile'])),
-                    DataCell(Text(student['Email'])),
-                    DataCell(Row(
-                      children: [
-                        IconButton(
-                            onPressed: () {
-                              _showUpdateDialog(context);
-                            },
-                            icon: Icon(
-                              FontAwesomeIcons.edit,
-                              color: Colors.green,
-                            )),
-                        IconButton(
-                            onPressed: () {},
-                            icon: Icon(
-                              FontAwesomeIcons.trash,
-                              color: Colors.redAccent,
-                            )),
-                      ],
-                    )),
-                  ]);
-                }).toList(),
-              ),
-            ),
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columns: [
+              DataColumn(label: Text('Name')),
+              DataColumn(label: Text('Program')),
+              DataColumn(label: Text('Program Term')),
+              DataColumn(label: Text('Division')),
+            ],
+            rows: students
+                .map(
+                  (student) => DataRow(cells: [
+                DataCell(Text(student.name)),
+                DataCell(Text(student.program)),
+                DataCell(Text(student.programTerm)),
+                DataCell(Text(student.division)),
+              ]),
+            )
+                .toList(),
           ),
         );
       },
