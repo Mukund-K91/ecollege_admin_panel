@@ -242,7 +242,7 @@ class _AddFacultyState extends State<AddFaculty> {
               const Padding(
                 padding: EdgeInsets.all(10),
                 child: Text(
-                  "Manage Students",
+                  "Manage Faculty",
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -251,6 +251,47 @@ class _AddFacultyState extends State<AddFaculty> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ListTile(
+                            title: Text(
+                              "Program",
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            subtitle: DropdownButtonFormField(
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                        BorderRadius.all(Radius.zero))),
+                                value: _selProgram,
+                                items: _programs
+                                    .map((e) => DropdownMenuItem(
+                                  value: e,
+                                  child: Text(e),
+                                ))
+                                    .toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selProgram = val as String;
+                                  });
+                                }),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: _IdController,
+                            maxLength: 10,
+                            keyboardType: TextInputType.phone,
+                            readOnly: true,
+                            title: 'Id',
+                          ),
+                        ),
+                      ],
+                    ),
                     Row(
                       children: [
                         Expanded(
@@ -265,23 +306,6 @@ class _AddFacultyState extends State<AddFaculty> {
                               return null;
                             },
                             title: 'First Name',
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 15,
-                        ),
-                        Expanded(
-                          child: ReusableTextField(
-                            controller: _middleNameController,
-                            keyboardType: TextInputType.name,
-                            readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Last Name is required";
-                              }
-                              return null;
-                            },
-                            title: 'Middle Name',
                           ),
                         ),
                         const SizedBox(
@@ -452,18 +476,6 @@ class _AddFacultyState extends State<AddFaculty> {
                             ],
                           ),
                         ),
-                        const SizedBox(
-                          width: 15,
-                        ),
-                        Expanded(
-                          child: ReusableTextField(
-                            controller: _IdController,
-                            maxLength: 10,
-                            keyboardType: TextInputType.phone,
-                            readOnly: true,
-                            title: 'User Id',
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(
@@ -503,49 +515,11 @@ class _AddFacultyState extends State<AddFaculty> {
                             title: 'Mobile',
                           ),
                         ),
-                        SizedBox(
-                          width: 15,
-                        ),
-                        Expanded(
-                            flex: 1,
-                            child: ReusableTextField(
-                              controller: _dobController,
-                              OnTap: () => _selectDate(context),
-                              title: 'DOB',
-                            )),
+
                       ],
                     ),
                     const SizedBox(
                       height: 4,
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ListTile(
-                            title: Text(
-                              "Program",
-                              style: TextStyle(fontSize: 15),
-                            ),
-                            subtitle: DropdownButtonFormField(
-                                decoration: const InputDecoration(
-                                    border: OutlineInputBorder(
-                                        borderRadius:
-                                        BorderRadius.all(Radius.zero))),
-                                value: _selProgram,
-                                items: _programs
-                                    .map((e) => DropdownMenuItem(
-                                  value: e,
-                                  child: Text(e),
-                                ))
-                                    .toList(),
-                                onChanged: (val) {
-                                  setState(() {
-                                    _selProgram = val as String;
-                                  });
-                                }),
-                          ),
-                        ),
-                      ],
                     ),
                     const SizedBox(
                       height: 15,
