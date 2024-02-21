@@ -25,6 +25,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Home(),
     AddStudents(),
     StudentList(),
+    AddFaculty(),
+    FacultyList(),
     StudentListScreen(),
     LogoutScreen()
   ];
@@ -81,7 +83,7 @@ class SideMenu extends StatelessWidget {
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),
-          ExpansionTile(title: Text("Student Management"),
+          ExpansionTile(title: Text("Students"),
             children: [
               MenuItem(
                 title: 'Add Student',
@@ -98,21 +100,32 @@ class SideMenu extends StatelessWidget {
             ],
 
           ),
-          MenuItem(
-            title: 'Faculty Management',
-            index: 3,
-            selectedIndex: selectedIndex,
-            onMenuItemSelected: onMenuItemSelected,
+          ExpansionTile(title: Text("Faculty"),
+            children: [
+              MenuItem(
+                title: 'Add Faculty',
+                index: 3,
+                selectedIndex: selectedIndex,
+                onMenuItemSelected: onMenuItemSelected,
+              ),
+              MenuItem(
+                title: 'Faculty Details',
+                index: 4,
+                selectedIndex: selectedIndex,
+                onMenuItemSelected: onMenuItemSelected,
+              ),
+            ],
+
           ),
           MenuItem(
             title: 'Settings',
-            index: 4,
+            index: 5,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),
           MenuItem(
             title: 'Logout',
-            index: 5,
+            index: 6,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),
