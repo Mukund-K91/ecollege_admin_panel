@@ -163,11 +163,11 @@ class FirestoreService {
   Future<void> addStudent(Student student) async {
     try {
       await _firestore
-          .collection('students')
+          .collection('student')
           .doc(student.program)
           .collection(student.programTerm)
           .doc(student.division)
-          .collection('students')
+          .collection('student')
           .doc(student.id)
           .set(student.toMap());
     } catch (e) {
@@ -179,11 +179,11 @@ class FirestoreService {
   Stream<List<Student>> getStudents(
       String program, String programTerm, String division) {
     return _firestore
-        .collection('students')
+        .collection('student')
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('students')
+        .collection('student')
         .snapshots()
         .map((snapshot) => snapshot.docs
         .map((doc) => Student(
@@ -200,11 +200,11 @@ class FirestoreService {
   Stream<List<Student>> searchStudents(String program, String programTerm,
       String division, String searchTerm) {
     return _firestore
-        .collection('students')
+        .collection('student')
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('students')
+        .collection('student')
         .where('name', isGreaterThanOrEqualTo: searchTerm)
         .where('name', isLessThanOrEqualTo: searchTerm + '\uf8ff')
         .snapshots()
@@ -227,17 +227,14 @@ class StudentListScreen extends StatefulWidget {
 
 class _StudentListScreenState extends State<StudentListScreen> {
   final FirestoreService _firestoreService = FirestoreService();
-  late String _selectedProgram;
-  late String _selectedProgramTerm;
-  late String _selectedDivision;
+  late String _selectedProgram='--select--';
+  late String _selectedProgramTerm='--select--';
+  late String _selectedDivision='--select--';
   late String _searchTerm;
 
   @override
   void initState() {
     super.initState();
-    _selectedProgram = '';
-    _selectedProgramTerm = '';
-    _selectedDivision = '';
     _searchTerm = '';
   }
 
@@ -270,7 +267,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
                 _selectedProgram = value!;
               });
             },
-            items: ['BCA', 'BBA', 'BCom']
+            items: ['--select--','BCA', 'BBA', 'BCom']
                 .map<DropdownMenuItem<String>>(
                   (String value) => DropdownMenuItem<String>(
                 value: value,
@@ -288,7 +285,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
                 _selectedProgramTerm = value!;
               });
             },
-            items: ['Sem-1', 'Sem-2', 'Sem-3', 'Sem-4']
+            items: ['--select--','Sem-1', 'Sem-2', 'Sem-3', 'Sem-4']
                 .map<DropdownMenuItem<String>>(
                   (String value) => DropdownMenuItem<String>(
                 value: value,
@@ -306,7 +303,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
                 _selectedDivision = value!;
               });
             },
-            items: ['A', 'B', 'C']
+            items: ['--select--','A', 'B', 'C']
                 .map<DropdownMenuItem<String>>(
                   (String value) => DropdownMenuItem<String>(
                 value: value,

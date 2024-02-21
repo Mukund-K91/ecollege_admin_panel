@@ -19,7 +19,7 @@ class Student {
   final String middlename;
   final String lastname;
   final String gender;
-  final int userId;
+  final String userId;
   final String activationDate;
   final String profile;
   final String email;
@@ -75,8 +75,7 @@ class FirestoreService {
           .doc(student.program)
           .collection(student.programTerm)
           .doc(student.division)
-          .collection('student')
-          .doc(student.userId.toString())
+          .collection('student').doc(student.userId)
           .set(student.toMap());
       print("Done");
     } catch (e) {
@@ -92,7 +91,7 @@ class FirestoreService {
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('students')
+        .collection('student')
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Student(
@@ -112,26 +111,35 @@ class FirestoreService {
                 ))
             .toList());
   }
-  Stream<List<Student>> searchStudents(String program, String programTerm,
-      String division, String searchTerm) {
+
+  Stream<List<Student>> searchStudents(
+      String program, String programTerm, String division, String searchTerm) {
     return _firestore
         .collection('students')
         .doc(program)
         .collection(programTerm)
         .doc(division)
         .collection('students')
-        .where('name', isGreaterThanOrEqualTo: searchTerm)
-        .where('name', isLessThanOrEqualTo: searchTerm + '\uf8ff')
+        .where('First Name', isGreaterThanOrEqualTo: searchTerm)
+        .where('First Name', isLessThanOrEqualTo: searchTerm + '\uf8ff')
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => Student(
-      id: doc.id,
-      name: doc['name'],
-      program: doc['program'],
-      programTerm: doc['programTerm'],
-      division: doc['division'],
-    ))
-        .toList());
+            .map((doc) => Student(
+                  firstname: doc['First Name'],
+                  middlename: doc['Middle Name'],
+                  lastname: doc['First Name'],
+                  gender: doc['Gender'],
+                  userId: doc['User Id'],
+                  activationDate: doc['Activation Date'],
+                  profile: doc['Profile Img'],
+                  email: doc['Email'],
+                  mobile: doc['Mobile'],
+                  DOB: doc['DOB'],
+                  program: doc['program'],
+                  programTerm: doc['programTerm'],
+                  division: doc['division'],
+                ))
+            .toList());
   }
 }
 
@@ -655,12 +663,12 @@ class _AddStudentsState extends State<AddStudents> {
                                 .format(_activationDate);
 
                             Student newStudent = Student(
-                              firstname: _fileNameController.text,
+                              firstname: _firstNameController.text,
                               middlename: _middleNameController.text,
                               lastname: _lastNameController.text,
                               gender: _selectedGender.toString(),
                               profile: imjUrl.toString(),
-                              userId: _lastUserId,
+                              userId: _lastUserId.toString(),
                               email: _emailController.text,
                               mobile: _phoneController.text,
                               program: _selProgram.toString(),
@@ -733,10 +741,7 @@ class _StudentListState extends State<StudentList> {
   @override
   void initState() {
     super.initState();
-    _selectedProgram = '';
-    _selectedProgramTerm = '';
-    _selectedDivision = '';
-    _selectedProgramTerm = '';
+    _searchTerm = '';
     _searchController = TextEditingController();
   }
 
@@ -853,9 +858,9 @@ class _StudentListState extends State<StudentList> {
     return StreamBuilder<List<Student>>(
       stream: _searchTerm.isEmpty
           ? _firestoreService.getStudents(
-          _selectedProgram, _selectedProgramTerm, _selectedDivision)
-          : _firestoreService.searchStudents(
-          _selectedProgram, _selectedProgramTerm, _selectedDivision, _searchTerm),
+              _selectedProgram, _selectedProgramTerm, _selectedDivision)
+          : _firestoreService.searchStudents(_selectedProgram,
+              _selectedProgramTerm, _selectedDivision, _searchTerm),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -889,12 +894,12 @@ class _StudentListState extends State<StudentList> {
             rows: students
                 .map(
                   (student) => DataRow(cells: [
-                DataCell(Text(student.name)),
-                DataCell(Text(student.program)),
-                DataCell(Text(student.programTerm)),
-                DataCell(Text(student.division)),
-              ]),
-            )
+                    DataCell(Text(student.firstname)),
+                    DataCell(Text(student.program)),
+                    DataCell(Text(student.programTerm)),
+                    DataCell(Text(student.division)),
+                  ]),
+                )
                 .toList(),
           ),
         );
