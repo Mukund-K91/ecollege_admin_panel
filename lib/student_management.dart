@@ -687,9 +687,9 @@ class _AddStudentsState extends State<AddStudents> {
                             _emailController.text = "";
                             _phoneController.text = "";
                             _dobController.text = "";
-                            _selProgram = "--Please Select--";
-                            _selProgramTerm = "--Please Select--";
-                            _seldiv = "--Please Select--";
+                            _selProgram = "";
+                            _selProgramTerm = "";
+                            _seldiv = "";
 
                             await _incrementRollNumber();
                             // Update TextField value after increment
@@ -882,25 +882,36 @@ class _StudentListState extends State<StudentList> {
           );
         }
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columns: [
-              DataColumn(label: Text('Name')),
-              DataColumn(label: Text('Program')),
-              DataColumn(label: Text('Program Term')),
-              DataColumn(label: Text('Division')),
-            ],
-            rows: students
-                .map(
-                  (student) => DataRow(cells: [
-                    DataCell(Text(student.firstname)),
-                    DataCell(Text(student.program)),
-                    DataCell(Text(student.programTerm)),
-                    DataCell(Text(student.division)),
-                  ]),
-                )
-                .toList(),
+        return RawScrollbar(
+          padding: EdgeInsets.all(20),
+          thumbVisibility: true,
+          trackVisibility: true,
+          thumbColor: Colors.green,
+          controller: _dataController2,
+          child: SingleChildScrollView(
+            controller: _dataController2,
+            scrollDirection: Axis.horizontal,
+            child: SingleChildScrollView(
+              controller: _dataController1,
+              child: DataTable(
+                columns: [
+                  DataColumn(label: Text('Name')),
+                  DataColumn(label: Text('Program')),
+                  DataColumn(label: Text('Program Term')),
+                  DataColumn(label: Text('Division')),
+                ],
+                rows: students
+                    .map(
+                      (student) => DataRow(cells: [
+                        DataCell(Text(student.firstname)),
+                        DataCell(Text(student.program)),
+                        DataCell(Text(student.programTerm)),
+                        DataCell(Text(student.division)),
+                      ]),
+                    )
+                    .toList(),
+              ),
+            ),
           ),
         );
       },
