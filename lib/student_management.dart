@@ -177,12 +177,12 @@ class _AddStudentsState extends State<AddStudents> {
   String? _selProgram = "--Please Select--";
   final _programTerm = [
     "--Please Select--",
-    "Sem-1",
-    "Sem-2",
-    "Sem-3",
-    "Sem-4",
-    "Sem-5",
-    "Sem-6"
+    "Sem - 1",
+    "Sem - 2",
+    "Sem - 3",
+    "Sem - 4",
+    "Sem - 5",
+    "Sem - 6"
   ];
   String? _selProgramTerm = "--Please Select--";
   final _Bcadivision = ["--Please Select--", "A", "B", "C", "D", "E", "F"];
@@ -814,12 +814,12 @@ class _StudentListState extends State<StudentList> {
                 ? []
                 : [
                     '--Program Term--',
-                    'Sem-1',
-                    'Sem-2',
-                    'Sem-3',
-                    'Sem-4',
-                    'Sem-5',
-                    'Sem-6'
+                    'Sem - 1',
+                    'Sem - 2',
+                    'Sem - 3',
+                    'Sem - 4',
+                    'Sem - 5',
+                    'Sem - 6'
                   ].map<DropdownMenuItem<String>>(
                     (String value) {
                       return DropdownMenuItem<String>(

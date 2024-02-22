@@ -28,16 +28,15 @@ class Faculty {
 
   Faculty(
       {required this.firstname,
-        required this.lastname,
-        required this.gender,
-        required this.FacultyId,
-        required this.profile,
-        required this.email,
-        required this.mobile,
-        required this.DOB,
-        required this.program,
-        required this.qualification
-        });
+      required this.lastname,
+      required this.gender,
+      required this.FacultyId,
+      required this.profile,
+      required this.email,
+      required this.mobile,
+      required this.DOB,
+      required this.program,
+      required this.qualification});
 
   // Convert Student object to a Map for Firestore
   Map<String, dynamic> toMap() {
@@ -51,7 +50,7 @@ class Faculty {
       "Mobile": mobile,
       "DOB": DOB,
       'program': program,
-      "Qualification":qualification
+      "Qualification": qualification
     };
   }
 }
@@ -82,22 +81,22 @@ class FirestoreService {
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('faculty').orderBy('Id')
+        .collection('faculty')
+        .orderBy('Id')
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => Faculty(
-      firstname: doc['First Name'],
-      lastname: doc['Last Name'],
-      gender: doc['Gender'],
-      FacultyId: doc['User Id'],
-      profile: doc['Profile Img'],
-      email: doc['Email'],
-      mobile: doc['Mobile'],
-      DOB: doc['DOB'],
-      program: doc['program'],
-      qualification: doc['Qualification']
-    ))
-        .toList());
+            .map((doc) => Faculty(
+                firstname: doc['First Name'],
+                lastname: doc['Last Name'],
+                gender: doc['Gender'],
+                FacultyId: doc['User Id'],
+                profile: doc['Profile Img'],
+                email: doc['Email'],
+                mobile: doc['Mobile'],
+                DOB: doc['DOB'],
+                program: doc['program'],
+                qualification: doc['Qualification']))
+            .toList());
   }
 
   Stream<List<Faculty>> searchFaculty(
@@ -107,26 +106,24 @@ class FirestoreService {
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('faculty').orderBy('Id')
+        .collection('faculty')
+        .orderBy('Id')
         .where('Id', isGreaterThanOrEqualTo: searchTerm)
         .where('Id', isLessThanOrEqualTo: searchTerm + '\uf8ff')
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => Faculty(
-      firstname: doc['First Name'],
-      lastname: doc['Last Name'],
-      gender: doc['Gender'],
-      FacultyId: doc['Id'],
-      profile: doc['Profile Img'],
-      email: doc['Email'],
-      mobile: doc['Mobile'],
-      DOB: doc['DOB'],
-      program: doc['program'],
-        qualification: doc['Qualification']
-
-
-    ))
-        .toList());
+            .map((doc) => Faculty(
+                firstname: doc['First Name'],
+                lastname: doc['Last Name'],
+                gender: doc['Gender'],
+                FacultyId: doc['Id'],
+                profile: doc['Profile Img'],
+                email: doc['Email'],
+                mobile: doc['Mobile'],
+                DOB: doc['DOB'],
+                program: doc['program'],
+                qualification: doc['Qualification']))
+            .toList());
   }
 }
 
@@ -153,23 +150,24 @@ class _AddFacultyState extends State<AddFaculty> {
   StorageService storageService = StorageService();
   late CollectionReference _studentsCollection;
   late DocumentReference _UserIdDoc;
-  int _lastId = 101;
   int _totalFaculty = 0;
   late String imjUrl;
 
   String? _selectedGender;
   DateTime? _selectedDate;
   final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
-  late  String _selProgram='--Please Select--';
+  late String _selProgram = '--Please Select--';
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _middleNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  late TextEditingController _IdController;
+  final TextEditingController _facultyId = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _Qualification = TextEditingController();
   late TextEditingController _fileNameController = TextEditingController();
+
   late TextEditingController _totalFacultyController = TextEditingController();
   final FirestoreService _firestoreService = FirestoreService();
 
@@ -178,38 +176,29 @@ class _AddFacultyState extends State<AddFaculty> {
     _UserIdDoc =
         FirebaseFirestore.instance.collection('metadata').doc('FacultyId');
     _getUserId();
-    _IdController = TextEditingController();
     _totalFacultyController = TextEditingController();
   }
 
   Future<void> _getUserId() async {
     final userIdDocSnapshot = await _UserIdDoc.get();
     setState(() {
-      _lastId = userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
-          ? (userIdDocSnapshot.data() as Map<String, dynamic>)['lastId'] ??
-          101
-          :101;
-      _IdController.text = _lastId.toString();
       _totalFaculty =
-      userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
-          ? (userIdDocSnapshot.data()
-      as Map<String, dynamic>)['Total Faculty'] ??
-          0
-          : 0;
+          userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
+              ? (userIdDocSnapshot.data()
+                      as Map<String, dynamic>)['Total Faculty'] ??
+                  0
+              : 0;
       _totalFacultyController.text = _totalFaculty.toString();
     });
   }
 
   Future<void> _incrementRollNumber() async {
-    _lastId++;
     _totalFaculty++;
-    await _UserIdDoc.set(
-        {'lastId': _lastId, 'Total Faculty': _totalFaculty});
+    await _UserIdDoc.set({'Total Faculty': _totalFaculty});
   }
 
   @override
   void dispose() {
-    _IdController.dispose();
     _totalFacultyController.dispose();
     super.dispose();
   }
@@ -254,43 +243,18 @@ class _AddFacultyState extends State<AddFaculty> {
                     Row(
                       children: [
                         Expanded(
-                          child: ListTile(
-                            title: Text(
-                              "Program",
-                              style: TextStyle(fontSize: 15),
-                            ),
-                            subtitle: DropdownButtonFormField(
-                                decoration: const InputDecoration(
-                                    border: OutlineInputBorder(
-                                        borderRadius:
-                                        BorderRadius.all(Radius.zero))),
-                                value: _selProgram,
-                                items: _programs
-                                    .map((e) => DropdownMenuItem(
-                                  value: e,
-                                  child: Text(e),
-                                ))
-                                    .toList(),
-                                onChanged: (val) {
-                                  setState(() {
-                                    _selProgram = val as String;
-                                  });
-                                }),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 15,
-                        ),
-                        Expanded(
                           child: ReusableTextField(
-                            controller: _IdController,
+                            controller: _facultyId,
                             maxLength: 10,
                             keyboardType: TextInputType.phone,
-                            readOnly: true,
+                            readOnly: false,
                             title: 'Id',
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(
+                      height: 10,
                     ),
                     Row(
                       children: [
@@ -332,148 +296,87 @@ class _AddFacultyState extends State<AddFaculty> {
                       children: [
                         Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.all(15),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Gender:",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Row(
                                 children: [
-                                  const Text(
-                                    "Gender:",
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Radio<String>(
+                                        value: 'Male',
+                                        groupValue: _selectedGender,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedGender = value;
+                                          });
+                                        },
+                                      ),
+                                      const Text(
+                                        'Male',
+                                        style: TextStyle(
+                                            color: Colors.grey, fontSize: 15),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    width: 15,
                                   ),
                                   Row(
                                     children: [
-                                      Row(
-                                        children: [
-                                          Radio<String>(
-                                            value: 'Male',
-                                            groupValue: _selectedGender,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                _selectedGender = value;
-                                              });
-                                            },
-                                          ),
-                                          const Text(
-                                            'Male',
-                                            style: TextStyle(
-                                                color: Colors.grey, fontSize: 15),
-                                          ),
-                                        ],
+                                      Radio<String>(
+                                        value: 'Female',
+                                        groupValue: _selectedGender,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedGender = value;
+                                          });
+                                        },
                                       ),
-                                      SizedBox(
-                                        width: 15,
-                                      ),
-                                      Row(
-                                        children: [
-                                          Radio<String>(
-                                            value: 'Female',
-                                            groupValue: _selectedGender,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                _selectedGender = value;
-                                              });
-                                            },
-                                          ),
-                                          const Text('Female',
-                                              style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 15)),
-                                        ],
-                                      ),
+                                      const Text('Female',
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 15)),
                                     ],
-                                  )
+                                  ),
                                 ],
-                              ),
-                            )),
+                              )
+                            ],
+                          ),
+                        )),
                         const SizedBox(
                           width: 15,
                         ),
                         Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Expanded(
-                                  child: Column(
-                                    children: [
-                                      ReusableTextField(
-                                        readOnly: true,
-                                        controller: _fileNameController,
-                                        title: 'Image',
-                                        sufIcon: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                  minimumSize: Size(100, 50),
-                                                  backgroundColor:
-                                                  const Color(0xff002233),
-                                                  shape:
-                                                  ContinuousRectangleBorder()),
-                                              onPressed: () async {
-                                                var result = await FilePicker
-                                                    .platform
-                                                    .pickFiles(
-                                                    allowMultiple: true,
-                                                    type: FileType.image);
-                                                if (result == null) {
-                                                  print("Error: No file selected");
-                                                } else {
-                                                  var path =
-                                                      result.files.single.bytes;
-                                                  final fileName =
-                                                      result.files.single.name;
-
-                                                  setState(() {
-                                                    _fileNameController.text =
-                                                        fileName;
-                                                    result = null;
-                                                  });
-
-                                                  try {
-                                                    await firebaseStorage
-                                                        .ref('Profiles/$fileName')
-                                                        .putData(path!)
-                                                        .then((p0) async {
-                                                      log("Uploaded");
-                                                    });
-                                                  } catch (e) {
-                                                    log("Error: $e");
-                                                  }
-                                                  var imgurl = await firebaseStorage
-                                                      .ref('Profiles/$fileName')
-                                                      .getDownloadURL();
-                                                  print(imgurl);
-                                                  imjUrl = imgurl.toString();
-                                                  print("imj" + imjUrl);
-                                                }
-
-                                                // html.FileUploadInputElement
-                                                //     uploadInput =
-                                                //     html.FileUploadInputElement()
-                                                //       ..accept = 'image/*';
-                                                // uploadInput.click();
-                                                // uploadInput.onChange
-                                                //     .listen((event) {
-                                                //   final files = uploadInput.files;
-                                                //   if (files != null &&
-                                                //       files.length == 1) {
-                                                //     final file = files[0];
-                                                //     _handleFileUpload(file);
-                                                //   }
-                                                // });
-                                              },
-                                              child: const Text(
-                                                "Upload",
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 15),
-                                              )),
-                                        ),
-                                      ),
-                                    ],
-                                  )),
-                            ],
+                          child: ListTile(
+                            title: Text(
+                              "Program",
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            subtitle: DropdownButtonFormField(
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.all(Radius.zero))),
+                                value: _selProgram,
+                                items: _programs
+                                    .map((e) => DropdownMenuItem(
+                                          value: e,
+                                          child: Text(e),
+                                        ))
+                                    .toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selProgram = val as String;
+                                  });
+                                }),
                           ),
                         ),
                       ],
@@ -515,11 +418,102 @@ class _AddFacultyState extends State<AddFaculty> {
                             title: 'Mobile',
                           ),
                         ),
-
                       ],
                     ),
                     const SizedBox(
                       height: 4,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Expanded(
+                                  child: Column(
+                                children: [
+                                  ReusableTextField(
+                                    readOnly: true,
+                                    controller: _fileNameController,
+                                    title: 'Image',
+                                    sufIcon: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                              minimumSize: Size(100, 50),
+                                              backgroundColor:
+                                                  const Color(0xff002233),
+                                              shape:
+                                                  ContinuousRectangleBorder()),
+                                          onPressed: () async {
+                                            var result = await FilePicker
+                                                .platform
+                                                .pickFiles(
+                                                    allowMultiple: true,
+                                                    type: FileType.image);
+                                            if (result == null) {
+                                              print("Error: No file selected");
+                                            } else {
+                                              var path =
+                                                  result.files.single.bytes;
+                                              final fileName =
+                                                  result.files.single.name;
+
+                                              setState(() {
+                                                _fileNameController.text =
+                                                    fileName;
+                                                result = null;
+                                              });
+
+                                              try {
+                                                await firebaseStorage
+                                                    .ref('Profiles/$fileName')
+                                                    .putData(path!)
+                                                    .then((p0) async {
+                                                  log("Uploaded");
+                                                });
+                                              } catch (e) {
+                                                log("Error: $e");
+                                              }
+                                              var imgurl = await firebaseStorage
+                                                  .ref('Profiles/$fileName')
+                                                  .getDownloadURL();
+                                              print(imgurl);
+                                              imjUrl = imgurl.toString();
+                                              print("imj" + imjUrl);
+                                            }
+                                          },
+                                          child: const Text(
+                                            "Upload",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15),
+                                          )),
+                                    ),
+                                  ),
+                                ],
+                              )),
+                            ],
+                          ),
+                        ),  const SizedBox(
+                          width: 15,
+                        ),
+
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: _firstNameController,
+                            keyboardType: TextInputType.name,
+                            readOnly: false,
+                            validator: (str) {
+                              if (str!.isEmpty) {
+                                return "Qualification  is required";
+                              }
+                              return null;
+                            },
+                            title: 'Qualification ',
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(
                       height: 15,
@@ -535,17 +529,17 @@ class _AddFacultyState extends State<AddFaculty> {
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
-
                             Faculty newStudent = Faculty(
                               firstname: _firstNameController.text,
                               lastname: _lastNameController.text,
                               gender: _selectedGender.toString(),
                               profile: imjUrl.toString(),
-                              FacultyId: _lastId.toString(),
+                              FacultyId: _facultyId.text,
                               email: _emailController.text,
                               mobile: _phoneController.text,
                               program: _selProgram.toString(),
-                              DOB: _dobController.text, qualification: '',
+                              DOB: _dobController.text,
+                              qualification: ,
                             );
                             _firestoreService.addFaculty(newStudent);
 
@@ -561,7 +555,6 @@ class _AddFacultyState extends State<AddFaculty> {
 
                             await _incrementRollNumber();
                             // Update TextField value after increment
-                            _IdController.text = _lastId.toString();
                           },
                           child: const Text(
                             "Register",
@@ -660,7 +653,7 @@ class _FacultyListState extends State<FacultyList> {
             },
             items: ['--Program--', 'BCA', 'BBA', 'B-Com']
                 .map<DropdownMenuItem<String>>(
-                  (String value) {
+              (String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -680,21 +673,21 @@ class _FacultyListState extends State<FacultyList> {
             items: _selectedProgram.isEmpty || _selectedProgram == '--Program--'
                 ? []
                 : [
-              '--Program Term--',
-              'Sem-1',
-              'Sem-2',
-              'Sem-3',
-              'Sem-4',
-              'Sem-5',
-              'Sem-6'
-            ].map<DropdownMenuItem<String>>(
-                  (String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              },
-            ).toList(),
+                    '--Program Term--',
+                    'Sem-1',
+                    'Sem-2',
+                    'Sem-3',
+                    'Sem-4',
+                    'Sem-5',
+                    'Sem-6'
+                  ].map<DropdownMenuItem<String>>(
+                    (String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    },
+                  ).toList(),
             hint: Text('Program Term'),
           ),
           SizedBox(width: 8),
@@ -706,17 +699,17 @@ class _FacultyListState extends State<FacultyList> {
               });
             },
             items: _selectedProgramTerm.isEmpty ||
-                _selectedProgramTerm == '--Program Term'
+                    _selectedProgramTerm == '--Program Term'
                 ? []
                 : ['--Division--', 'A', 'B', 'C', 'D']
-                .map<DropdownMenuItem<String>>(
-                  (String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              },
-            ).toList(),
+                    .map<DropdownMenuItem<String>>(
+                    (String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    },
+                  ).toList(),
             hint: Text('Class'),
           ),
         ],
@@ -728,9 +721,9 @@ class _FacultyListState extends State<FacultyList> {
     return StreamBuilder<List<Faculty>>(
       stream: _searchTerm.isEmpty
           ? _firestoreService.getFaculty(
-          _selectedProgram, _selectedProgramTerm, _selectedDivision)
+              _selectedProgram, _selectedProgramTerm, _selectedDivision)
           : _firestoreService.searchFaculty(_selectedProgram,
-          _selectedProgramTerm, _selectedDivision, _searchTerm),
+              _selectedProgramTerm, _selectedDivision, _searchTerm),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -781,44 +774,44 @@ class _FacultyListState extends State<FacultyList> {
                 rows: students
                     .map(
                       (student) => DataRow(cells: [
-                    DataCell(Text(student.FacultyId)),
-                    DataCell(
-                        Text(student.firstname + " " + student.lastname)),
-                    DataCell(CircleAvatar(
-                      radius: 27,
-                      child: ClipOval(
-                        child: Image.network(
-                          student.profile,
-                          fit: BoxFit.cover,
-                          height: 70,
-                          width: 70,
-                        ),
-                      ),
-                    )),
-                    DataCell(Text(student.program)),
-                    DataCell(Text(student.DOB)),
-                    DataCell(Text(student.mobile)),
-                    DataCell(Text(student.email)),
-                    DataCell(Row(
-                      children: [
-                        IconButton(
-                            onPressed: () {
-                              _showUpdateDialog(context);
-                            },
-                            icon: Icon(
-                              FontAwesomeIcons.edit,
-                              color: Colors.green,
-                            )),
-                        IconButton(
-                            onPressed: () {},
-                            icon: Icon(
-                              FontAwesomeIcons.trash,
-                              color: Colors.redAccent,
-                            )),
-                      ],
-                    ))
-                  ]),
-                )
+                        DataCell(Text(student.FacultyId)),
+                        DataCell(
+                            Text(student.firstname + " " + student.lastname)),
+                        DataCell(CircleAvatar(
+                          radius: 27,
+                          child: ClipOval(
+                            child: Image.network(
+                              student.profile,
+                              fit: BoxFit.cover,
+                              height: 70,
+                              width: 70,
+                            ),
+                          ),
+                        )),
+                        DataCell(Text(student.program)),
+                        DataCell(Text(student.DOB)),
+                        DataCell(Text(student.mobile)),
+                        DataCell(Text(student.email)),
+                        DataCell(Row(
+                          children: [
+                            IconButton(
+                                onPressed: () {
+                                  _showUpdateDialog(context);
+                                },
+                                icon: Icon(
+                                  FontAwesomeIcons.edit,
+                                  color: Colors.green,
+                                )),
+                            IconButton(
+                                onPressed: () {},
+                                icon: Icon(
+                                  FontAwesomeIcons.trash,
+                                  color: Colors.redAccent,
+                                )),
+                          ],
+                        ))
+                      ]),
+                    )
                     .toList(),
               ),
             ),
