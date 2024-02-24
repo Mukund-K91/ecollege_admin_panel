@@ -501,7 +501,7 @@ class _AddFacultyState extends State<AddFaculty> {
 
                         Expanded(
                           child: ReusableTextField(
-                            controller: _firstNameController,
+                            controller: _Qualification,
                             keyboardType: TextInputType.name,
                             readOnly: false,
                             validator: (str) {
@@ -539,7 +539,7 @@ class _AddFacultyState extends State<AddFaculty> {
                               mobile: _phoneController.text,
                               program: _selProgram.toString(),
                               DOB: _dobController.text,
-                              qualification: ,
+                              qualification: _Qualification.text,
                             );
                             _firestoreService.addFaculty(newStudent);
 
@@ -552,6 +552,7 @@ class _AddFacultyState extends State<AddFaculty> {
                             _phoneController.text = "";
                             _dobController.text = "";
                             _selProgram = "";
+                            _Qualification.text="";
 
                             await _incrementRollNumber();
                             // Update TextField value after increment
