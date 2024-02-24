@@ -1,396 +1,242 @@
 // import 'package:flutter/material.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 //
-// class Student {
-//   String name;
-//   int age;
-//   String address;
-//
-//   Student({required this.name, required this.age, required this.address});
-// }
-//
-// class UpdateStudentDetails extends StatefulWidget {
+// class RollNumberGenerator extends StatefulWidget {
 //   @override
-//   _UpdateStudentDetailsState createState() => _UpdateStudentDetailsState();
+//   _RollNumberGeneratorState createState() => _RollNumberGeneratorState();
 // }
 //
-// class _UpdateStudentDetailsState extends State<UpdateStudentDetails> {
-//   late TextEditingController _nameController;
-//   late TextEditingController _ageController;
-//   late TextEditingController _addressController;
-//
-//   // Mock student data
-//   Student _student = Student(name: 'John Doe', age: 20, address: '123 Main St');
+// class _RollNumberGeneratorState extends State<RollNumberGenerator> {
+//   TextEditingController _rollNumberController = TextEditingController();
+//   String _selectedProgram = 'BCA'; // Default program
+//   String _selectedProgramTerm = 'Semester 1'; // Default program term
+//   String _selectedDivision = 'A'; // Default division
 //
 //   @override
 //   void initState() {
 //     super.initState();
-//     _nameController = TextEditingController(text: _student.name);
-//     _ageController = TextEditingController(text: _student.age.toString());
-//     _addressController = TextEditingController(text: _student.address);
+//     _generateRollNumber();
+//   }
+//
+//   Future<void> _generateRollNumber() async {
+//     try {
+//       final rollNumberDocPath = 'rollno/$_selectedProgram/$_selectedProgramTerm/$_selectedDivision';
+//       final rollNumberDocRef = FirebaseFirestore.instance.doc(rollNumberDocPath);
+//
+//       // Get the current roll number
+//       final rollNumberSnapshot = await rollNumberDocRef.get();
+//
+//       // Increment the roll number
+//       final int currentRollNumber = (rollNumberSnapshot.exists)
+//           ? (rollNumberSnapshot.data()!['lastRollNumber'] as int) + 1
+//           : 1;
+//
+//       // Update the roll number in Firestore
+//       await rollNumberDocRef.set({'lastRollNumber': currentRollNumber});
+//
+//       // Update the roll number in the text field
+//       setState(() {
+//         _rollNumberController.text = currentRollNumber.toString();
+//       });
+//     } catch (e) {
+//       print('Error generating roll number: $e');
+//     }
 //   }
 //
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
 //       appBar: AppBar(
-//         title: Text('Update Student Details'),
+//         title: Text('Roll Number Generator'),
 //       ),
 //       body: Center(
-//         child: ElevatedButton(
-//           onPressed: () {
-//             _showUpdateDialog(context);
-//           },
-//           child: Text('Update Student'),
-//         ),
-//       ),
-//     );
-//   }
-//
-//   void _showUpdateDialog(BuildContext context) {
-//     showDialog(
-//       context: context,
-//       builder: (BuildContext context) {
-//         return AlertDialog(
-//           title: Text('Update Student Details'),
-//           content: Column(
-//             mainAxisSize: MainAxisSize.min,
+//         child: Padding(
+//           padding: EdgeInsets.all(16.0),
+//           child: Column(
+//             mainAxisAlignment: MainAxisAlignment.center,
 //             children: [
-//               TextField(
-//                 controller: _nameController,
-//                 decoration: InputDecoration(labelText: 'Name'),
+//               DropdownButton<String>(
+//                 value: _selectedProgram,
+//                 onChanged: (String? value) {
+//                   setState(() {
+//                     _selectedProgram = value!;
+//                   });
+//                 },
+//                 items: ['BCA', 'BBA', 'B.Com'].map<DropdownMenuItem<String>>((String value) {
+//                   return DropdownMenuItem<String>(
+//                     value: value,
+//                     child: Text(value),
+//                   );
+//                 }).toList(),
 //               ),
-//               TextField(
-//                 controller: _ageController,
-//                 decoration: InputDecoration(labelText: 'Age'),
-//                 keyboardType: TextInputType.number,
+//               SizedBox(height: 16.0),
+//               DropdownButton<String>(
+//                 value: _selectedProgramTerm,
+//                 onChanged: (String? value) {
+//                   setState(() {
+//                     _selectedProgramTerm = value!;
+//                   });
+//                 },
+//                 items: ['Semester 1', 'Semester 2', 'Semester 3'].map<DropdownMenuItem<String>>((String value) {
+//                   return DropdownMenuItem<String>(
+//                     value: value,
+//                     child: Text(value),
+//                   );
+//                 }).toList(),
 //               ),
-//               TextField(
-//                 controller: _addressController,
-//                 decoration: InputDecoration(labelText: 'Address'),
+//               SizedBox(height: 16.0),
+//               DropdownButton<String>(
+//                 value: _selectedDivision,
+//                 onChanged: (String? value) {
+//                   setState(() {
+//                     _selectedDivision = value!;
+//                   });
+//                 },
+//                 items: ['A', 'B', 'C'].map<DropdownMenuItem<String>>((String value) {
+//                   return DropdownMenuItem<String>(
+//                     value: value,
+//                     child: Text(value),
+//                   );
+//                 }).toList(),
+//               ),
+//               SizedBox(height: 16.0),
+//               TextFormField(
+//                 controller: _rollNumberController,
+//                 decoration: InputDecoration(
+//                   labelText: 'Roll Number',
+//                   border: OutlineInputBorder(),
+//                 ),
+//                 readOnly: true,
+//               ),
+//               SizedBox(height: 16.0),
+//               ElevatedButton(
+//                 onPressed: _generateRollNumber,
+//                 child: Text('Generate Roll Number'),
 //               ),
 //             ],
 //           ),
-//           actions: [
-//             TextButton(
-//               onPressed: () {
-//                 _resetFields();
-//                 Navigator.of(context).pop();
-//               },
-//               child: Text('Reset'),
-//             ),
-//             TextButton(
-//               onPressed: () {
-//                 _updateStudentDetails();
-//                 Navigator.of(context).pop();
-//               },
-//               child: Text('Submit'),
-//             ),
-//             TextButton(
-//               onPressed: () {
-//                 Navigator.of(context).pop();
-//               },
-//               child: Text('Close'),
-//             ),
-//           ],
-//         );
-//       },
+//         ),
+//       ),
 //     );
-//   }
-//
-//   void _resetFields() {
-//     _nameController.text = _student.name;
-//     _ageController.text = _student.age.toString();
-//     _addressController.text = _student.address;
-//   }
-//
-//   void _updateStudentDetails() {
-//     setState(() {
-//       _student.name = _nameController.text;
-//       _student.age = int.tryParse(_ageController.text) ?? 0;
-//       _student.address = _addressController.text;
-//     });
-//   }
-//
-//   @override
-//   void dispose() {
-//     _nameController.dispose();
-//     _ageController.dispose();
-//     _addressController.dispose();
-//     super.dispose();
 //   }
 // }
 //
 // void main() {
 //   runApp(MaterialApp(
-//     debugShowCheckedModeBanner: false,
-//     home: UpdateStudentDetails(),
+//     home: RollNumberGenerator(),
 //   ));
 // }
+
+
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Student {
-  final String id;
-  final String name;
-  final String program;
-  final String programTerm;
-  final String division;
-
-  Student({
-    required this.id,
-    required this.name,
-    required this.program,
-    required this.programTerm,
-    required this.division,
-  });
-
-  // Convert Student object to a Map for Firestore
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'program': program,
-      'programTerm': programTerm,
-      'division': division,
-    };
-  }
-}
-
-class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // Add student to Firestore
-  Future<void> addStudent(Student student) async {
-    try {
-      await _firestore
-          .collection('student')
-          .doc(student.program)
-          .collection(student.programTerm)
-          .doc(student.division)
-          .collection('student')
-          .doc(student.id)
-          .set(student.toMap());
-    } catch (e) {
-      print('Error adding student: $e');
-    }
-  }
-
-  // Fetch students from Firestore based on program, program term, and division
-  Stream<List<Student>> getStudents(
-      String program, String programTerm, String division) {
-    return _firestore
-        .collection('student')
-        .doc(program)
-        .collection(programTerm)
-        .doc(division)
-        .collection('student')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => Student(
-      id: doc.id,
-      name: doc['name'],
-      program: doc['program'],
-      programTerm: doc['programTerm'],
-      division: doc['division'],
-    ))
-        .toList());
-  }
-
-  // Search students by name
-  Stream<List<Student>> searchStudents(String program, String programTerm,
-      String division, String searchTerm) {
-    return _firestore
-        .collection('student')
-        .doc(program)
-        .collection(programTerm)
-        .doc(division)
-        .collection('student')
-        .where('name', isGreaterThanOrEqualTo: searchTerm)
-        .where('name', isLessThanOrEqualTo: searchTerm + '\uf8ff')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => Student(
-      id: doc.id,
-      name: doc['name'],
-      program: doc['program'],
-      programTerm: doc['programTerm'],
-      division: doc['division'],
-    ))
-        .toList());
-  }
-}
-
-class StudentListScreen extends StatefulWidget {
+class AssignRollPage extends StatefulWidget {
   @override
-  _StudentListScreenState createState() => _StudentListScreenState();
+  _AssignRollPageState createState() => _AssignRollPageState();
 }
 
-class _StudentListScreenState extends State<StudentListScreen> {
-  final FirestoreService _firestoreService = FirestoreService();
-  late String _selectedProgram='--select--';
-  late String _selectedProgramTerm='--select--';
-  late String _selectedDivision='--select--';
-  late String _searchTerm;
+class _AssignRollPageState extends State<AssignRollPage> {
+  late TextEditingController _nameController;
+  late List<Map<String, dynamic>> _studentsData = [];
 
   @override
   void initState() {
     super.initState();
-    _searchTerm = '';
+    _nameController = TextEditingController();
+    fetchStudentsData();
+  }
+
+  Future<void> fetchStudentsData() async {
+    try {
+      final QuerySnapshot<Map<String, dynamic>> snapshot =
+      await FirebaseFirestore.instance.collection('students').get();
+      setState(() {
+        _studentsData = snapshot.docs.map((doc) => doc.data()).toList();
+      });
+    } catch (e) {
+      print('Error fetching students data: $e');
+    }
+  }
+
+  void generateRollNumbers() {
+    setState(() {
+      int nextRollNumber = 1;
+      for (int i = 0; i < _studentsData.length; i++) {
+        _studentsData[i]['rollNumber'] = nextRollNumber.toString().padLeft(3, '0');
+        nextRollNumber++;
+      }
+    });
+  }
+
+  Future<void> submitStudents() async {
+    try {
+      for (int i = 0; i < _studentsData.length; i++) {
+        // Update student data with new roll number in Firestore
+        await FirebaseFirestore.instance
+            .collection('students')
+            .doc(_studentsData[i]['userId']) // Assuming you have a 'userId' field in the student data
+            .update({'rollNumber': _studentsData[i]['rollNumber']});
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Roll numbers assigned and updated successfully'),
+        duration: Duration(seconds: 2),
+      ));
+    } catch (e) {
+      print('Error submitting students: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student List'),
+        title: Text('Assign Roll Numbers'),
       ),
-      body: Column(
-        children: [
-          _buildFilters(),
-          Expanded(
-            child: _buildStudentList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilters() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          DropdownButton<String>(
-            value: _selectedProgram,
-            onChanged: (String? value) {
-              setState(() {
-                _selectedProgram = value!;
-              });
-            },
-            items: ['--select--','BCA', 'BBA', 'BCom']
-                .map<DropdownMenuItem<String>>(
-                  (String value) => DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              ),
-            )
-                .toList(),
-            hint: Text('Program'),
-          ),
-          SizedBox(width: 8),
-          DropdownButton<String>(
-            value: _selectedProgramTerm,
-            onChanged: (String? value) {
-              setState(() {
-                _selectedProgramTerm = value!;
-              });
-            },
-            items: ['--select--','Sem-1', 'Sem-2', 'Sem-3', 'Sem-4']
-                .map<DropdownMenuItem<String>>(
-                  (String value) => DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              ),
-            )
-                .toList(),
-            hint: Text('Program Term'),
-          ),
-          SizedBox(width: 8),
-          DropdownButton<String>(
-            value: _selectedDivision,
-            onChanged: (String? value) {
-              setState(() {
-                _selectedDivision = value!;
-              });
-            },
-            items: ['--select--','A', 'B', 'C']
-                .map<DropdownMenuItem<String>>(
-                  (String value) => DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              ),
-            )
-                .toList(),
-            hint: Text('Division'),
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: 'Search',
-                hintText: 'Search by name',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchTerm = value;
-                });
-              },
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ElevatedButton(
+              onPressed: generateRollNumbers,
+              child: Text('Generate Roll Numbers'),
             ),
-          ),
-        ],
+            SizedBox(height: 20),
+            if (_studentsData.isNotEmpty) ...[
+              Text('Students List with Roll Numbers:'),
+              SizedBox(height: 10),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: _studentsData.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text('Name: ${_studentsData[index]['name']} - Roll Number: ${_studentsData[index]['rollNumber']}'),
+                  );
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: submitStudents,
+                child: Text('Submit Students'),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStudentList() {
-    return StreamBuilder<List<Student>>(
-      stream: _searchTerm.isEmpty
-          ? _firestoreService.getStudents(
-          _selectedProgram, _selectedProgramTerm, _selectedDivision)
-          : _firestoreService.searchStudents(
-          _selectedProgram, _selectedProgramTerm, _selectedDivision, _searchTerm),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('Error: ${snapshot.error}'),
-          );
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-
-        final students = snapshot.data;
-
-        if (students == null || students.isEmpty) {
-          return Center(
-            child: Text('No students found'),
-          );
-        }
-
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columns: [
-              DataColumn(label: Text('Name')),
-              DataColumn(label: Text('Program')),
-              DataColumn(label: Text('Program Term')),
-              DataColumn(label: Text('Division')),
-            ],
-            rows: students
-                .map(
-                  (student) => DataRow(cells: [
-                DataCell(Text(student.name)),
-                DataCell(Text(student.program)),
-                DataCell(Text(student.programTerm)),
-                DataCell(Text(student.division)),
-              ]),
-            )
-                .toList(),
-          ),
-        );
-      },
-    );
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 }
 
 void main() {
   runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: StudentListScreen(),
+    home: AssignRollPage(),
   ));
 }
-

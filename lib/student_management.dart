@@ -92,7 +92,8 @@ class FirestoreService {
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('student').orderBy('User Id')
+        .collection('student')
+        .orderBy('Roll No')
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Student(
@@ -120,9 +121,10 @@ class FirestoreService {
         .doc(program)
         .collection(programTerm)
         .doc(division)
-        .collection('student').orderBy('User Id')
+        .collection('student')
+        .orderBy('User Id')
         .where('Mobile', isGreaterThanOrEqualTo: searchTerm)
-        .where('Mobile', isLessThanOrEqualTo: searchTerm + '\uf8ff')
+        .where('Roll No', isLessThanOrEqualTo: searchTerm + '\uf8ff')
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Student(
@@ -208,6 +210,7 @@ class _AddStudentsState extends State<AddStudents> {
   final TextEditingController _dobController = TextEditingController();
   late TextEditingController _fileNameController = TextEditingController();
   late TextEditingController _totalStudentsController = TextEditingController();
+  TextEditingController _rollNumberController = TextEditingController();
   DateTime _activationDate = DateTime.now();
   TextEditingController _activeDate = TextEditingController();
   final FirestoreService _firestoreService = FirestoreService();
@@ -239,7 +242,47 @@ class _AddStudentsState extends State<AddStudents> {
     });
   }
 
-  Future<void> _incrementRollNumber() async {
+  // Variable to hold the current roll number
+//  int currentRollNumber = 001;
+
+// Function to initialize the roll number when program, programTerm, and division are selected
+//   void initializeRollNumber(
+//       String program, String programTerm, String division) async {
+//     try {
+//       final rollNumberDocPath = 'rollNo/$program/$programTerm/$division';
+//       final rollNumberDocRef =
+//           FirebaseFirestore.instance.doc(rollNumberDocPath);
+//
+//       // Fetch the last roll number
+//       final rollNumberSnapshot = await rollNumberDocRef.get();
+//       currentRollNumber = rollNumberSnapshot.exists
+//           ? (rollNumberSnapshot.data()!['lastRollNumber'] as int)
+//           : 001;
+//       _rollNumberController.text = currentRollNumber.toString();
+//     } catch (e) {
+//       print('Error fetching roll number: $e');
+//     }
+//   }
+//
+// // Function to increment and store the roll number when the user clicks on submit
+//   Future<void> incrementAndStoreRollNumber(
+//       String program, String programTerm, String division) async {
+//     try {
+//       final rollNumberDocPath = 'rolls/$program/$programTerm/$division';
+//       final rollNumberDocRef =
+//           FirebaseFirestore.instance.doc(rollNumberDocPath);
+//
+//       // Increment the roll number
+//       currentRollNumber++;
+//
+//       // Update the roll number in Firestore
+//       await rollNumberDocRef.set({'lastRollNumber': currentRollNumber});
+//     } catch (e) {
+//       print('Error setting roll number: $e');
+//     }
+//   }
+
+  Future<void> _incrementUserId() async {
     _lastUserId++;
     _totalStudent++;
     await _UserIdDoc.set(
@@ -644,6 +687,15 @@ class _AddStudentsState extends State<AddStudents> {
                                 }),
                           ),
                         ),
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: _rollNumberController,
+                            maxLength: 10,
+                            keyboardType: TextInputType.phone,
+                            readOnly: true,
+                            title: 'Roll Number',
+                          ),
+                        )
                       ],
                     ),
                     const SizedBox(
@@ -679,7 +731,6 @@ class _AddStudentsState extends State<AddStudents> {
                               activationDate: _activedate,
                             );
                             _firestoreService.addStudent(newStudent);
-
                             _firstNameController.text = "";
                             _fileNameController.text = "";
                             _middleNameController.text = "";
@@ -692,7 +743,7 @@ class _AddStudentsState extends State<AddStudents> {
                             _selProgramTerm = "";
                             _seldiv = "";
 
-                            await _incrementRollNumber();
+                            await _incrementUserId();
                             // Update TextField value after increment
                             _UserIdController.text = _lastUserId.toString();
                           },

@@ -14,6 +14,7 @@ class DashboardScreen extends StatefulWidget {
     );
     //  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: SystemUiOverlay.values);
   }
+
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
@@ -27,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     StudentList(),
     AddFaculty(),
     FacultyList(),
-    StudentListScreen(),
+    RollNumberGenerator(),
     LogoutScreen()
   ];
 
@@ -83,7 +84,8 @@ class SideMenu extends StatelessWidget {
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),
-          ExpansionTile(title: Text("Students"),
+          ExpansionTile(
+            title: Text("Students"),
             children: [
               MenuItem(
                 title: 'Add Student',
@@ -98,9 +100,9 @@ class SideMenu extends StatelessWidget {
                 onMenuItemSelected: onMenuItemSelected,
               ),
             ],
-
           ),
-          ExpansionTile(title: Text("Faculty"),
+          ExpansionTile(
+            title: Text("Faculty"),
             children: [
               MenuItem(
                 title: 'Add Faculty',
@@ -115,7 +117,6 @@ class SideMenu extends StatelessWidget {
                 onMenuItemSelected: onMenuItemSelected,
               ),
             ],
-
           ),
           MenuItem(
             title: 'Settings',
