@@ -28,7 +28,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     StudentList(),
     AddFaculty(),
     FacultyList(),
-    RollNumberGenerator(),
     LogoutScreen()
   ];
 

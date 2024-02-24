@@ -687,15 +687,6 @@ class _AddStudentsState extends State<AddStudents> {
                                 }),
                           ),
                         ),
-                        Expanded(
-                          child: ReusableTextField(
-                            controller: _rollNumberController,
-                            maxLength: 10,
-                            keyboardType: TextInputType.phone,
-                            readOnly: true,
-                            title: 'Roll Number',
-                          ),
-                        )
                       ],
                     ),
                     const SizedBox(
