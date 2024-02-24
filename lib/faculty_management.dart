@@ -295,62 +295,59 @@ class _AddFacultyState extends State<AddFaculty> {
                     Row(
                       children: [
                         Expanded(
-                            child: Padding(
-                          padding: const EdgeInsets.all(15),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Gender:",
-                                style: TextStyle(
-                                  fontSize: 15,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Gender:",
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                  ),
                                 ),
-                              ),
-                              Row(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Radio<String>(
-                                        value: 'Male',
-                                        groupValue: _selectedGender,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _selectedGender = value;
-                                          });
-                                        },
-                                      ),
-                                      const Text(
-                                        'Male',
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 15),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    width: 15,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Radio<String>(
-                                        value: 'Female',
-                                        groupValue: _selectedGender,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _selectedGender = value;
-                                          });
-                                        },
-                                      ),
-                                      const Text('Female',
+                                Row(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Radio<String>(
+                                          value: 'Male',
+                                          groupValue: _selectedGender,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _selectedGender = value;
+                                            });
+                                          },
+                                        ),
+                                        const Text(
+                                          'Male',
                                           style: TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 15)),
-                                    ],
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                        )),
+                                              color: Colors.grey, fontSize: 15),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      width: 15,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Radio<String>(
+                                          value: 'Female',
+                                          groupValue: _selectedGender,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _selectedGender = value;
+                                            });
+                                          },
+                                        ),
+                                        const Text('Female',
+                                            style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 15)),
+                                      ],
+                                    ),
+                                  ],
+                                )
+                              ],
+                            )),
                         const SizedBox(
                           width: 15,
                         ),
@@ -380,9 +377,6 @@ class _AddFacultyState extends State<AddFaculty> {
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(
-                      height: 10,
                     ),
                     Row(
                       children: [
