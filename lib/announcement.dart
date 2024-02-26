@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:readmore/readmore.dart';
 
 class Event {
@@ -116,6 +117,7 @@ class _EventListPageState extends State<EventListPage> {
               itemBuilder: (context, index) {
                 Event event = events[index];
                 bool isExpanded = isExpandedMap[event.title] ?? false;
+                String _date=DateFormat('dd-MMMM-yyyy').format(event.date);
 
                 return Column(
                   children: [
@@ -142,18 +144,18 @@ class _EventListPageState extends State<EventListPage> {
                         colorClickableText: Colors.grey,
                         trimExpandedText: '-Show less',
                       ),
-                      trailing: Row(
-                        children: [
-                          Expanded(
-                              child: IconButton(
-                                  onPressed: () {},
-                                  icon: Icon(FontAwesomeIcons.edit))),
-                          Expanded(
-                            child: IconButton(
+                      trailing:SizedBox(
+                        width: 150,
+                        child: Row(
+                          children: [
+                            IconButton(
                                 onPressed: () {},
-                                icon: Icon(FontAwesomeIcons.trash)),
-                          ),
-                        ],
+                                icon: Icon(FontAwesomeIcons.edit,color: Colors.green,)),
+                            IconButton(
+                                onPressed: () {},
+                                icon: Icon(FontAwesomeIcons.trash,color: Colors.redAccent,)),
+                          ],
+                        ),
                       ),
                     ),
                     Divider(),
