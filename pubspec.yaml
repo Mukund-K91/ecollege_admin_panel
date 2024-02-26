@@ -55,6 +55,7 @@ dependencies:
   internet_connection_checker: ^1.0.0+1
   table_calendar: ^3.0.2
   carousel_slider: ^4.0.0
+  readmore: ^2.1.0
 
 dev_dependencies:
   flutter_test:

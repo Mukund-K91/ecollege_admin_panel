@@ -44,7 +44,7 @@ class ReusableTextField extends StatelessWidget {
             obscureText: obSecure,
             keyboardType: keyboardType,
             controller: controller,
-            maxLines: isMulti ? 5 : 1,
+            maxLines: isMulti ? 3 : 1,
             readOnly: readOnly,
             maxLength: maxLength,
             onTap: OnTap,

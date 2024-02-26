@@ -1,3 +1,4 @@
+import 'package:ecollege_admin_panel/announcement.dart';
 import 'package:ecollege_admin_panel/dashboard_home.dart';
 import 'package:ecollege_admin_panel/demo.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,6 +7,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'faculty_management.dart';
 import 'firebase_options.dart';
 import 'student_management.dart';
+
+void handleClick(String value) {
+  switch (value) {
+    case 'Logout':
+      break;
+    case 'Settings':
+      break;
+  }
+}
 
 class DashboardScreen extends StatefulWidget {
   void main() async {
@@ -29,12 +39,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
     StudentList(),
     AddFaculty(),
     FacultyList(),
+    EventListPage()
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Image.asset('assets/Images/eCollege.png')),
+      appBar: AppBar(
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Container(
+              color: Color(0xff002233),
+              height: 4,
+            )),
+        title: Image(
+          image: AssetImage('assets/Images/eCollege.png'),
+          height: 200,
+          width: 200,
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+                onPressed: () {},
+                icon: Icon(
+                  FontAwesomeIcons.powerOff,
+                  color: Color(0xff002233),
+                )),
+          )
+        ],
+      ),
       body: Row(
         children: [
           SideMenu(
@@ -72,9 +106,6 @@ class SideMenu extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Divider(
-            color: Colors.white,
-          ),
           MenuItem(
             icon: Icon(
               FontAwesomeIcons.home,
@@ -200,14 +231,4 @@ class MenuItem extends StatelessWidget {
   }
 }
 
-class UserManagementScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'User Management Screen Con',
-        style: TextStyle(fontSize: 24),
-      ),
-    );
-  }
-}
+
