@@ -2,6 +2,7 @@ import 'package:ecollege_admin_panel/dashboard_home.dart';
 import 'package:ecollege_admin_panel/demo.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'faculty_management.dart';
 import 'firebase_options.dart';
 import 'student_management.dart';
@@ -28,15 +29,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     StudentList(),
     AddFaculty(),
     FacultyList(),
-    LogoutScreen()
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Admin Dashboard'),
-      ),
+      appBar: AppBar(title: Image.asset('assets/Images/adminLogo.png')),
       body: Row(
         children: [
           SideMenu(
@@ -70,7 +68,7 @@ class SideMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 250,
-      color: Colors.blue,
+      color: Color(0xff002233),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -78,13 +76,31 @@ class SideMenu extends StatelessWidget {
             color: Colors.white,
           ),
           MenuItem(
-            title: 'Dashboard',
+            icon: Icon(
+              FontAwesomeIcons.home,
+              color: Colors.white,
+            ),
+            title: ' Dashboard',
             index: 0,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
           ),
           ExpansionTile(
-            title: Text("Students"),
+            title: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(
+                    FontAwesomeIcons.graduationCap,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  " Students",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
             children: [
               MenuItem(
                 title: 'Add Student',
@@ -101,7 +117,21 @@ class SideMenu extends StatelessWidget {
             ],
           ),
           ExpansionTile(
-            title: Text("Faculty"),
+            title: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(
+                    FontAwesomeIcons.user,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  " Faculty",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
             children: [
               MenuItem(
                 title: 'Add Faculty',
@@ -118,16 +148,14 @@ class SideMenu extends StatelessWidget {
             ],
           ),
           MenuItem(
-            title: 'Settings',
+            title: ' Announcement',
             index: 5,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
-          ),
-          MenuItem(
-            title: 'Logout',
-            index: 6,
-            selectedIndex: selectedIndex,
-            onMenuItemSelected: onMenuItemSelected,
+            icon: Icon(
+              FontAwesomeIcons.bullhorn,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -137,12 +165,14 @@ class SideMenu extends StatelessWidget {
 
 class MenuItem extends StatelessWidget {
   final String title;
+  final Icon? icon;
   final int index;
   final int selectedIndex;
   final Function(int) onMenuItemSelected;
 
   MenuItem({
     required this.title,
+    this.icon,
     required this.index,
     required this.selectedIndex,
     required this.onMenuItemSelected,
@@ -151,11 +181,17 @@ class MenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(
-        title,
-        style: TextStyle(
-          color: index == selectedIndex ? Colors.white : Colors.white54,
-        ),
+      title: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: icon,
+          ),
+          Text(
+            title,
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
       ),
       onTap: () {
         onMenuItemSelected(index);
@@ -170,42 +206,6 @@ class UserManagementScreen extends StatelessWidget {
     return Center(
       child: Text(
         'User Management Screen Con',
-        style: TextStyle(fontSize: 24),
-      ),
-    );
-  }
-}
-
-class DataAnalyticsScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Data Analytics Screen',
-        style: TextStyle(fontSize: 24),
-      ),
-    );
-  }
-}
-
-class SettingsScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Settings Screen',
-        style: TextStyle(fontSize: 24),
-      ),
-    );
-  }
-}
-
-class LogoutScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Logout Screen',
         style: TextStyle(fontSize: 24),
       ),
     );
