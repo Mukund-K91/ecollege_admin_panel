@@ -12,21 +12,31 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late DocumentReference _UserIdDoc;
+  late DocumentReference _IdDoc;
+
 
   late TextEditingController _totalStudentsController = TextEditingController();
+  late TextEditingController _totalFacultyController = TextEditingController();
 
   int _totalStudent = 0;
+  int _totalFaculty=0;
 
   void initState() {
     super.initState();
     _UserIdDoc =
         FirebaseFirestore.instance.collection('metadata').doc('userId');
     _getUserId();
+    _IdDoc =
+        FirebaseFirestore.instance.collection('metadata').doc('FacultyId');
+    _getUserId();
     _totalStudentsController = TextEditingController();
   }
 
   Future<void> _getUserId() async {
     final userIdDocSnapshot = await _UserIdDoc.get();
+    final IdDocSnapshot = await _IdDoc.get();
+
+
     setState(() {
       _totalStudent =
       userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
@@ -35,10 +45,19 @@ class _HomeState extends State<Home> {
           0
           : 0;
       _totalStudentsController.text = _totalStudent.toString();
+
+      _totalFaculty =
+      IdDocSnapshot.exists && IdDocSnapshot.data() != null
+          ? (IdDocSnapshot.data()
+      as Map<String, dynamic>)['Total Faculty'] ??
+          0
+          : 0;
+      _totalFacultyController.text = _totalFaculty.toString();
     });
   }
   void dispose() {
     _totalStudentsController.dispose();
+    _totalFacultyController.dispose();
     super.dispose();
   }
   @override
@@ -93,18 +112,32 @@ class _HomeState extends State<Home> {
                 )),
                 Expanded(
                     child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height: 200,
-                    child: Card(
-                      elevation: 5,
-                      shape: ContinuousRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(20))),
-                      color: Colors.deepOrange.shade300,
-                      child: Text("89"),
-                    ),
-                  ),
-                )),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        height: 200,
+                        child: Card(
+                          elevation: 5,
+                          shape: ContinuousRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(20))),
+                          color: Colors.orangeAccent.shade100,
+                          child: Padding(
+                            padding: const EdgeInsets.all(50),
+                            child: ListTile(
+                              title: Text(
+                                "Total Faculty",
+                                style: TextStyle(
+                                    fontSize: 20,color: Colors.white),
+                              ),
+                              subtitle: Text(
+                                _totalFaculty.toString(),
+                                style: TextStyle(
+                                    fontSize: 25, fontWeight: FontWeight.bold,color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )),
                 Expanded(
                     child: Padding(
                   padding: const EdgeInsets.all(8.0),

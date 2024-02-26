@@ -20,10 +20,10 @@ class Faculty {
   final String gender;
   final String FacultyId;
   final String profile;
-  final String DOB;
   final String email;
   final String mobile;
   final String qualification;
+  final String Designation;
   final String program;
 
   Faculty(
@@ -34,9 +34,9 @@ class Faculty {
       required this.profile,
       required this.email,
       required this.mobile,
-      required this.DOB,
       required this.program,
-      required this.qualification});
+      required this.qualification,
+      required this.Designation});
 
   // Convert Student object to a Map for Firestore
   Map<String, dynamic> toMap() {
@@ -48,9 +48,9 @@ class Faculty {
       "Profile Img": profile,
       "Email": email,
       "Mobile": mobile,
-      "DOB": DOB,
       'program': program,
-      "Qualification": qualification
+      "Qualification": qualification,
+      "Designation":Designation
     };
   }
 }
@@ -74,13 +74,10 @@ class FirestoreService {
   }
 
   // Fetch students from Firestore based on program, program term, and division
-  Stream<List<Faculty>> getFaculty(
-      String program, String programTerm, String division) {
+  Stream<List<Faculty>> getFaculty(String program) {
     return _firestore
         .collection('faculty')
         .doc(program)
-        .collection(programTerm)
-        .doc(division)
         .collection('faculty')
         .orderBy('Id')
         .snapshots()
@@ -89,23 +86,20 @@ class FirestoreService {
                 firstname: doc['First Name'],
                 lastname: doc['Last Name'],
                 gender: doc['Gender'],
-                FacultyId: doc['User Id'],
+                FacultyId: doc['Id'],
                 profile: doc['Profile Img'],
                 email: doc['Email'],
                 mobile: doc['Mobile'],
-                DOB: doc['DOB'],
                 program: doc['program'],
-                qualification: doc['Qualification']))
+                qualification: doc['Qualification'],
+                Designation: doc['Designation']))
             .toList());
   }
 
-  Stream<List<Faculty>> searchFaculty(
-      String program, String programTerm, String division, String searchTerm) {
+  Stream<List<Faculty>> searchFaculty(String program, String searchTerm) {
     return _firestore
         .collection('faculty')
         .doc(program)
-        .collection(programTerm)
-        .doc(division)
         .collection('faculty')
         .orderBy('Id')
         .where('Id', isGreaterThanOrEqualTo: searchTerm)
@@ -120,9 +114,9 @@ class FirestoreService {
                 profile: doc['Profile Img'],
                 email: doc['Email'],
                 mobile: doc['Mobile'],
-                DOB: doc['DOB'],
                 program: doc['program'],
-                qualification: doc['Qualification']))
+                qualification: doc['Qualification'],
+                Designation: doc['Designation']))
             .toList());
   }
 }
@@ -166,6 +160,7 @@ class _AddFacultyState extends State<AddFaculty> {
   final TextEditingController _facultyId = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _Qualification = TextEditingController();
+  final TextEditingController _Designation = TextEditingController();
   late TextEditingController _fileNameController = TextEditingController();
 
   late TextEditingController _totalFacultyController = TextEditingController();
@@ -296,129 +291,60 @@ class _AddFacultyState extends State<AddFaculty> {
                       children: [
                         Expanded(
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Gender:",
+                              style: TextStyle(
+                                fontSize: 15,
+                              ),
+                            ),
+                            Row(
                               children: [
-                                const Text(
-                                  "Gender:",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                  ),
+                                Row(
+                                  children: [
+                                    Radio<String>(
+                                      value: 'Male',
+                                      groupValue: _selectedGender,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _selectedGender = value;
+                                        });
+                                      },
+                                    ),
+                                    const Text(
+                                      'Male',
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 15),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  width: 15,
                                 ),
                                 Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Radio<String>(
-                                          value: 'Male',
-                                          groupValue: _selectedGender,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _selectedGender = value;
-                                            });
-                                          },
-                                        ),
-                                        const Text(
-                                          'Male',
-                                          style: TextStyle(
-                                              color: Colors.grey, fontSize: 15),
-                                        ),
-                                      ],
+                                    Radio<String>(
+                                      value: 'Female',
+                                      groupValue: _selectedGender,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _selectedGender = value;
+                                        });
+                                      },
                                     ),
-                                    SizedBox(
-                                      width: 15,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Radio<String>(
-                                          value: 'Female',
-                                          groupValue: _selectedGender,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _selectedGender = value;
-                                            });
-                                          },
-                                        ),
-                                        const Text('Female',
-                                            style: TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 15)),
-                                      ],
-                                    ),
+                                    const Text('Female',
+                                        style: TextStyle(
+                                            color: Colors.grey, fontSize: 15)),
                                   ],
-                                )
+                                ),
                               ],
-                            )),
+                            )
+                          ],
+                        )),
                         const SizedBox(
                           width: 15,
                         ),
-                        Expanded(
-                          child: ListTile(
-                            title: Text(
-                              "Program",
-                              style: TextStyle(fontSize: 15),
-                            ),
-                            subtitle: DropdownButtonFormField(
-                                decoration: const InputDecoration(
-                                    border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.all(Radius.zero))),
-                                value: _selProgram,
-                                items: _programs
-                                    .map((e) => DropdownMenuItem(
-                                          value: e,
-                                          child: Text(e),
-                                        ))
-                                    .toList(),
-                                onChanged: (val) {
-                                  setState(() {
-                                    _selProgram = val as String;
-                                  });
-                                }),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ReusableTextField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.name,
-                            readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Email is required";
-                              }
-                              return null;
-                            },
-                            title: 'Email',
-                          ),
-                        ),
-                        SizedBox(
-                          width: 15,
-                        ),
-                        Expanded(
-                          child: ReusableTextField(
-                            controller: _phoneController,
-                            maxLength: 10,
-                            keyboardType: TextInputType.phone,
-                            readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Mobile is required";
-                              }
-                              return null;
-                            },
-                            title: 'Mobile',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Row(
-                      children: [
                         Expanded(
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,10 +415,70 @@ class _AddFacultyState extends State<AddFaculty> {
                               )),
                             ],
                           ),
-                        ),  const SizedBox(
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.name,
+                            readOnly: false,
+                            validator: (str) {
+                              if (str!.isEmpty) {
+                                return "Email is required";
+                              }
+                              return null;
+                            },
+                            title: 'Email',
+                          ),
+                        ),
+                        SizedBox(
                           width: 15,
                         ),
-
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: _phoneController,
+                            maxLength: 10,
+                            keyboardType: TextInputType.phone,
+                            readOnly: false,
+                            validator: (str) {
+                              if (str!.isEmpty) {
+                                return "Mobile is required";
+                              }
+                              return null;
+                            },
+                            title: 'Mobile',
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: _Designation,
+                            keyboardType: TextInputType.name,
+                            readOnly: false,
+                            validator: (str) {
+                              if (str!.isEmpty) {
+                                return "Designation  is required";
+                              }
+                              return null;
+                            },
+                            title: 'Designation ',
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
                         Expanded(
                           child: ReusableTextField(
                             controller: _Qualification,
@@ -505,6 +491,38 @@ class _AddFacultyState extends State<AddFaculty> {
                               return null;
                             },
                             title: 'Qualification ',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ListTile(
+                            title: Text(
+                              "Program",
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            subtitle: DropdownButtonFormField(
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.all(Radius.zero))),
+                                value: _selProgram,
+                                items: _programs
+                                    .map((e) => DropdownMenuItem(
+                                          value: e,
+                                          child: Text(e),
+                                        ))
+                                    .toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selProgram = val as String;
+                                  });
+                                }),
                           ),
                         ),
                       ],
@@ -532,8 +550,8 @@ class _AddFacultyState extends State<AddFaculty> {
                               email: _emailController.text,
                               mobile: _phoneController.text,
                               program: _selProgram.toString(),
-                              DOB: _dobController.text,
                               qualification: _Qualification.text,
+                              Designation: _Designation.text,
                             );
                             _firestoreService.addFaculty(newStudent);
 
@@ -544,9 +562,9 @@ class _AddFacultyState extends State<AddFaculty> {
                             _selectedGender = "";
                             _emailController.text = "";
                             _phoneController.text = "";
-                            _dobController.text = "";
-                            _selProgram = "";
-                            _Qualification.text="";
+                            _selProgram = _programs[0];
+                            _Qualification.text = "";
+                            _Designation.text = "";
 
                             await _incrementRollNumber();
                             // Update TextField value after increment
@@ -588,8 +606,6 @@ class _FacultyListState extends State<FacultyList> {
   final FirestoreService _firestoreService = FirestoreService();
   late TextEditingController _searchController;
   late String _selectedProgram = '--Program--';
-  late String _selectedProgramTerm = '--Program Term';
-  late String _selectedDivision = '--Division--';
   late String _searchTerm;
   ScrollController _dataController1 = ScrollController();
   ScrollController _dataController2 = ScrollController();
@@ -643,7 +659,6 @@ class _FacultyListState extends State<FacultyList> {
             onChanged: (String? value) {
               setState(() {
                 _selectedProgram = value!;
-                _selectedProgramTerm = '--Program Term--';
               });
             },
             items: ['--Program--', 'BCA', 'BBA', 'B-Com']
@@ -657,56 +672,6 @@ class _FacultyListState extends State<FacultyList> {
             ).toList(),
             hint: Text('Program'),
           ),
-          SizedBox(width: 8),
-          DropdownButton<String>(
-            value: _selectedProgramTerm,
-            onChanged: (String? value) {
-              setState(() {
-                _selectedProgramTerm = value!;
-              });
-            },
-            items: _selectedProgram.isEmpty || _selectedProgram == '--Program--'
-                ? []
-                : [
-                    '--Program Term--',
-                    'Sem-1',
-                    'Sem-2',
-                    'Sem-3',
-                    'Sem-4',
-                    'Sem-5',
-                    'Sem-6'
-                  ].map<DropdownMenuItem<String>>(
-                    (String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    },
-                  ).toList(),
-            hint: Text('Program Term'),
-          ),
-          SizedBox(width: 8),
-          DropdownButton<String>(
-            value: _selectedDivision,
-            onChanged: (String? value) {
-              setState(() {
-                _selectedDivision = value!;
-              });
-            },
-            items: _selectedProgramTerm.isEmpty ||
-                    _selectedProgramTerm == '--Program Term'
-                ? []
-                : ['--Division--', 'A', 'B', 'C', 'D']
-                    .map<DropdownMenuItem<String>>(
-                    (String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    },
-                  ).toList(),
-            hint: Text('Class'),
-          ),
         ],
       ),
     );
@@ -715,10 +680,8 @@ class _FacultyListState extends State<FacultyList> {
   Widget _buildStudentList() {
     return StreamBuilder<List<Faculty>>(
       stream: _searchTerm.isEmpty
-          ? _firestoreService.getFaculty(
-              _selectedProgram, _selectedProgramTerm, _selectedDivision)
-          : _firestoreService.searchFaculty(_selectedProgram,
-              _selectedProgramTerm, _selectedDivision, _searchTerm),
+          ? _firestoreService.getFaculty(_selectedProgram)
+          : _firestoreService.searchFaculty(_selectedProgram, _searchTerm),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -736,7 +699,7 @@ class _FacultyListState extends State<FacultyList> {
 
         if (students == null || students.isEmpty) {
           return Center(
-            child: Text('No students found'),
+            child: Text('No Data found'),
           );
         }
 
@@ -754,16 +717,14 @@ class _FacultyListState extends State<FacultyList> {
               child: DataTable(
                 border: TableBorder.all(),
                 columns: const [
-                  DataColumn(label: Text('User Id')),
+                  DataColumn(label: Text('Id')),
                   DataColumn(label: Text('Name')),
                   DataColumn(label: Text('Profile')),
                   DataColumn(label: Text('Program')),
-                  DataColumn(label: Text('Program Term')),
-                  DataColumn(label: Text('Division')),
-                  DataColumn(label: Text('Activation Date')),
-                  DataColumn(label: Text('DOB')),
                   DataColumn(label: Text('Mobile')),
                   DataColumn(label: Text('Email')),
+                  DataColumn(label: Text('Qualification')),
+                  DataColumn(label: Text('Designation')),
                   DataColumn(label: Text('Action')),
                 ],
                 rows: students
@@ -784,9 +745,10 @@ class _FacultyListState extends State<FacultyList> {
                           ),
                         )),
                         DataCell(Text(student.program)),
-                        DataCell(Text(student.DOB)),
                         DataCell(Text(student.mobile)),
                         DataCell(Text(student.email)),
+                        DataCell(Text(student.qualification)),
+                        DataCell(Text(student.Designation)),
                         DataCell(Row(
                           children: [
                             IconButton(
