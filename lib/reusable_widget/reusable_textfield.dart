@@ -38,31 +38,39 @@ class ReusableTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RichText(text: TextSpan(text: title,children: [TextSpan(text: "*",style: TextStyle(color: Colors.red))])),
+        RichText(
+            text: TextSpan(text: title, children: [
+          TextSpan(text: "*", style: TextStyle(color: Colors.red))
+        ])),
         TextFormField(
-            onChanged: onChanged,
-            obscureText: obSecure,
-            keyboardType: keyboardType,
-            controller: controller,
-            maxLines: isMulti ? 3 : 1,
-            readOnly: readOnly,
-            maxLength: maxLength,
-            onTap: OnTap,
-            style: TextStyle(color: Colors.black),
-            decoration: InputDecoration(
-                prefixIcon: preIcon,
-                hintText: title,
-                hintStyle: TextStyle(
-                    color: Colors.grey.withOpacity(0.9), fontSize: 15),
-                suffixIcon: sufIcon,
-                counterText: '',
-                labelText: label,
-                floatingLabelStyle:
-                    TextStyle(color: Color(0xff002233), fontSize: 20),
-                labelStyle: TextStyle(color: Colors.grey.withOpacity(0.9)),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.zero))),
-            validator: validator),
+          onChanged: onChanged,
+          obscureText: obSecure,
+          keyboardType: keyboardType,
+          controller: controller,
+          maxLines: isMulti ? 3 : 1,
+          readOnly: readOnly,
+          maxLength: maxLength,
+          onTap: OnTap,
+          style: TextStyle(color: Colors.black),
+          decoration: InputDecoration(
+              prefixIcon: preIcon,
+              hintText: title,
+              hintStyle:
+                  TextStyle(color: Colors.grey.withOpacity(0.9), fontSize: 15),
+              suffixIcon: sufIcon,
+              counterText: '',
+              labelText: label,
+              floatingLabelStyle:
+                  TextStyle(color: Color(0xff002233), fontSize: 20),
+              labelStyle: TextStyle(color: Colors.grey.withOpacity(0.9)),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.zero))),
+          validator: (value) {
+            if (value!.isEmpty) {
+              return '${title} is Required';
+            }
+          },
+        ),
       ],
     );
   }

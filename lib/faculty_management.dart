@@ -258,12 +258,6 @@ class _AddFacultyState extends State<AddFaculty> {
                             controller: _firstNameController,
                             keyboardType: TextInputType.name,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "First Name is required";
-                              }
-                              return null;
-                            },
                             title: 'First Name',
                           ),
                         ),
@@ -275,12 +269,6 @@ class _AddFacultyState extends State<AddFaculty> {
                             controller: _lastNameController,
                             keyboardType: TextInputType.name,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Last Name is required";
-                              }
-                              return null;
-                            },
                             title: 'Last Name',
                           ),
                         ),

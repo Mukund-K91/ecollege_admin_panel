@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:html';
+import 'dart:js';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:ecollege_admin_panel/storage_service.dart';
@@ -28,6 +31,7 @@ class Student {
   final String program;
   final String programTerm;
   final String division;
+  final String password;
 
   Student(
       {required this.firstname,
@@ -42,7 +46,8 @@ class Student {
       required this.DOB,
       required this.program,
       required this.programTerm,
-      required this.division});
+      required this.division,
+      required this.password});
 
   // Convert Student object to a Map for Firestore
   Map<String, dynamic> toMap() {
@@ -66,6 +71,7 @@ class Student {
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
   // Add student to Firestore
   Future<void> addStudent(Student student) async {
@@ -93,7 +99,7 @@ class FirestoreService {
         .collection(programTerm)
         .doc(division)
         .collection('student')
-        .orderBy('Roll No')
+        .orderBy('User Id')
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Student(
@@ -110,6 +116,7 @@ class FirestoreService {
                   program: doc['program'],
                   programTerm: doc['programTerm'],
                   division: doc['division'],
+                  password: doc['Password'],
                 ))
             .toList());
   }
@@ -141,8 +148,40 @@ class FirestoreService {
                   program: doc['program'],
                   programTerm: doc['programTerm'],
                   division: doc['division'],
+                  password: doc['Password'],
                 ))
             .toList());
+  }
+  Stream<List<Student>> DeleteStudent(
+      String program, String programTerm, String division, String searchTerm) {
+    return _firestore
+        .collection('students')
+        .doc(program)
+        .collection(programTerm)
+        .doc(division)
+        .collection('student')
+        .orderBy('User Id')
+        .where('Mobile', isGreaterThanOrEqualTo: searchTerm)
+        .where('Roll No', isLessThanOrEqualTo: searchTerm + '\uf8ff')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => Student(
+      firstname: doc['First Name'],
+      middlename: doc['Middle Name'],
+      lastname: doc['Last Name'],
+      gender: doc['Gender'],
+      userId: doc['User Id'],
+      activationDate: doc['Activation Date'],
+      profile: doc['Profile Img'],
+      email: doc['Email'],
+      mobile: doc['Mobile'],
+      DOB: doc['DOB'],
+      program: doc['program'],
+      programTerm: doc['programTerm'],
+      division: doc['division'],
+      password: doc['Password'],
+    ))
+        .toList());
   }
 }
 
@@ -173,7 +212,7 @@ class _AddStudentsState extends State<AddStudents> {
   int _totalStudent = 0;
   late String imjUrl;
 
-  String? _selectedGender;
+  String? _selectedGender = 'Male';
   DateTime? _selectedDate;
   final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
   String? _selProgram = "--Please Select--";
@@ -205,7 +244,7 @@ class _AddStudentsState extends State<AddStudents> {
   final TextEditingController _middleNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _mobileNoController = TextEditingController();
   late TextEditingController _UserIdController;
   final TextEditingController _dobController = TextEditingController();
   late TextEditingController _fileNameController = TextEditingController();
@@ -340,12 +379,6 @@ class _AddStudentsState extends State<AddStudents> {
                             controller: _firstNameController,
                             keyboardType: TextInputType.name,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "First Name is required";
-                              }
-                              return null;
-                            },
                             title: 'First Name',
                           ),
                         ),
@@ -357,12 +390,6 @@ class _AddStudentsState extends State<AddStudents> {
                             controller: _middleNameController,
                             keyboardType: TextInputType.name,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Last Name is required";
-                              }
-                              return null;
-                            },
                             title: 'Middle Name',
                           ),
                         ),
@@ -374,12 +401,6 @@ class _AddStudentsState extends State<AddStudents> {
                             controller: _lastNameController,
                             keyboardType: TextInputType.name,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Last Name is required";
-                              }
-                              return null;
-                            },
                             title: 'Last Name',
                           ),
                         ),
@@ -543,7 +564,7 @@ class _AddStudentsState extends State<AddStudents> {
                             maxLength: 10,
                             keyboardType: TextInputType.phone,
                             readOnly: true,
-                            title: 'User Id',
+                            title: 'User Id (Login Id)',
                           ),
                         ),
                       ],
@@ -558,12 +579,6 @@ class _AddStudentsState extends State<AddStudents> {
                             controller: _emailController,
                             keyboardType: TextInputType.name,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Email is required";
-                              }
-                              return null;
-                            },
                             title: 'Email',
                           ),
                         ),
@@ -572,16 +587,10 @@ class _AddStudentsState extends State<AddStudents> {
                         ),
                         Expanded(
                           child: ReusableTextField(
-                            controller: _phoneController,
+                            controller: _mobileNoController,
                             maxLength: 10,
                             keyboardType: TextInputType.phone,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Mobile is required";
-                              }
-                              return null;
-                            },
                             title: 'Mobile',
                           ),
                         ),
@@ -609,6 +618,12 @@ class _AddStudentsState extends State<AddStudents> {
                               style: TextStyle(fontSize: 15),
                             ),
                             subtitle: DropdownButtonFormField(
+                                validator: (value) {
+                                  if (value!.isEmpty ||
+                                      _selProgram == "--Please Select--") {
+                                    return "Please Select Program";
+                                  }
+                                },
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius:
@@ -634,6 +649,12 @@ class _AddStudentsState extends State<AddStudents> {
                               style: TextStyle(fontSize: 15),
                             ),
                             subtitle: DropdownButtonFormField(
+                                validator: (value) {
+                                  if (value!.isEmpty ||
+                                      _selProgramTerm == "--Please Select--") {
+                                    return "Please Select Program Term";
+                                  }
+                                },
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius:
@@ -659,6 +680,12 @@ class _AddStudentsState extends State<AddStudents> {
                               style: TextStyle(fontSize: 15),
                             ),
                             subtitle: DropdownButtonFormField(
+                                validator: (value) {
+                                  if (value!.isEmpty ||
+                                      _selProgram == '--Please Select--') {
+                                    return "Please Select Division";
+                                  }
+                                },
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(
                                         borderRadius:
@@ -703,40 +730,43 @@ class _AddStudentsState extends State<AddStudents> {
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
-                            final _activedate = DateFormat('dd-MMMM-yyyy')
-                                .format(_activationDate);
+                            if (_formKey.currentState!.validate()) {
+                              final _activedate = DateFormat('dd-MMMM-yyyy')
+                                  .format(_activationDate);
 
-                            Student newStudent = Student(
-                              firstname: _firstNameController.text,
-                              middlename: _middleNameController.text,
-                              lastname: _lastNameController.text,
-                              gender: _selectedGender.toString(),
-                              profile: imjUrl.toString(),
-                              userId: _lastUserId.toString(),
-                              email: _emailController.text,
-                              mobile: _phoneController.text,
-                              program: _selProgram.toString(),
-                              programTerm: _selProgramTerm.toString(),
-                              division: _seldiv.toString(),
-                              DOB: _dobController.text,
-                              activationDate: _activedate,
-                            );
-                            _firestoreService.addStudent(newStudent);
-                            _firstNameController.text = "";
-                            _fileNameController.text = "";
-                            _middleNameController.text = "";
-                            _lastNameController.text = "";
-                            _selectedGender = "";
-                            _emailController.text = "";
-                            _phoneController.text = "";
-                            _dobController.text = "";
-                            _selProgram = "";
-                            _selProgramTerm = "";
-                            _seldiv = "";
+                              Student newStudent = Student(
+                                firstname: _firstNameController.text,
+                                middlename: _middleNameController.text,
+                                lastname: _lastNameController.text,
+                                gender: _selectedGender.toString(),
+                                profile: imjUrl.toString(),
+                                userId: _lastUserId.toString(),
+                                email: _emailController.text,
+                                mobile: _mobileNoController.text,
+                                program: _selProgram.toString(),
+                                programTerm: _selProgramTerm.toString(),
+                                division: _seldiv.toString(),
+                                DOB: _dobController.text,
+                                activationDate: _activedate,
+                                password: _mobileNoController.text,
+                              );
+                              _firestoreService.addStudent(newStudent);
+                              _firstNameController.text = "";
+                              _fileNameController.text = "";
+                              _middleNameController.text = "";
+                              _lastNameController.text = "";
+                              _selectedGender = "";
+                              _emailController.text = "";
+                              _mobileNoController.text = "";
+                              _dobController.text = "";
+                              _selProgram = "";
+                              _selProgramTerm = "";
+                              _seldiv = "";
 
-                            await _incrementUserId();
-                            // Update TextField value after increment
-                            _UserIdController.text = _lastUserId.toString();
+                              await _incrementUserId();
+                              // Update TextField value after increment
+                              _UserIdController.text = _lastUserId.toString();
+                            }
                           },
                           child: const Text(
                             "Register",
@@ -988,7 +1018,7 @@ class _StudentListState extends State<StudentList> {
                                   color: Colors.green,
                                 )),
                             IconButton(
-                                onPressed: () {},
+                                onPressed: (){},
                                 icon: Icon(
                                   FontAwesomeIcons.trash,
                                   color: Colors.redAccent,
@@ -1049,3 +1079,4 @@ void _showUpdateDialog(BuildContext context) {
 }
 
 void _updateStudentDetails() {}
+

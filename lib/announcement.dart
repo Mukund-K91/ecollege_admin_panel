@@ -26,6 +26,7 @@ class EventListPage extends StatefulWidget {
 }
 
 class _EventListPageState extends State<EventListPage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final CollectionReference eventsCollection =
       FirebaseFirestore.instance.collection('events');
 
@@ -50,25 +51,33 @@ class _EventListPageState extends State<EventListPage> {
   Widget _buildEventForm() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ReusableTextField(
-            title: 'Title',
-            controller: _titleController,
-          ),
-          ReusableTextField(
-            isMulti: true,
-            keyboardType: TextInputType.multiline,
-            title: 'Description',
-            controller: _descriptionController,
-          ),
-          SizedBox(height: 16.0),
-          ElevatedButton(
-            onPressed: _addEvent,
-            child: Text('Add Event'),
-          ),
-        ],
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ReusableTextField(
+              title: 'Title',
+              controller: _titleController,
+            ),
+            SizedBox(height: 15,),
+            ReusableTextField(
+              isMulti: true,
+              keyboardType: TextInputType.multiline,
+              title: 'Description',
+              controller: _descriptionController,
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  _addEvent();
+                }
+              },
+              child: Text('Add Event'),
+            ),
+          ],
+        ),
       ),
     );
   }
