@@ -34,7 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Image.asset('assets/Images/adminLogo.png')),
+      appBar: AppBar(title: Image.asset('assets/Images/eCollege.png')),
       body: Row(
         children: [
           SideMenu(
