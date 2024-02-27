@@ -50,7 +50,7 @@ class Faculty {
       "Mobile": mobile,
       'program': program,
       "Qualification": qualification,
-      "Designation":Designation
+      "Designation": Designation
     };
   }
 }
@@ -121,6 +121,35 @@ class FirestoreService {
   }
 }
 
+final TextEditingController _searchController = TextEditingController();
+final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+StorageService service = StorageService();
+
+StorageService storageService = StorageService();
+late CollectionReference _studentsCollection;
+late DocumentReference _UserIdDoc;
+int _totalFaculty = 0;
+late String imjUrl;
+
+String? _selectedGender;
+DateTime? _selectedDate;
+final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
+late String _selProgram = '--Please Select--';
+final _formKey = GlobalKey<FormState>();
+final TextEditingController _firstNameController = TextEditingController();
+final TextEditingController _middleNameController = TextEditingController();
+final TextEditingController _lastNameController = TextEditingController();
+final TextEditingController _emailController = TextEditingController();
+final TextEditingController _phoneController = TextEditingController();
+final TextEditingController _facultyId = TextEditingController();
+final TextEditingController _dobController = TextEditingController();
+final TextEditingController _Qualification = TextEditingController();
+final TextEditingController _Designation = TextEditingController();
+late TextEditingController _fileNameController = TextEditingController();
+
+late TextEditingController _totalFacultyController = TextEditingController();
+final FirestoreService _firestoreService = FirestoreService();
+
 class AddFaculty extends StatefulWidget {
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -135,37 +164,6 @@ class AddFaculty extends StatefulWidget {
 }
 
 class _AddFacultyState extends State<AddFaculty> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  final TextEditingController _searchController = TextEditingController();
-  final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-  StorageService service = StorageService();
-
-  StorageService storageService = StorageService();
-  late CollectionReference _studentsCollection;
-  late DocumentReference _UserIdDoc;
-  int _totalFaculty = 0;
-  late String imjUrl;
-
-  String? _selectedGender;
-  DateTime? _selectedDate;
-  final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
-  late String _selProgram = '--Please Select--';
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _middleNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _facultyId = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _Qualification = TextEditingController();
-  final TextEditingController _Designation = TextEditingController();
-  late TextEditingController _fileNameController = TextEditingController();
-
-  late TextEditingController _totalFacultyController = TextEditingController();
-  final FirestoreService _firestoreService = FirestoreService();
-
   void initState() {
     super.initState();
     _UserIdDoc =
@@ -529,7 +527,7 @@ class _AddFacultyState extends State<AddFaculty> {
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
-                            Faculty newStudent = Faculty(
+                            Faculty newfaculty = Faculty(
                               firstname: _firstNameController.text,
                               lastname: _lastNameController.text,
                               gender: _selectedGender.toString(),
@@ -541,7 +539,7 @@ class _AddFacultyState extends State<AddFaculty> {
                               qualification: _Qualification.text,
                               Designation: _Designation.text,
                             );
-                            _firestoreService.addFaculty(newStudent);
+                            _firestoreService.addFaculty(newfaculty);
 
                             _firstNameController.text = "";
                             _fileNameController.text = "";
@@ -683,9 +681,9 @@ class _FacultyListState extends State<FacultyList> {
           );
         }
 
-        final students = snapshot.data;
+        final faculties = snapshot.data;
 
-        if (students == null || students.isEmpty) {
+        if (faculties == null || faculties.isEmpty) {
           return Center(
             child: Text('No Data found'),
           );
@@ -741,7 +739,11 @@ class _FacultyListState extends State<FacultyList> {
                           children: [
                             IconButton(
                                 onPressed: () {
-                                  _showUpdateDialog(context);
+                                  _updateFacultyDetails(
+                                      context,
+                                      faculty,
+                                      _selProgram.toString(),
+                                      student.FacultyId);
                                 },
                                 icon: Icon(
                                   FontAwesomeIcons.edit,
@@ -765,47 +767,34 @@ class _FacultyListState extends State<FacultyList> {
       },
     );
   }
-  Future<void> _updateStudentDetails(
-      BuildContext context,
-      Student student,
-      String program,
-      String programTerm,
-      String Division,
-      String userId) async {
+
+  Future<void> _updateFacultyDetails(BuildContext context, Faculty faculty,
+      String program, String facultyId) async {
     DocumentSnapshot<Map<String, dynamic>> studentSnapshot =
-    await FirebaseFirestore.instance
-        .collection('students')
-        .doc(student.program)
-        .collection(student.programTerm)
-        .doc(student.division)
-        .collection('student')
-        .doc(userId)
-        .get();
+        await FirebaseFirestore.instance
+            .collection('faculty')
+            .doc(faculty.program)
+            .collection('faculty')
+            .doc(facultyId)
+            .get();
     final TextEditingController firstNameController = TextEditingController();
-    final TextEditingController middleNameController = TextEditingController();
     final TextEditingController lastNameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
     final TextEditingController mobileNoController = TextEditingController();
-    late TextEditingController fileNameController = TextEditingController();
     String? selProgram = "--Please Select--";
-    String? selProgramTerm = "--Please Select--";
-    String? seldiv = "--Please Select--";
-    firstNameController.text = student.firstname;
-    middleNameController.text = student.middlename;
-    lastNameController.text = student.lastname;
-    emailController.text = student.email;
-    mobileNoController.text = student.mobile;
-    dobController.text = student.DOB;
-    selProgram = student.program;
-    selProgramTerm = student.programTerm;
-    seldiv = student.division;
+    firstNameController.text = faculty.firstname;
+    lastNameController.text = faculty.lastname;
+    emailController.text = faculty.email;
+    mobileNoController.text = faculty.mobile;
+    selProgram = faculty.program;
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('${student.userId}'),
+          title: Text('${faculty.FacultyId}'),
           content: SingleChildScrollView(
             child: Form(
+              key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -813,7 +802,23 @@ class _FacultyListState extends State<FacultyList> {
                     children: [
                       Expanded(
                         child: ReusableTextField(
-                          controller: firstNameController,
+                          controller: _facultyId,
+                          maxLength: 10,
+                          keyboardType: TextInputType.phone,
+                          readOnly: false,
+                          title: 'Id',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ReusableTextField(
+                          controller: _firstNameController,
                           keyboardType: TextInputType.name,
                           readOnly: false,
                           title: 'First Name',
@@ -824,18 +829,7 @@ class _FacultyListState extends State<FacultyList> {
                       ),
                       Expanded(
                         child: ReusableTextField(
-                          controller: middleNameController,
-                          keyboardType: TextInputType.name,
-                          readOnly: false,
-                          title: 'Middle Name',
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 15,
-                      ),
-                      Expanded(
-                        child: ReusableTextField(
-                          controller: lastNameController,
+                          controller: _lastNameController,
                           keyboardType: TextInputType.name,
                           readOnly: false,
                           title: 'Last Name',
@@ -844,17 +838,59 @@ class _FacultyListState extends State<FacultyList> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  const SizedBox(
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ReusableTextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.name,
+                          readOnly: false,
+                          validator: (str) {
+                            if (str!.isEmpty) {
+                              return "Email is required";
+                            }
+                            return null;
+                          },
+                          title: 'Email',
+                        ),
+                      ),
+                      SizedBox(
+                        width: 15,
+                      ),
+                      Expanded(
+                        child: ReusableTextField(
+                          controller: _phoneController,
+                          maxLength: 10,
+                          keyboardType: TextInputType.phone,
+                          readOnly: false,
+                          validator: (str) {
+                            if (str!.isEmpty) {
+                              return "Mobile is required";
+                            }
+                            return null;
+                          },
+                          title: 'Mobile',
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
                     height: 10,
                   ),
                   Row(
                     children: [
                       Expanded(
                         child: ReusableTextField(
-                          controller: emailController,
+                          controller: _Designation,
                           keyboardType: TextInputType.name,
                           readOnly: false,
-                          title: 'Email',
+                          validator: (str) {
+                            if (str!.isEmpty) {
+                              return "Designation  is required";
+                            }
+                            return null;
+                          },
+                          title: 'Designation ',
                         ),
                       ),
                       const SizedBox(
@@ -862,137 +898,46 @@ class _FacultyListState extends State<FacultyList> {
                       ),
                       Expanded(
                         child: ReusableTextField(
-                          controller: mobileNoController,
-                          maxLength: 10,
-                          keyboardType: TextInputType.phone,
+                          controller: _Qualification,
+                          keyboardType: TextInputType.name,
                           readOnly: false,
-                          title: 'Mobile',
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 15,
-                      ),
-                      Expanded(
-                          flex: 1,
-                          child: ReusableTextField(
-                            controller: dobController,
-                            OnTap: () => selectDate(context),
-                            title: 'DOB',
-                          )),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: const Text(
-                            "Program",
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          subtitle: DropdownButtonFormField(
-                              validator: (value) {
-                                if (value!.isEmpty ||
-                                    _selProgram == "--Please Select--") {
-                                  return "Please Select Program";
-                                }
-                              },
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.all(Radius.zero))),
-                              value: selProgram,
-                              items: _programs
-                                  .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
-                                  .toList(),
-                              onChanged: (val) {
-                                setState(() {
-                                  selProgram = val as String;
-                                });
-                              }),
-                        ),
-                      ),
-                      Expanded(
-                        child: ListTile(
-                          title: const Text(
-                            "Program Term",
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          subtitle: DropdownButtonFormField(
-                              validator: (value) {
-                                if (value!.isEmpty ||
-                                    _selProgramTerm == "--Please Select--") {
-                                  return "Please Select Program Term";
-                                }
-                              },
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.all(Radius.zero))),
-                              value: selProgramTerm,
-                              items: _programTerm
-                                  .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
-                                  .toList(),
-                              onChanged: (val) {
-                                setState(() {
-                                  selProgramTerm = val as String;
-                                });
-                              }),
-                        ),
-                      ),
-                      Expanded(
-                        child: ListTile(
-                          title: const Text(
-                            "Division",
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          subtitle: DropdownButtonFormField(
-                              validator: (value) {
-                                if (value!.isEmpty ||
-                                    _selProgram == '--Please Select--') {
-                                  return "Please Select Division";
-                                }
-                              },
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.all(Radius.zero))),
-                              value: seldiv,
-                              items: selProgram == "BCA"
-                                  ? _Bcadivision.map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              )).toList()
-                                  : selProgram == "B-Com"
-                                  ? _Bcomdivision.map(
-                                      (e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(e),
-                                  )).toList()
-                                  : _Bbadivision.map(
-                                      (e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(e),
-                                  )).toList(),
-                              onChanged: (val) {
-                                setState(() {
-                                  seldiv = val as String;
-                                });
-                              }),
+                          validator: (str) {
+                            if (str!.isEmpty) {
+                              return "Qualification  is required";
+                            }
+                            return null;
+                          },
+                          title: 'Qualification ',
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(
                     height: 15,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          title: Text(
+                            "Program",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          subtitle: ReusableTextField(
+                            controller: _Qualification,
+                            keyboardType: TextInputType.name,
+                            readOnly: false,
+                            validator: (str) {
+                              if (str!.isEmpty) {
+                                return "Qualification  is required";
+                              }
+                              return null;
+                            },
+                            title: 'Qualification ',
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1008,75 +953,23 @@ class _FacultyListState extends State<FacultyList> {
             ElevatedButton(
               onPressed: () async {
                 final String newFirstName = firstNameController.text;
-                final String newMiddleName = middleNameController.text;
                 final String newLastName = lastNameController.text;
                 final String newEmail = emailController.text;
                 final String newMobile = mobileNoController.text;
-                final String newDOB = dobController.text;
                 final String newProgram = selProgram.toString();
-                final String newProgramTerm = selProgramTerm.toString();
-                final String newDivision = seldiv.toString();
-                if (selProgram != student.program ||
-                    selProgramTerm != student.programTerm ||
-                    seldiv != student.division ||
-                    studentSnapshot.exists) {
-                  Map<String, dynamic> studentData = studentSnapshot.data()!;
-                  await FirebaseFirestore.instance
-                      .collection('students')
-                      .doc(student.program)
-                      .collection(student.programTerm)
-                      .doc(student.division)
-                      .collection('student')
-                      .doc(userId)
-                      .delete();
 
-                  await FirebaseFirestore.instance
-                      .collection('students')
-                      .doc(newProgram)
-                      .collection(newProgramTerm)
-                      .doc(newDivision)
-                      .collection('student')
-                      .doc(userId)
-                      .set(studentData);
-
-                  FirebaseFirestore.instance
-                      .collection('students')
-                      .doc(newProgram)
-                      .collection(newProgramTerm)
-                      .doc(newDivision)
-                      .collection('student')
-                      .doc(userId)
-                      .update({
-                    'First Name': newFirstName,
-                    'Middle Name': newMiddleName,
-                    'Last Name': newLastName,
-                    'Mobile': newMobile,
-                    'Email': newEmail,
-                    'program': newProgram,
-                    'programTerm': newProgramTerm,
-                    'division': newDivision,
-                    'DOB': newDOB
-                  });
-                } else {
-                  FirebaseFirestore.instance
-                      .collection('students')
-                      .doc(program)
-                      .collection(programTerm)
-                      .doc(Division)
-                      .collection('student')
-                      .doc(userId)
-                      .update({
-                    'First Name': newFirstName,
-                    'Middle Name': newMiddleName,
-                    'Last Name': newLastName,
-                    'Mobile': newMobile,
-                    'Email': newEmail,
-                    'program': newProgram,
-                    'programTerm': newProgramTerm,
-                    'division': newDivision,
-                    'DOB': newDOB
-                  });
-                }
+                FirebaseFirestore.instance
+                    .collection('students')
+                    .doc(program)
+                    .collection('student')
+                    .doc(facultyId)
+                    .update({
+                  'First Name': newFirstName,
+                  'Last Name': newLastName,
+                  'Mobile': newMobile,
+                  'Email': newEmail,
+                  'program': newProgram,
+                });
                 Navigator.of(context).pop();
               },
               child: Text('Update'),
@@ -1117,7 +1010,6 @@ class _FacultyListState extends State<FacultyList> {
               onPressed: () {
                 if (_passwordController.text == 'superAdmin') {
                   DeleteStudent(program, programTerm, division, userId);
-                  _decreamentTotalStudents();
                   Navigator.of(context).pop();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1138,5 +1030,16 @@ class _FacultyListState extends State<FacultyList> {
       },
     );
   }
-}
 
+  Future<void> DeleteStudent(String program, String programTerm,
+      String division, String userId) async {
+    FirebaseFirestore.instance
+        .collection('students')
+        .doc(program)
+        .collection(programTerm)
+        .doc(division)
+        .collection('student')
+        .doc(userId)
+        .delete();
+  }
+}
