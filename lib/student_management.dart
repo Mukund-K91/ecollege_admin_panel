@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:html';
 import 'dart:js';
+import 'dart:js_util';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
@@ -65,13 +66,13 @@ class Student {
       'program': program,
       'programTerm': programTerm,
       'division': division,
+      'Password': password,
     };
   }
 }
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
 
   // Add student to Firestore
   Future<void> addStudent(Student student) async {
@@ -152,37 +153,18 @@ class FirestoreService {
                 ))
             .toList());
   }
-  Stream<List<Student>> DeleteStudent(
-      String program, String programTerm, String division, String searchTerm) {
-    return _firestore
-        .collection('students')
-        .doc(program)
-        .collection(programTerm)
-        .doc(division)
-        .collection('student')
-        .orderBy('User Id')
-        .where('Mobile', isGreaterThanOrEqualTo: searchTerm)
-        .where('Roll No', isLessThanOrEqualTo: searchTerm + '\uf8ff')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => Student(
-      firstname: doc['First Name'],
-      middlename: doc['Middle Name'],
-      lastname: doc['Last Name'],
-      gender: doc['Gender'],
-      userId: doc['User Id'],
-      activationDate: doc['Activation Date'],
-      profile: doc['Profile Img'],
-      email: doc['Email'],
-      mobile: doc['Mobile'],
-      DOB: doc['DOB'],
-      program: doc['program'],
-      programTerm: doc['programTerm'],
-      division: doc['division'],
-      password: doc['Password'],
-    ))
-        .toList());
-  }
+}
+
+Future<void> DeleteStudent(
+    String program, String programTerm, String division, String userId) {
+  return FirebaseFirestore.instance
+      .collection('students')
+      .doc(program)
+      .collection(programTerm)
+      .doc(division)
+      .collection('student')
+      .doc(userId)
+      .delete();
 }
 
 class AddStudents extends StatefulWidget {
@@ -734,6 +716,7 @@ class _AddStudentsState extends State<AddStudents> {
                               final _activedate = DateFormat('dd-MMMM-yyyy')
                                   .format(_activationDate);
 
+                              final _password = _mobileNoController.text;
                               Student newStudent = Student(
                                 firstname: _firstNameController.text,
                                 middlename: _middleNameController.text,
@@ -748,7 +731,7 @@ class _AddStudentsState extends State<AddStudents> {
                                 division: _seldiv.toString(),
                                 DOB: _dobController.text,
                                 activationDate: _activedate,
-                                password: _mobileNoController.text,
+                                password: _password,
                               );
                               _firestoreService.addStudent(newStudent);
                               _firstNameController.text = "";
@@ -759,9 +742,9 @@ class _AddStudentsState extends State<AddStudents> {
                               _emailController.text = "";
                               _mobileNoController.text = "";
                               _dobController.text = "";
-                              _selProgram = "";
-                              _selProgramTerm = "";
-                              _seldiv = "";
+                              _selProgram = _programs[0];
+                              _selProgramTerm = _programTerm[0];
+                              _seldiv = "--Please Select--";
 
                               await _incrementUserId();
                               // Update TextField value after increment
@@ -1018,7 +1001,12 @@ class _StudentListState extends State<StudentList> {
                                   color: Colors.green,
                                 )),
                             IconButton(
-                                onPressed: (){},
+                                onPressed: () => _confirmDelete(
+                                    context,
+                                    _selectedProgram,
+                                    _selectedProgramTerm,
+                                    _selectedDivision,
+                                    student.userId),
                                 icon: Icon(
                                   FontAwesomeIcons.trash,
                                   color: Colors.redAccent,
@@ -1080,3 +1068,48 @@ void _showUpdateDialog(BuildContext context) {
 
 void _updateStudentDetails() {}
 
+void _confirmDelete(BuildContext context, String program, String programTerm,
+    String division, String userId) {
+  TextEditingController _passwordController = TextEditingController();
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('Confirm Delete'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Please enter your password to confirm deletion:'),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'Password'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_passwordController.text == 'superAdmin') {
+                DeleteStudent(program, programTerm, division, userId);
+                Navigator.of(context).pop();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(backgroundColor: Colors.white,shape:
+                      ContinuousRectangleBorder(),content: Text('Invalid password',style: TextStyle(color: Colors.black),)),
+                );
+              }
+            },
+            child: Text('Confirm'),
+          ),
+        ],
+      );
+    },
+  );
+}
