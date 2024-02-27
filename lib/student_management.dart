@@ -1,10 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:html';
-import 'dart:js';
-import 'dart:js_util';
 import 'dart:typed_data';
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:ecollege_admin_panel/storage_service.dart';
@@ -16,9 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pdf/pdf.dart';
-
+import 'package:pdf/widgets.dart' as pdfLib;
+import 'package:universal_html/html.dart' as html;
 import 'package:intl/intl.dart';
-
 import 'firebase_options.dart';
 
 class Student {
@@ -257,7 +253,14 @@ class _AddStudentsState extends State<AddStudents> {
       _totalStudentsController.text = _totalStudent.toString();
     });
   }
-  Future<Uint8List> generatePdf(String firstName, String lastName, String program, String programTerm, String division, String userId) async {
+
+  Future<Uint8List> generatePdf(
+      String firstName,
+      String lastName,
+      String program,
+      String programTerm,
+      String division,
+      String userId) async {
     final pdf = pdfLib.Document();
 
     pdf.addPage(
@@ -267,23 +270,40 @@ class _AddStudentsState extends State<AddStudents> {
             mainAxisAlignment: pdfLib.MainAxisAlignment.center,
             crossAxisAlignment: pdfLib.CrossAxisAlignment.center,
             children: [
-              pdfLib.Text('Student Information', style: pdfLib.TextStyle(fontSize: 20)),
+              pdfLib.Text('Student Information',
+                  style: pdfLib.TextStyle(fontSize: 20)),
               pdfLib.SizedBox(height: 20),
+              pdfLib.Text('User Id: $userId'),
               pdfLib.Text('First Name: $firstName'),
               pdfLib.Text('Middle Name: $firstName'),
               pdfLib.Text('Last Name: $lastName'),
               pdfLib.Text('Program: $program'),
               pdfLib.Text('Program Term: $programTerm'),
               pdfLib.Text('Division: $division'),
-              pdfLib.Text('User Id: $userId'),
             ],
           );
         },
       ),
     );
 
+    // Save the PDF to bytes
+    final Uint8List bytes = await pdf.save();
+
+    // Convert bytes to Blob
+    final blob = html.Blob([bytes], 'application/pdf');
+
+    // Create download link
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", "${userId}.pdf")
+      ..click();
+
+    // Clean up
+    html.Url.revokeObjectUrl(url);
+
     return pdf.save();
   }
+
   // Variable to hold the current roll number
 //  int currentRollNumber = 001;
 
@@ -754,6 +774,14 @@ class _AddStudentsState extends State<AddStudents> {
                                 activationDate: _activedate,
                                 password: _password,
                               );
+                              Uint8List pdfBytes = await generatePdf(
+                                  _firstNameController.text,
+                                  _mobileNoController.text,
+                                  _selProgram.toString(),
+                                  _selProgramTerm.toString(),
+                                  _seldiv.toString(),
+                                  _lastUserId.toString());
+
                               _firestoreService.addStudent(newStudent);
                               _firstNameController.text = "";
                               _fileNameController.text = "";
@@ -1045,8 +1073,10 @@ class _StudentListState extends State<StudentList> {
       },
     );
   }
+
   final TextEditingController dobController = TextEditingController();
   DateTime? selectedDate;
+
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -1061,18 +1091,23 @@ class _StudentListState extends State<StudentList> {
       });
     }
   }
-  Future<void> _updateStudentDetails(BuildContext context, Student student,
-      String program, String programTerm, String Division, String userId) async {
 
+  Future<void> _updateStudentDetails(
+      BuildContext context,
+      Student student,
+      String program,
+      String programTerm,
+      String Division,
+      String userId) async {
     DocumentSnapshot<Map<String, dynamic>> studentSnapshot =
-    await FirebaseFirestore.instance
-        .collection('students')
-        .doc(student.program)
-        .collection(student.programTerm)
-        .doc(student.division)
-        .collection('student')
-        .doc(userId)
-        .get();
+        await FirebaseFirestore.instance
+            .collection('students')
+            .doc(student.program)
+            .collection(student.programTerm)
+            .doc(student.division)
+            .collection('student')
+            .doc(userId)
+            .get();
     final TextEditingController firstNameController = TextEditingController();
     final TextEditingController middleNameController = TextEditingController();
     final TextEditingController lastNameController = TextEditingController();
@@ -1168,7 +1203,7 @@ class _StudentListState extends State<StudentList> {
                           flex: 1,
                           child: ReusableTextField(
                             controller: dobController,
-                            OnTap: ()=>selectDate(context),
+                            OnTap: () => selectDate(context),
                             title: 'DOB',
                           )),
                     ],
@@ -1194,13 +1229,13 @@ class _StudentListState extends State<StudentList> {
                               decoration: const InputDecoration(
                                   border: OutlineInputBorder(
                                       borderRadius:
-                                      BorderRadius.all(Radius.zero))),
+                                          BorderRadius.all(Radius.zero))),
                               value: selProgram,
                               items: _programs
                                   .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
+                                        value: e,
+                                        child: Text(e),
+                                      ))
                                   .toList(),
                               onChanged: (val) {
                                 setState(() {
@@ -1225,13 +1260,13 @@ class _StudentListState extends State<StudentList> {
                               decoration: const InputDecoration(
                                   border: OutlineInputBorder(
                                       borderRadius:
-                                      BorderRadius.all(Radius.zero))),
+                                          BorderRadius.all(Radius.zero))),
                               value: selProgramTerm,
                               items: _programTerm
                                   .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
+                                        value: e,
+                                        child: Text(e),
+                                      ))
                                   .toList(),
                               onChanged: (val) {
                                 setState(() {
@@ -1256,24 +1291,24 @@ class _StudentListState extends State<StudentList> {
                               decoration: const InputDecoration(
                                   border: OutlineInputBorder(
                                       borderRadius:
-                                      BorderRadius.all(Radius.zero))),
+                                          BorderRadius.all(Radius.zero))),
                               value: seldiv,
                               items: selProgram == "BCA"
                                   ? _Bcadivision.map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              )).toList()
+                                        value: e,
+                                        child: Text(e),
+                                      )).toList()
                                   : selProgram == "B-Com"
-                                  ? _Bcomdivision.map(
-                                      (e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(e),
-                                  )).toList()
-                                  : _Bbadivision.map(
-                                      (e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(e),
-                                  )).toList(),
+                                      ? _Bcomdivision.map(
+                                          (e) => DropdownMenuItem(
+                                                value: e,
+                                                child: Text(e),
+                                              )).toList()
+                                      : _Bbadivision.map(
+                                          (e) => DropdownMenuItem(
+                                                value: e,
+                                                child: Text(e),
+                                              )).toList(),
                               onChanged: (val) {
                                 setState(() {
                                   seldiv = val as String;
@@ -1304,7 +1339,7 @@ class _StudentListState extends State<StudentList> {
                 final String newLastName = lastNameController.text;
                 final String newEmail = emailController.text;
                 final String newMobile = mobileNoController.text;
-                final String newDOB=dobController.text;
+                final String newDOB = dobController.text;
                 final String newProgram = selProgram.toString();
                 final String newProgramTerm = selProgramTerm.toString();
                 final String newDivision = seldiv.toString();
@@ -1347,7 +1382,7 @@ class _StudentListState extends State<StudentList> {
                     'program': newProgram,
                     'programTerm': newProgramTerm,
                     'division': newDivision,
-                    'DOB':newDOB
+                    'DOB': newDOB
                   });
                 } else {
                   FirebaseFirestore.instance
@@ -1366,7 +1401,7 @@ class _StudentListState extends State<StudentList> {
                     'program': newProgram,
                     'programTerm': newProgramTerm,
                     'division': newDivision,
-                    'DOB':newDOB
+                    'DOB': newDOB
                   });
                 }
                 Navigator.of(context).pop();
@@ -1420,8 +1455,6 @@ class _StudentListState extends State<StudentList> {
 //     },
 //   );
 // }
-
-
 
 void _confirmDelete(BuildContext context, String program, String programTerm,
     String division, String userId) {
