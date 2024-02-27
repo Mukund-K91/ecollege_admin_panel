@@ -1060,9 +1060,36 @@ class _StudentListState extends State<StudentList> {
 //   );
 // }
 
-void _updateStudentDetails(BuildContext context, Student student,
-    String program, String programTerm, String Division, String userId) {
-  _firstNameController.text = student.firstname;
+Future<void> _updateStudentDetails(BuildContext context, Student student,
+    String program, String programTerm, String Division, String userId) async {
+  DocumentSnapshot<Map<String, dynamic>> studentSnapshot =
+      await FirebaseFirestore.instance
+          .collection('students')
+          .doc(student.program)
+          .collection(student.programTerm)
+          .doc(student.division)
+          .collection('student')
+          .doc(userId)
+          .get();
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController middleNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController mobileNoController = TextEditingController();
+  final TextEditingController dobController = TextEditingController();
+  late TextEditingController fileNameController = TextEditingController();
+  String? selProgram = "--Please Select--";
+  String? selProgramTerm = "--Please Select--";
+  String? seldiv = "--Please Select--";
+  firstNameController.text = student.firstname;
+  middleNameController.text = student.middlename;
+  lastNameController.text = student.lastname;
+  emailController.text = student.email;
+  mobileNoController.text = student.mobile;
+  dobController.text = student.DOB;
+  selProgram = student.program;
+  selProgramTerm = student.programTerm;
+  seldiv = student.division;
   showDialog(
     context: context,
     builder: (context) {
@@ -1077,7 +1104,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                   children: [
                     Expanded(
                       child: ReusableTextField(
-                        controller: _firstNameController,
+                        controller: firstNameController,
                         keyboardType: TextInputType.name,
                         readOnly: false,
                         title: 'First Name',
@@ -1088,7 +1115,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                     ),
                     Expanded(
                       child: ReusableTextField(
-                        controller: _middleNameController,
+                        controller: middleNameController,
                         keyboardType: TextInputType.name,
                         readOnly: false,
                         title: 'Middle Name',
@@ -1099,7 +1126,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                     ),
                     Expanded(
                       child: ReusableTextField(
-                        controller: _lastNameController,
+                        controller: lastNameController,
                         keyboardType: TextInputType.name,
                         readOnly: false,
                         title: 'Last Name',
@@ -1108,92 +1135,6 @@ void _updateStudentDetails(BuildContext context, Student student,
                   ],
                 ),
                 const SizedBox(height: 10),
-                Row(
-                  children: [
-
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Expanded(
-                              child: Column(
-                            children: [
-                              ReusableTextField(
-                                readOnly: true,
-                                controller: _fileNameController,
-                                title: 'Image',
-                                sufIcon: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                          minimumSize: const Size(100, 50),
-                                          backgroundColor:
-                                              const Color(0xff002233),
-                                          shape:
-                                              const ContinuousRectangleBorder()),
-                                      onPressed: () async {
-                                        var result = await FilePicker.platform
-                                            .pickFiles(
-                                                allowMultiple: true,
-                                                type: FileType.image);
-                                        if (result == null) {
-                                          print("Error: No file selected");
-                                        } else {
-                                          var path = result.files.single.bytes;
-                                          final fileName =
-                                              result.files.single.name;
-
-
-                                          try {
-                                            await firebaseStorage
-                                                .ref('Profiles/$fileName')
-                                                .putData(path!)
-                                                .then((p0) async {
-                                              log("Uploaded");
-                                            });
-                                          } catch (e) {
-                                            log("Error: $e");
-                                          }
-                                          var imgurl = await firebaseStorage
-                                              .ref('Profiles/$fileName')
-                                              .getDownloadURL();
-                                          print(imgurl);
-                                          imjUrl = imgurl.toString();
-                                          print("imj" + imjUrl);
-                                        }
-
-                                        // html.FileUploadInputElement
-                                        //     uploadInput =
-                                        //     html.FileUploadInputElement()
-                                        //       ..accept = 'image/*';
-                                        // uploadInput.click();
-                                        // uploadInput.onChange
-                                        //     .listen((event) {
-                                        //   final files = uploadInput.files;
-                                        //   if (files != null &&
-                                        //       files.length == 1) {
-                                        //     final file = files[0];
-                                        //     _handleFileUpload(file);
-                                        //   }
-                                        // });
-                                      },
-                                      child: const Text(
-                                        "Upload",
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 15),
-                                      )),
-                                ),
-                              ),
-                            ],
-                          )),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 15,
-                    ),
-                  ],
-                ),
                 const SizedBox(
                   height: 10,
                 ),
@@ -1201,7 +1142,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                   children: [
                     Expanded(
                       child: ReusableTextField(
-                        controller: _emailController,
+                        controller: emailController,
                         keyboardType: TextInputType.name,
                         readOnly: false,
                         title: 'Email',
@@ -1212,7 +1153,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                     ),
                     Expanded(
                       child: ReusableTextField(
-                        controller: _mobileNoController,
+                        controller: mobileNoController,
                         maxLength: 10,
                         keyboardType: TextInputType.phone,
                         readOnly: false,
@@ -1225,7 +1166,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                     Expanded(
                         flex: 1,
                         child: ReusableTextField(
-                          controller: _dobController,
+                          controller: dobController,
                           title: 'DOB',
                         )),
                   ],
@@ -1244,14 +1185,15 @@ void _updateStudentDetails(BuildContext context, Student student,
                         subtitle: DropdownButtonFormField(
                             validator: (value) {
                               if (value!.isEmpty ||
-                                  _selProgram == "--Please Select--") {
+                                  selProgram == "--Please Select--") {
                                 return "Please Select Program";
                               }
                             },
                             decoration: const InputDecoration(
                                 border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.zero))),
-                            value: _selProgram,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.zero))),
+                            value: selProgram,
                             items: _programs
                                 .map((e) => DropdownMenuItem(
                                       value: e,
@@ -1259,6 +1201,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                                     ))
                                 .toList(),
                             onChanged: (val) {
+                              selProgram = val;
                             }),
                       ),
                     ),
@@ -1271,14 +1214,15 @@ void _updateStudentDetails(BuildContext context, Student student,
                         subtitle: DropdownButtonFormField(
                             validator: (value) {
                               if (value!.isEmpty ||
-                                  _selProgramTerm == "--Please Select--") {
+                                  selProgramTerm == "--Please Select--") {
                                 return "Please Select Program Term";
                               }
                             },
                             decoration: const InputDecoration(
                                 border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.zero))),
-                            value: _selProgramTerm,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.zero))),
+                            value: selProgramTerm,
                             items: _programTerm
                                 .map((e) => DropdownMenuItem(
                                       value: e,
@@ -1286,6 +1230,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                                     ))
                                 .toList(),
                             onChanged: (val) {
+                              selProgramTerm = val;
                             }),
                       ),
                     ),
@@ -1298,20 +1243,21 @@ void _updateStudentDetails(BuildContext context, Student student,
                         subtitle: DropdownButtonFormField(
                             validator: (value) {
                               if (value!.isEmpty ||
-                                  _selProgram == '--Please Select--') {
+                                  selProgram == '--Please Select--') {
                                 return "Please Select Division";
                               }
                             },
                             decoration: const InputDecoration(
                                 border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.zero))),
-                            value: _seldiv,
-                            items: _selProgram == "BCA"
+                                    borderRadius:
+                                        BorderRadius.all(Radius.zero))),
+                            value: seldiv,
+                            items: selProgram == "BCA"
                                 ? _Bcadivision.map((e) => DropdownMenuItem(
                                       value: e,
                                       child: Text(e),
                                     )).toList()
-                                : _selProgram == "B-Com"
+                                : selProgram == "B-Com"
                                     ? _Bcomdivision.map((e) => DropdownMenuItem(
                                           value: e,
                                           child: Text(e),
@@ -1321,7 +1267,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                                           child: Text(e),
                                         )).toList(),
                             onChanged: (val) {
-
+                              seldiv = val;
                             }),
                       ),
                     ),
@@ -1342,18 +1288,68 @@ void _updateStudentDetails(BuildContext context, Student student,
             child: Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              final String newName = _firstNameController.text;
-              FirebaseFirestore.instance
-                  .collection('students')
-                  .doc(program)
-                  .collection(programTerm)
-                  .doc(Division)
-                  .collection('student')
-                  .doc(userId)
-                  .update({
-                'First Name': newName,
-              });
+            onPressed: () async {
+              final String newFirstName = firstNameController.text;
+              final String newMiddleName = middleNameController.text;
+              final String newLastName = lastNameController.text;
+              final String newEmail = emailController.text;
+              final String newMobile = mobileNoController.text;
+              final String newProgram = selProgram.toString();
+              final String newProgramTerm = selProgramTerm.toString();
+              final String newDivision = seldiv.toString();
+              if (selProgram != student.program ||
+                  selProgramTerm != student.programTerm ||
+                  seldiv != student.division ||
+                  studentSnapshot.exists) {
+                Map<String, dynamic> studentData = studentSnapshot.data()!;
+                await FirebaseFirestore.instance
+                    .collection('students')
+                    .doc(student.program)
+                    .collection(student.programTerm)
+                    .doc(student.division)
+                    .collection('student')
+                    .doc(userId)
+                    .delete();
+
+                await FirebaseFirestore.instance
+                    .collection('students')
+                    .doc(newProgram)
+                    .collection(programTerm)
+                    .doc(Division)
+                    .collection('student')
+                    .doc(userId)
+                    .set(studentData);
+                FirebaseFirestore.instance
+                    .collection('students')
+                    .doc(program)
+                    .collection(programTerm)
+                    .doc(Division)
+                    .collection('student')
+                    .doc(userId)
+                    .update({
+                  'program': newProgram,
+                  'programTerm': newProgramTerm,
+                  'division': newDivision
+                });
+              } else {
+                FirebaseFirestore.instance
+                    .collection('students')
+                    .doc(program)
+                    .collection(programTerm)
+                    .doc(Division)
+                    .collection('student')
+                    .doc(userId)
+                    .update({
+                  'First Name': newFirstName,
+                  'Middle Name': newMiddleName,
+                  'Last Name': newLastName,
+                  'Mobile': newMobile,
+                  'Email': newEmail,
+                  'program': newProgram,
+                  'programTerm': newProgramTerm,
+                  'division': newDivision
+                });
+              }
               Navigator.of(context).pop();
             },
             child: Text('Update'),
