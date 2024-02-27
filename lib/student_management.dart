@@ -167,6 +167,20 @@ Future<void> DeleteStudent(
       .delete();
 }
 
+final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
+final _programTerm = [
+  "--Please Select--",
+  "Sem - 1",
+  "Sem - 2",
+  "Sem - 3",
+  "Sem - 4",
+  "Sem - 5",
+  "Sem - 6"
+];
+final _Bcadivision = ["--Please Select--", "A", "B", "C", "D", "E", "F"];
+final _Bcomdivision = ["--Please Select--", "A", "B", "C", "D", "E", "F", "G"];
+final _Bbadivision = ["--Please Select--", "A", "B", "C", "D"];
+
 class AddStudents extends StatefulWidget {
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -196,30 +210,11 @@ class _AddStudentsState extends State<AddStudents> {
 
   String? _selectedGender = 'Male';
   DateTime? _selectedDate;
-  final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
+
   String? _selProgram = "--Please Select--";
-  final _programTerm = [
-    "--Please Select--",
-    "Sem - 1",
-    "Sem - 2",
-    "Sem - 3",
-    "Sem - 4",
-    "Sem - 5",
-    "Sem - 6"
-  ];
+
   String? _selProgramTerm = "--Please Select--";
-  final _Bcadivision = ["--Please Select--", "A", "B", "C", "D", "E", "F"];
-  final _Bcomdivision = [
-    "--Please Select--",
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G"
-  ];
-  final _Bbadivision = ["--Please Select--", "A", "B", "C", "D"];
+
   String? _seldiv = "--Please Select--";
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _firstNameController = TextEditingController();
@@ -423,7 +418,7 @@ class _AddStudentsState extends State<AddStudents> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(
+                                  const SizedBox(
                                     width: 15,
                                   ),
                                   Row(
@@ -466,11 +461,11 @@ class _AddStudentsState extends State<AddStudents> {
                                       padding: const EdgeInsets.all(8.0),
                                       child: ElevatedButton(
                                           style: ElevatedButton.styleFrom(
-                                              minimumSize: Size(100, 50),
+                                              minimumSize: const Size(100, 50),
                                               backgroundColor:
                                                   const Color(0xff002233),
                                               shape:
-                                                  ContinuousRectangleBorder()),
+                                                  const ContinuousRectangleBorder()),
                                           onPressed: () async {
                                             var result = await FilePicker
                                                 .platform
@@ -564,7 +559,7 @@ class _AddStudentsState extends State<AddStudents> {
                             title: 'Email',
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 15,
                         ),
                         Expanded(
@@ -576,7 +571,7 @@ class _AddStudentsState extends State<AddStudents> {
                             title: 'Mobile',
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 15,
                         ),
                         Expanded(
@@ -595,7 +590,7 @@ class _AddStudentsState extends State<AddStudents> {
                       children: [
                         Expanded(
                           child: ListTile(
-                            title: Text(
+                            title: const Text(
                               "Program",
                               style: TextStyle(fontSize: 15),
                             ),
@@ -626,7 +621,7 @@ class _AddStudentsState extends State<AddStudents> {
                         ),
                         Expanded(
                           child: ListTile(
-                            title: Text(
+                            title: const Text(
                               "Program Term",
                               style: TextStyle(fontSize: 15),
                             ),
@@ -657,7 +652,7 @@ class _AddStudentsState extends State<AddStudents> {
                         ),
                         Expanded(
                           child: ListTile(
-                            title: Text(
+                            title: const Text(
                               "Division",
                               style: TextStyle(fontSize: 15),
                             ),
@@ -705,9 +700,9 @@ class _AddStudentsState extends State<AddStudents> {
                       alignment: Alignment.topLeft,
                       child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            maximumSize: Size(180, 65),
-                            minimumSize: Size(150, 60),
-                            shape: RoundedRectangleBorder(
+                            maximumSize: const Size(180, 65),
+                            minimumSize: const Size(150, 60),
+                            shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.all(Radius.zero)),
                             backgroundColor: const Color(0xff002233),
                           ),
@@ -787,9 +782,9 @@ class StudentList extends StatefulWidget {
 class _StudentListState extends State<StudentList> {
   final FirestoreService _firestoreService = FirestoreService();
   late TextEditingController _searchController;
-  late String _selectedProgram = '--Program--';
-  late String _selectedProgramTerm = '--Program Term';
-  late String _selectedDivision = '--Division--';
+  String? _selectedProgram = "--Please Select--";
+  String? _selectedProgramTerm = "--Please Select--";
+  String? _selectedDivision = "--Please Select--";
   late String _searchTerm;
   ScrollController _dataController1 = ScrollController();
   ScrollController _dataController2 = ScrollController();
@@ -805,7 +800,7 @@ class _StudentListState extends State<StudentList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student List'),
+        title: const Text('Student List'),
       ),
       body: Column(
         children: [
@@ -825,7 +820,7 @@ class _StudentListState extends State<StudentList> {
         children: [
           Expanded(
             child: TextField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Search',
                 hintText: 'Search by name',
                 border: OutlineInputBorder(),
@@ -837,17 +832,16 @@ class _StudentListState extends State<StudentList> {
               },
             ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           DropdownButton<String>(
             value: _selectedProgram,
             onChanged: (String? value) {
               setState(() {
                 _selectedProgram = value!;
-                _selectedProgramTerm = '--Program Term--';
+                _selectedProgramTerm = '--Please Select--';
               });
             },
-            items: ['--Program--', 'BCA', 'BBA', 'B-Com']
-                .map<DropdownMenuItem<String>>(
+            items: _programs.map<DropdownMenuItem<String>>(
               (String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -855,9 +849,9 @@ class _StudentListState extends State<StudentList> {
                 );
               },
             ).toList(),
-            hint: Text('Program'),
+            hint: const Text('Program'),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           DropdownButton<String>(
             value: _selectedProgramTerm,
             onChanged: (String? value) {
@@ -865,17 +859,9 @@ class _StudentListState extends State<StudentList> {
                 _selectedProgramTerm = value!;
               });
             },
-            items: _selectedProgram.isEmpty || _selectedProgram == '--Program--'
+            items: _selectedProgram == '--Please Select--'
                 ? []
-                : [
-                    '--Program Term--',
-                    'Sem - 1',
-                    'Sem - 2',
-                    'Sem - 3',
-                    'Sem - 4',
-                    'Sem - 5',
-                    'Sem - 6'
-                  ].map<DropdownMenuItem<String>>(
+                : _programTerm.map<DropdownMenuItem<String>>(
                     (String value) {
                       return DropdownMenuItem<String>(
                         value: value,
@@ -883,9 +869,9 @@ class _StudentListState extends State<StudentList> {
                       );
                     },
                   ).toList(),
-            hint: Text('Program Term'),
+            hint: const Text('Program Term'),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           DropdownButton<String>(
             value: _selectedDivision,
             onChanged: (String? value) {
@@ -893,19 +879,23 @@ class _StudentListState extends State<StudentList> {
                 _selectedDivision = value!;
               });
             },
-            items: _selectedProgramTerm.isEmpty ||
-                    _selectedProgramTerm == '--Program Term'
+            items: _selectedProgramTerm == '--Please Select--'
                 ? []
-                : ['--Division--', 'A', 'B', 'C', 'D']
-                    .map<DropdownMenuItem<String>>(
-                    (String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    },
-                  ).toList(),
-            hint: Text('Class'),
+                : _selectedProgram == "BCA"
+                    ? _Bcadivision.map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        )).toList()
+                    : _selectedProgram == "B-Com"
+                        ? _Bcomdivision.map((e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(e),
+                            )).toList()
+                        : _Bbadivision.map((e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(e),
+                            )).toList(),
+            hint: const Text('Class'),
           ),
         ],
       ),
@@ -916,9 +906,9 @@ class _StudentListState extends State<StudentList> {
     return StreamBuilder<List<Student>>(
       stream: _searchTerm.isEmpty
           ? _firestoreService.getStudents(
-              _selectedProgram, _selectedProgramTerm, _selectedDivision)
-          : _firestoreService.searchStudents(_selectedProgram,
-              _selectedProgramTerm, _selectedDivision, _searchTerm),
+              _selectedProgram!, _selectedProgramTerm!, _selectedDivision!)
+          : _firestoreService.searchStudents(_selectedProgram!,
+              _selectedProgramTerm!, _selectedDivision!, _searchTerm),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -927,7 +917,7 @@ class _StudentListState extends State<StudentList> {
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(),
           );
         }
@@ -935,16 +925,16 @@ class _StudentListState extends State<StudentList> {
         final students = snapshot.data;
 
         if (students == null || students.isEmpty) {
-          return Center(
+          return const Center(
             child: Text('No students found'),
           );
         }
 
         return RawScrollbar(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           thumbVisibility: true,
           trackVisibility: true,
-          thumbColor: Color(0xff002233),
+          thumbColor: const Color(0xff002233),
           controller: _dataController2,
           child: SingleChildScrollView(
             controller: _dataController2,
@@ -996,18 +986,18 @@ class _StudentListState extends State<StudentList> {
                                 onPressed: () {
                                   _showUpdateDialog(context);
                                 },
-                                icon: Icon(
+                                icon: const Icon(
                                   FontAwesomeIcons.edit,
                                   color: Colors.green,
                                 )),
                             IconButton(
                                 onPressed: () => _confirmDelete(
                                     context,
-                                    _selectedProgram,
-                                    _selectedProgramTerm,
-                                    _selectedDivision,
+                                    _selectedProgram!,
+                                    _selectedProgramTerm!,
+                                    _selectedDivision!,
                                     student.userId),
-                                icon: Icon(
+                                icon: const Icon(
                                   FontAwesomeIcons.trash,
                                   color: Colors.redAccent,
                                 )),
@@ -1030,8 +1020,8 @@ void _showUpdateDialog(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Update Student Details'),
-        content: Column(
+        title: const Text('Update Student Details'),
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
@@ -1052,13 +1042,13 @@ void _showUpdateDialog(BuildContext context) {
               _updateStudentDetails();
               Navigator.of(context).pop();
             },
-            child: Text('Submit'),
+            child: const Text('Submit'),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text('Close'),
+            child: const Text('Close'),
           ),
         ],
       );
@@ -1075,15 +1065,15 @@ void _confirmDelete(BuildContext context, String program, String programTerm,
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: Text('Confirm Delete'),
+        title: const Text('Confirm Delete'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Please enter your password to confirm deletion:'),
+            const Text('Please enter your password to confirm deletion:'),
             TextField(
               controller: _passwordController,
               obscureText: true,
-              decoration: InputDecoration(labelText: 'Password'),
+              decoration: const InputDecoration(labelText: 'Password'),
             ),
           ],
         ),
@@ -1092,7 +1082,7 @@ void _confirmDelete(BuildContext context, String program, String programTerm,
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1101,12 +1091,17 @@ void _confirmDelete(BuildContext context, String program, String programTerm,
                 Navigator.of(context).pop();
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(backgroundColor: Colors.white,shape:
-                      ContinuousRectangleBorder(),content: Text('Invalid password',style: TextStyle(color: Colors.black),)),
+                  const SnackBar(
+                      backgroundColor: Colors.white,
+                      shape: ContinuousRectangleBorder(),
+                      content: Text(
+                        'Invalid password',
+                        style: TextStyle(color: Colors.black),
+                      )),
                 );
               }
             },
-            child: Text('Confirm'),
+            child: const Text('Confirm'),
           ),
         ],
       );
