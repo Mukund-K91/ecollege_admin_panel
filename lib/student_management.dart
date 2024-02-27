@@ -1130,6 +1130,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                                     value: 'Male',
                                     groupValue: _selectedGender,
                                     onChanged: (value) {
+                                      _selectedGender=value;
                                     },
                                   ),
                                   const Text(
@@ -1148,6 +1149,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                                     value: 'Female',
                                     groupValue: _selectedGender,
                                     onChanged: (value) {
+                                      _selectedGender=value;
                                     },
                                   ),
                                   const Text('Female',
@@ -1194,8 +1196,8 @@ void _updateStudentDetails(BuildContext context, Student student,
                                           var path = result.files.single.bytes;
                                           final fileName =
                                               result.files.single.name;
-          
-          
+
+
                                           try {
                                             await firebaseStorage
                                                 .ref('Profiles/$fileName')
@@ -1213,7 +1215,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                                           imjUrl = imgurl.toString();
                                           print("imj" + imjUrl);
                                         }
-          
+
                                         // html.FileUploadInputElement
                                         //     uploadInput =
                                         //     html.FileUploadInputElement()
@@ -1243,15 +1245,6 @@ void _updateStudentDetails(BuildContext context, Student student,
                     ),
                     const SizedBox(
                       width: 15,
-                    ),
-                    Expanded(
-                      child: ReusableTextField(
-                        controller: _UserIdController,
-                        maxLength: 10,
-                        keyboardType: TextInputType.phone,
-                        readOnly: true,
-                        title: 'User Id (Login Id)',
-                      ),
                     ),
                   ],
                 ),
@@ -1382,7 +1375,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                                           child: Text(e),
                                         )).toList(),
                             onChanged: (val) {
-          
+
                             }),
                       ),
                     ),
