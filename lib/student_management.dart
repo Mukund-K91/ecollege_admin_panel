@@ -1066,7 +1066,7 @@ class _StudentListState extends State<StudentList> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Edit Event'),
+          title: Text('${student.userId}'),
           content: SingleChildScrollView(
             child: Form(
               child: Column(
