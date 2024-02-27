@@ -154,8 +154,8 @@ class FirestoreService {
 }
 
 Future<void> DeleteStudent(
-    String program, String programTerm, String division, String userId) {
-  return FirebaseFirestore.instance
+    String program, String programTerm, String division, String userId) async {
+  FirebaseFirestore.instance
       .collection('students')
       .doc(program)
       .collection(programTerm)
@@ -834,6 +834,24 @@ class StudentList extends StatefulWidget {
 }
 
 class _StudentListState extends State<StudentList> {
+  Future<void> _getUserId() async {
+    final userIdDocSnapshot = await _UserIdDoc.get();
+    setState(() {
+      _totalStudent =
+          userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
+              ? (userIdDocSnapshot.data()
+                      as Map<String, dynamic>)['Total Students'] ??
+                  0
+              : 0;
+      _totalStudentsController.text = _totalStudent.toString();
+    });
+  }
+
+  Future<void> _decreamentTotalStudents() async {
+    _totalStudent--;
+    await _UserIdDoc.update({'Total Students': _totalStudent});
+  }
+
   final FirestoreService _firestoreService = FirestoreService();
   late TextEditingController _searchController;
   String? _selectedProgram = "--Please Select--";
@@ -848,6 +866,9 @@ class _StudentListState extends State<StudentList> {
     super.initState();
     _searchTerm = '';
     _searchController = TextEditingController();
+    _UserIdDoc =
+        FirebaseFirestore.instance.collection('metadata').doc('userId');
+    _getUserId();
   }
 
   @override
@@ -1413,96 +1434,56 @@ class _StudentListState extends State<StudentList> {
       },
     );
   }
-}
 
-// void _showUpdateDialog(BuildContext context) {
-//   showDialog(
-//     context: context,
-//     builder: (BuildContext context) {
-//       return AlertDialog(
-//         title: const Text('Update Student Details'),
-//         content: const Column(
-//           mainAxisSize: MainAxisSize.min,
-//           children: [
-//             TextField(
-//               decoration: InputDecoration(labelText: 'Name'),
-//             ),
-//             TextField(
-//               decoration: InputDecoration(labelText: 'Age'),
-//               keyboardType: TextInputType.number,
-//             ),
-//             TextField(
-//               decoration: InputDecoration(labelText: 'Address'),
-//             ),
-//           ],
-//         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () {
-//               _updateStudentDetails(_sele);
-//               Navigator.of(context).pop();
-//             },
-//             child: const Text('Submit'),
-//           ),
-//           TextButton(
-//             onPressed: () {
-//               Navigator.of(context).pop();
-//             },
-//             child: const Text('Close'),
-//           ),
-//         ],
-//       );
-//     },
-//   );
-// }
-
-void _confirmDelete(BuildContext context, String program, String programTerm,
-    String division, String userId) {
-  TextEditingController _passwordController = TextEditingController();
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Please enter your password to confirm deletion:'),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password'),
+  void _confirmDelete(BuildContext context, String program, String programTerm,
+      String division, String userId) {
+    TextEditingController _passwordController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Please enter your password to confirm deletion:'),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Password'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_passwordController.text == 'superAdmin') {
+                  DeleteStudent(program, programTerm, division, userId);
+                  _decreamentTotalStudents();
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        backgroundColor: Colors.white,
+                        shape: ContinuousRectangleBorder(),
+                        content: Text(
+                          'Invalid password',
+                          style: TextStyle(color: Colors.black),
+                        )),
+                  );
+                }
+              },
+              child: const Text('Confirm'),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (_passwordController.text == 'superAdmin') {
-                DeleteStudent(program, programTerm, division, userId);
-                Navigator.of(context).pop();
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      backgroundColor: Colors.white,
-                      shape: ContinuousRectangleBorder(),
-                      content: Text(
-                        'Invalid password',
-                        style: TextStyle(color: Colors.black),
-                      )),
-                );
-              }
-            },
-            child: const Text('Confirm'),
-          ),
-        ],
-      );
-    },
-  );
+        );
+      },
+    );
+  }
 }
