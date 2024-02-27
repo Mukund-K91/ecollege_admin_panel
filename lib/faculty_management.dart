@@ -765,47 +765,378 @@ class _FacultyListState extends State<FacultyList> {
       },
     );
   }
-}
+  Future<void> _updateStudentDetails(
+      BuildContext context,
+      Student student,
+      String program,
+      String programTerm,
+      String Division,
+      String userId) async {
+    DocumentSnapshot<Map<String, dynamic>> studentSnapshot =
+    await FirebaseFirestore.instance
+        .collection('students')
+        .doc(student.program)
+        .collection(student.programTerm)
+        .doc(student.division)
+        .collection('student')
+        .doc(userId)
+        .get();
+    final TextEditingController firstNameController = TextEditingController();
+    final TextEditingController middleNameController = TextEditingController();
+    final TextEditingController lastNameController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController mobileNoController = TextEditingController();
+    late TextEditingController fileNameController = TextEditingController();
+    String? selProgram = "--Please Select--";
+    String? selProgramTerm = "--Please Select--";
+    String? seldiv = "--Please Select--";
+    firstNameController.text = student.firstname;
+    middleNameController.text = student.middlename;
+    lastNameController.text = student.lastname;
+    emailController.text = student.email;
+    mobileNoController.text = student.mobile;
+    dobController.text = student.DOB;
+    selProgram = student.program;
+    selProgramTerm = student.programTerm;
+    seldiv = student.division;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('${student.userId}'),
+          content: SingleChildScrollView(
+            child: Form(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ReusableTextField(
+                          controller: firstNameController,
+                          keyboardType: TextInputType.name,
+                          readOnly: false,
+                          title: 'First Name',
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 15,
+                      ),
+                      Expanded(
+                        child: ReusableTextField(
+                          controller: middleNameController,
+                          keyboardType: TextInputType.name,
+                          readOnly: false,
+                          title: 'Middle Name',
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 15,
+                      ),
+                      Expanded(
+                        child: ReusableTextField(
+                          controller: lastNameController,
+                          keyboardType: TextInputType.name,
+                          readOnly: false,
+                          title: 'Last Name',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ReusableTextField(
+                          controller: emailController,
+                          keyboardType: TextInputType.name,
+                          readOnly: false,
+                          title: 'Email',
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 15,
+                      ),
+                      Expanded(
+                        child: ReusableTextField(
+                          controller: mobileNoController,
+                          maxLength: 10,
+                          keyboardType: TextInputType.phone,
+                          readOnly: false,
+                          title: 'Mobile',
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 15,
+                      ),
+                      Expanded(
+                          flex: 1,
+                          child: ReusableTextField(
+                            controller: dobController,
+                            OnTap: () => selectDate(context),
+                            title: 'DOB',
+                          )),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          title: const Text(
+                            "Program",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          subtitle: DropdownButtonFormField(
+                              validator: (value) {
+                                if (value!.isEmpty ||
+                                    _selProgram == "--Please Select--") {
+                                  return "Please Select Program";
+                                }
+                              },
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(
+                                      borderRadius:
+                                      BorderRadius.all(Radius.zero))),
+                              value: selProgram,
+                              items: _programs
+                                  .map((e) => DropdownMenuItem(
+                                value: e,
+                                child: Text(e),
+                              ))
+                                  .toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  selProgram = val as String;
+                                });
+                              }),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListTile(
+                          title: const Text(
+                            "Program Term",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          subtitle: DropdownButtonFormField(
+                              validator: (value) {
+                                if (value!.isEmpty ||
+                                    _selProgramTerm == "--Please Select--") {
+                                  return "Please Select Program Term";
+                                }
+                              },
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(
+                                      borderRadius:
+                                      BorderRadius.all(Radius.zero))),
+                              value: selProgramTerm,
+                              items: _programTerm
+                                  .map((e) => DropdownMenuItem(
+                                value: e,
+                                child: Text(e),
+                              ))
+                                  .toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  selProgramTerm = val as String;
+                                });
+                              }),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListTile(
+                          title: const Text(
+                            "Division",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          subtitle: DropdownButtonFormField(
+                              validator: (value) {
+                                if (value!.isEmpty ||
+                                    _selProgram == '--Please Select--') {
+                                  return "Please Select Division";
+                                }
+                              },
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(
+                                      borderRadius:
+                                      BorderRadius.all(Radius.zero))),
+                              value: seldiv,
+                              items: selProgram == "BCA"
+                                  ? _Bcadivision.map((e) => DropdownMenuItem(
+                                value: e,
+                                child: Text(e),
+                              )).toList()
+                                  : selProgram == "B-Com"
+                                  ? _Bcomdivision.map(
+                                      (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e),
+                                  )).toList()
+                                  : _Bbadivision.map(
+                                      (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e),
+                                  )).toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  seldiv = val as String;
+                                });
+                              }),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final String newFirstName = firstNameController.text;
+                final String newMiddleName = middleNameController.text;
+                final String newLastName = lastNameController.text;
+                final String newEmail = emailController.text;
+                final String newMobile = mobileNoController.text;
+                final String newDOB = dobController.text;
+                final String newProgram = selProgram.toString();
+                final String newProgramTerm = selProgramTerm.toString();
+                final String newDivision = seldiv.toString();
+                if (selProgram != student.program ||
+                    selProgramTerm != student.programTerm ||
+                    seldiv != student.division ||
+                    studentSnapshot.exists) {
+                  Map<String, dynamic> studentData = studentSnapshot.data()!;
+                  await FirebaseFirestore.instance
+                      .collection('students')
+                      .doc(student.program)
+                      .collection(student.programTerm)
+                      .doc(student.division)
+                      .collection('student')
+                      .doc(userId)
+                      .delete();
 
-void _showUpdateDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Update Student Details'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: InputDecoration(labelText: 'Name'),
-            ),
-            TextField(
-              decoration: InputDecoration(labelText: 'Age'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              decoration: InputDecoration(labelText: 'Address'),
+                  await FirebaseFirestore.instance
+                      .collection('students')
+                      .doc(newProgram)
+                      .collection(newProgramTerm)
+                      .doc(newDivision)
+                      .collection('student')
+                      .doc(userId)
+                      .set(studentData);
+
+                  FirebaseFirestore.instance
+                      .collection('students')
+                      .doc(newProgram)
+                      .collection(newProgramTerm)
+                      .doc(newDivision)
+                      .collection('student')
+                      .doc(userId)
+                      .update({
+                    'First Name': newFirstName,
+                    'Middle Name': newMiddleName,
+                    'Last Name': newLastName,
+                    'Mobile': newMobile,
+                    'Email': newEmail,
+                    'program': newProgram,
+                    'programTerm': newProgramTerm,
+                    'division': newDivision,
+                    'DOB': newDOB
+                  });
+                } else {
+                  FirebaseFirestore.instance
+                      .collection('students')
+                      .doc(program)
+                      .collection(programTerm)
+                      .doc(Division)
+                      .collection('student')
+                      .doc(userId)
+                      .update({
+                    'First Name': newFirstName,
+                    'Middle Name': newMiddleName,
+                    'Last Name': newLastName,
+                    'Mobile': newMobile,
+                    'Email': newEmail,
+                    'program': newProgram,
+                    'programTerm': newProgramTerm,
+                    'division': newDivision,
+                    'DOB': newDOB
+                  });
+                }
+                Navigator.of(context).pop();
+              },
+              child: Text('Update'),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              _updateStudentDetails();
-              Navigator.of(context).pop();
-            },
-            child: Text('Submit'),
+        );
+      },
+    );
+  }
+
+  void _confirmDelete(BuildContext context, String program, String programTerm,
+      String division, String userId) {
+    TextEditingController _passwordController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Please enter your password to confirm deletion:'),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Password'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Close'),
-          ),
-        ],
-      );
-    },
-  );
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_passwordController.text == 'superAdmin') {
+                  DeleteStudent(program, programTerm, division, userId);
+                  _decreamentTotalStudents();
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        backgroundColor: Colors.white,
+                        shape: ContinuousRectangleBorder(),
+                        content: Text(
+                          'Invalid password',
+                          style: TextStyle(color: Colors.black),
+                        )),
+                  );
+                }
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
-void _updateStudentDetails() {}
