@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:html';
 import 'dart:js';
 import 'dart:js_util';
+import 'dart:typed_data';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
@@ -14,6 +15,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:pdf/pdf.dart';
+
 import 'package:intl/intl.dart';
 
 import 'firebase_options.dart';
@@ -254,7 +257,33 @@ class _AddStudentsState extends State<AddStudents> {
       _totalStudentsController.text = _totalStudent.toString();
     });
   }
+  Future<Uint8List> generatePdf(String firstName, String lastName, String program, String programTerm, String division, String userId) async {
+    final pdf = pdfLib.Document();
 
+    pdf.addPage(
+      pdfLib.Page(
+        build: (context) {
+          return pdfLib.Column(
+            mainAxisAlignment: pdfLib.MainAxisAlignment.center,
+            crossAxisAlignment: pdfLib.CrossAxisAlignment.center,
+            children: [
+              pdfLib.Text('Student Information', style: pdfLib.TextStyle(fontSize: 20)),
+              pdfLib.SizedBox(height: 20),
+              pdfLib.Text('First Name: $firstName'),
+              pdfLib.Text('Middle Name: $firstName'),
+              pdfLib.Text('Last Name: $lastName'),
+              pdfLib.Text('Program: $program'),
+              pdfLib.Text('Program Term: $programTerm'),
+              pdfLib.Text('Division: $division'),
+              pdfLib.Text('User Id: $userId'),
+            ],
+          );
+        },
+      ),
+    );
+
+    return pdf.save();
+  }
   // Variable to hold the current roll number
 //  int currentRollNumber = 001;
 
