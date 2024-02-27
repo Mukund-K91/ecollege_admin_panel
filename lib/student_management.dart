@@ -1062,6 +1062,22 @@ class _StudentListState extends State<StudentList> {
 
 Future<void> _updateStudentDetails(BuildContext context, Student student,
     String program, String programTerm, String Division, String userId) async {
+  final TextEditingController dobController = TextEditingController();
+  DateTime? selectedDate;
+
+  Future<void> selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+        selectedDate = picked;
+        dobController.text = DateFormat('dd-MM-yyyy').format(_selectedDate!);
+    }
+  }
+
   DocumentSnapshot<Map<String, dynamic>> studentSnapshot =
       await FirebaseFirestore.instance
           .collection('students')
@@ -1076,7 +1092,6 @@ Future<void> _updateStudentDetails(BuildContext context, Student student,
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController mobileNoController = TextEditingController();
-  final TextEditingController dobController = TextEditingController();
   late TextEditingController fileNameController = TextEditingController();
   String? selProgram = "--Please Select--";
   String? selProgramTerm = "--Please Select--";
@@ -1167,6 +1182,7 @@ Future<void> _updateStudentDetails(BuildContext context, Student student,
                         flex: 1,
                         child: ReusableTextField(
                           controller: dobController,
+                          OnTap: ()=>selectDate(context),
                           title: 'DOB',
                         )),
                   ],
@@ -1314,19 +1330,25 @@ Future<void> _updateStudentDetails(BuildContext context, Student student,
                 await FirebaseFirestore.instance
                     .collection('students')
                     .doc(newProgram)
-                    .collection(programTerm)
-                    .doc(Division)
+                    .collection(newProgramTerm)
+                    .doc(newDivision)
                     .collection('student')
                     .doc(userId)
                     .set(studentData);
+
                 FirebaseFirestore.instance
                     .collection('students')
-                    .doc(program)
-                    .collection(programTerm)
-                    .doc(Division)
+                    .doc(newProgram)
+                    .collection(newProgramTerm)
+                    .doc(newDivision)
                     .collection('student')
                     .doc(userId)
                     .update({
+                  'First Name': newFirstName,
+                  'Middle Name': newMiddleName,
+                  'Last Name': newLastName,
+                  'Mobile': newMobile,
+                  'Email': newEmail,
                   'program': newProgram,
                   'programTerm': newProgramTerm,
                   'division': newDivision
