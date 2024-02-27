@@ -1110,61 +1110,7 @@ void _updateStudentDetails(BuildContext context, Student student,
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Expanded(
-                        child: Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Gender:",
-                            style: TextStyle(
-                              fontSize: 15,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Row(
-                                children: [
-                                  Radio<String>(
-                                    value: 'Male',
-                                    groupValue: _selectedGender,
-                                    onChanged: (value) {
-                                      _selectedGender=value;
-                                    },
-                                  ),
-                                  const Text(
-                                    'Male',
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 15),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(
-                                width: 15,
-                              ),
-                              Row(
-                                children: [
-                                  Radio<String>(
-                                    value: 'Female',
-                                    groupValue: _selectedGender,
-                                    onChanged: (value) {
-                                      _selectedGender=value;
-                                    },
-                                  ),
-                                  const Text('Female',
-                                      style: TextStyle(
-                                          color: Colors.grey, fontSize: 15)),
-                                ],
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    )),
-                    const SizedBox(
-                      width: 15,
-                    ),
+
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
