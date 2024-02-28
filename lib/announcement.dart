@@ -1,5 +1,6 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -20,12 +21,15 @@ class Event {
   });
 }
 
-class EventListPage extends StatefulWidget {
+final _assignTo = ["Dashboard", "BCA", "B-Com", "BBA"];
+String? _selectedassignTo="Dashboard";
+
+class EventManagement extends StatefulWidget {
   @override
-  _EventListPageState createState() => _EventListPageState();
+  _EventManagementState createState() => _EventManagementState();
 }
 
-class _EventListPageState extends State<EventListPage> {
+class _EventManagementState extends State<EventManagement> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final CollectionReference eventsCollection =
       FirebaseFirestore.instance.collection('events');
@@ -68,6 +72,35 @@ class _EventListPageState extends State<EventListPage> {
               controller: _descriptionController,
             ),
             SizedBox(height: 16.0),
+            Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    title: const Text(
+                      "Program",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    subtitle: DropdownButtonFormField(
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(
+                                borderRadius:
+                                BorderRadius.all(Radius.zero))),
+                        value: _selectedassignTo,
+                        items: _assignTo
+                            .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        ))
+                            .toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedassignTo = val as String;
+                          });
+                        }),
+                  ),
+                ),
+              ],
+            ),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {

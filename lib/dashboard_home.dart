@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-
+import 'package:readmore/readmore.dart';
 
 class Event {
   final String title;
@@ -18,6 +19,7 @@ class Event {
     required this.date,
   });
 }
+
 class Home extends StatefulWidget {
   Home({super.key});
 
@@ -27,7 +29,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final CollectionReference eventsCollection =
-  FirebaseFirestore.instance.collection('events');
+      FirebaseFirestore.instance.collection('events');
   late DocumentReference _UserIdDoc;
   late DocumentReference _IdDoc;
   late TextEditingController _totalStudentsController = TextEditingController();
@@ -44,9 +46,8 @@ class _HomeState extends State<Home> {
     _IdDoc = FirebaseFirestore.instance.collection('metadata').doc('FacultyId');
     _getUserId();
     _totalStudentsController = TextEditingController();
-    _totalFacultyController=TextEditingController();
+    _totalFacultyController = TextEditingController();
   }
-
 
   Future<void> _getUserId() async {
     final userIdDocSnapshot = await _UserIdDoc.get();
@@ -176,13 +177,14 @@ class _HomeState extends State<Home> {
                 ))
               ],
             ),
-            _builEventList()
+            // _builEventList()
           ],
         ),
       ),
     );
   }
-  Widget _builEventList(){
+
+  Widget _builEventList() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: StreamBuilder<QuerySnapshot>(
@@ -215,14 +217,26 @@ class _HomeState extends State<Home> {
             rows: events
                 .mapIndexed(
                   (index, event) => DataRow(
-                cells: [
-                  DataCell(Text((index + 1).toString())),
-                  DataCell(Text(event.title)),
-                  DataCell(SizedBox(height:20,child: Text(event.description))),
-                  DataCell(Text(event.date.day.toString())),
-                ],
-              ),
-            )
+                    cells: [
+                      DataCell(Text((index + 1).toString())),
+                      DataCell(Text(event.title)),
+                      DataCell(
+                        Expanded(
+                          child: ReadMoreText(
+                            event.description,
+                            style: TextStyle(color: Colors.black),
+                            colorClickableText: Colors.grey,
+                            trimLines: 2,
+                            trimMode: TrimMode.Line,
+                            trimCollapsedText: 'Read more',
+                            trimExpandedText: '^Read less',
+                          ),
+                        ),
+                      ),
+                      DataCell(Text(event.date.day.toString())),
+                    ],
+                  ),
+                )
                 .toList(),
           );
         },

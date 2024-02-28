@@ -1,85 +1,95 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-void main() {
-  runApp(EventTableApp());
-}
-
-class Event {
+class MultiSelectDropdown extends StatefulWidget {
+  final List<String> options;
   final String title;
-  final String description;
-  final DateTime date;
+  final Function(List<String>) onSelect;
 
-  Event({
+  MultiSelectDropdown({
+    required this.options,
     required this.title,
-    required this.description,
-    required this.date,
+    required this.onSelect,
   });
+
+  @override
+  _MultiSelectDropdownState createState() => _MultiSelectDropdownState();
 }
 
-class EventTableApp extends StatelessWidget {
+class _MultiSelectDropdownState extends State<MultiSelectDropdown> {
+  List<String> _selectedOptions = [];
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Event Table'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(widget.title),
+        DropdownButtonFormField<String>(
+          isExpanded: true,
+          value: null,
+          items: widget.options.map((option) {
+            return DropdownMenuItem<String>(
+              value: option,
+              child: Text(option),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              if (_selectedOptions.contains(value)) {
+                _selectedOptions.remove(value);
+              } else {
+                _selectedOptions.add(value!);
+              }
+              widget.onSelect(_selectedOptions);
+            });
+          },
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('events').snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              }
+        SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: _selectedOptions.map((option) {
+            return Chip(
+              label: Text(option),
+              onDeleted: () {
+                setState(() {
+                  _selectedOptions.remove(option);
+                  widget.onSelect(_selectedOptions);
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
 
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
-              }
+// Example usage:
+class MyHomePage extends StatelessWidget {
+  final List<String> options = ['Option 1', 'Option 2', 'Option 3'];
 
-              final events = snapshot.data!.docs.map((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                return Event(
-                  title: data['title'],
-                  description: data['description'],
-                  date: (data['date'] as Timestamp).toDate(),
-                );
-              }).toList();
-
-              return DataTable(
-                columns: [
-                  DataColumn(label: Text('Row')),
-                  DataColumn(label: Text('Title')),
-                  DataColumn(label: Text('Description')),
-                  DataColumn(label: Text('Date')),
-                ],
-                rows: events
-                    .mapIndexed(
-                      (index, event) => DataRow(
-                    cells: [
-                      DataCell(Text((index + 1).toString())),
-                      DataCell(Text(event.title)),
-                      DataCell(Text(event.description)),
-                      DataCell(Text(event.date.toString())),
-                    ],
-                  ),
-                )
-                    .toList(),
-              );
-            },
-          ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Multi-select Dropdown Example'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: MultiSelectDropdown(
+          title: 'Select Options',
+          options: options,
+          onSelect: (selectedOptions) {
+            print('Selected options: $selectedOptions');
+          },
         ),
       ),
     );
   }
 }
 
-extension IndexedIterable<E> on Iterable<E> {
-  Iterable<T> mapIndexed<T>(T Function(int index, E element) f) sync* {
-    var index = 0;
-    for (final element in this) {
-      yield f(index++, element);
-    }
-  }
+void main() {
+  runApp(MaterialApp(
+    home: MyHomePage(),
+  ));
 }

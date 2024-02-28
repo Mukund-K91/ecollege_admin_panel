@@ -8,15 +8,6 @@ import 'faculty_management.dart';
 import 'firebase_options.dart';
 import 'student_management.dart';
 
-void handleClick(String value) {
-  switch (value) {
-    case 'Logout':
-      break;
-    case 'Settings':
-      break;
-  }
-}
-
 class DashboardScreen extends StatefulWidget {
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -37,10 +28,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Home(),
     AddStudents(),
     //YourPage(),
-   StudentList(),
+    StudentList(),
     AddFaculty(),
     FacultyList(),
-    EventListPage()
+    EventManagement()
   ];
 
   @override
@@ -231,5 +222,3 @@ class MenuItem extends StatelessWidget {
     );
   }
 }
-
-
