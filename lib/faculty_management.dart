@@ -73,7 +73,7 @@ class FirestoreService {
     }
   }
 
-  // Fetch students from Firestore based on program, program term, and division
+  // Fetch faculty from Firestore based on program, program term, and division
   Stream<List<Faculty>> getFaculty(String program) {
     return _firestore
         .collection('faculty')
@@ -126,12 +126,11 @@ final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 StorageService service = StorageService();
 
 StorageService storageService = StorageService();
-late CollectionReference _studentsCollection;
 late DocumentReference _UserIdDoc;
 int _totalFaculty = 0;
 late String imjUrl;
 
-String? _selectedGender;
+String? _selectedGender = "Male";
 DateTime? _selectedDate;
 final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
 late String _selProgram = '--Please Select--';
@@ -551,8 +550,6 @@ class _AddFacultyState extends State<AddFaculty> {
                             _selProgram = _programs[0];
                             _Qualification.text = "";
                             _Designation.text = "";
-
-                            await _incrementRollNumber();
                             // Update TextField value after increment
                           },
                           child: const Text(
@@ -607,13 +604,13 @@ class _FacultyListState extends State<FacultyList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student List'),
+        title: Text('Faculty List'),
       ),
       body: Column(
         children: [
           _buildFilters(),
           Expanded(
-            child: _buildStudentList(),
+            child: _buildFacultyList(),
           ),
         ],
       ),
@@ -663,7 +660,7 @@ class _FacultyListState extends State<FacultyList> {
     );
   }
 
-  Widget _buildStudentList() {
+  Widget _buildFacultyList() {
     return StreamBuilder<List<Faculty>>(
       stream: _searchTerm.isEmpty
           ? _firestoreService.getFaculty(_selectedProgram)
@@ -713,28 +710,28 @@ class _FacultyListState extends State<FacultyList> {
                   DataColumn(label: Text('Designation')),
                   DataColumn(label: Text('Action')),
                 ],
-                rows: students
+                rows: faculties
                     .map(
-                      (student) => DataRow(cells: [
-                        DataCell(Text(student.FacultyId)),
+                      (faculty) => DataRow(cells: [
+                        DataCell(Text(faculty.FacultyId)),
                         DataCell(
-                            Text(student.firstname + " " + student.lastname)),
+                            Text(faculty.firstname + " " + faculty.lastname)),
                         DataCell(CircleAvatar(
                           radius: 27,
                           child: ClipOval(
                             child: Image.network(
-                              student.profile,
+                              faculty.profile,
                               fit: BoxFit.cover,
                               height: 70,
                               width: 70,
                             ),
                           ),
                         )),
-                        DataCell(Text(student.program)),
-                        DataCell(Text(student.mobile)),
-                        DataCell(Text(student.email)),
-                        DataCell(Text(student.qualification)),
-                        DataCell(Text(student.Designation)),
+                        DataCell(Text(faculty.program)),
+                        DataCell(Text(faculty.mobile)),
+                        DataCell(Text(faculty.email)),
+                        DataCell(Text(faculty.qualification)),
+                        DataCell(Text(faculty.Designation)),
                         DataCell(Row(
                           children: [
                             IconButton(
@@ -743,14 +740,17 @@ class _FacultyListState extends State<FacultyList> {
                                       context,
                                       faculty,
                                       _selProgram.toString(),
-                                      student.FacultyId);
+                                      faculty.FacultyId);
                                 },
                                 icon: Icon(
                                   FontAwesomeIcons.edit,
                                   color: Colors.green,
                                 )),
                             IconButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  _confirmDelete(context, _selectedProgram,
+                                      faculty.FacultyId);
+                                },
                                 icon: Icon(
                                   FontAwesomeIcons.trash,
                                   color: Colors.redAccent,
@@ -818,7 +818,7 @@ class _FacultyListState extends State<FacultyList> {
                     children: [
                       Expanded(
                         child: ReusableTextField(
-                          controller: _firstNameController,
+                          controller: firstNameController,
                           keyboardType: TextInputType.name,
                           readOnly: false,
                           title: 'First Name',
@@ -829,7 +829,7 @@ class _FacultyListState extends State<FacultyList> {
                       ),
                       Expanded(
                         child: ReusableTextField(
-                          controller: _lastNameController,
+                          controller: lastNameController,
                           keyboardType: TextInputType.name,
                           readOnly: false,
                           title: 'Last Name',
@@ -842,7 +842,7 @@ class _FacultyListState extends State<FacultyList> {
                     children: [
                       Expanded(
                         child: ReusableTextField(
-                          controller: _emailController,
+                          controller: emailController,
                           keyboardType: TextInputType.name,
                           readOnly: false,
                           validator: (str) {
@@ -859,7 +859,7 @@ class _FacultyListState extends State<FacultyList> {
                       ),
                       Expanded(
                         child: ReusableTextField(
-                          controller: _phoneController,
+                          controller: phoneController,
                           maxLength: 10,
                           keyboardType: TextInputType.phone,
                           readOnly: false,
@@ -980,8 +980,7 @@ class _FacultyListState extends State<FacultyList> {
     );
   }
 
-  void _confirmDelete(BuildContext context, String program, String programTerm,
-      String division, String userId) {
+  void _confirmDelete(BuildContext context, String program, String userId) {
     TextEditingController _passwordController = TextEditingController();
     showDialog(
       context: context,
@@ -1009,7 +1008,7 @@ class _FacultyListState extends State<FacultyList> {
             ElevatedButton(
               onPressed: () {
                 if (_passwordController.text == 'superAdmin') {
-                  DeleteStudent(program, programTerm, division, userId);
+                  DeleteStudent(program, userId);
                   Navigator.of(context).pop();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1031,14 +1030,11 @@ class _FacultyListState extends State<FacultyList> {
     );
   }
 
-  Future<void> DeleteStudent(String program, String programTerm,
-      String division, String userId) async {
+  Future<void> DeleteStudent(String program, String userId) async {
     FirebaseFirestore.instance
-        .collection('students')
+        .collection('faculty')
         .doc(program)
-        .collection(programTerm)
-        .doc(division)
-        .collection('student')
+        .collection('faculty')
         .doc(userId)
         .delete();
   }
