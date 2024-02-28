@@ -120,8 +120,6 @@ class FirestoreService {
             .toList());
   }
 }
-
-final TextEditingController _searchController = TextEditingController();
 final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 StorageService service = StorageService();
 
@@ -148,6 +146,9 @@ late TextEditingController _fileNameController = TextEditingController();
 
 late TextEditingController _totalFacultyController = TextEditingController();
 final FirestoreService _firestoreService = FirestoreService();
+
+
+final TextEditingController _searchController = TextEditingController();
 
 class AddFaculty extends StatefulWidget {
   void main() async {
@@ -184,7 +185,7 @@ class _AddFacultyState extends State<AddFaculty> {
     });
   }
 
-  Future<void> _incrementRollNumber() async {
+  Future<void> _incrementUserId() async {
     _totalFaculty++;
     await _UserIdDoc.set({'Total Faculty': _totalFaculty});
   }
@@ -413,12 +414,6 @@ class _AddFacultyState extends State<AddFaculty> {
                             controller: _emailController,
                             keyboardType: TextInputType.name,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Email is required";
-                              }
-                              return null;
-                            },
                             title: 'Email',
                           ),
                         ),
@@ -431,12 +426,6 @@ class _AddFacultyState extends State<AddFaculty> {
                             maxLength: 10,
                             keyboardType: TextInputType.phone,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Mobile is required";
-                              }
-                              return null;
-                            },
                             title: 'Mobile',
                           ),
                         ),
@@ -452,12 +441,6 @@ class _AddFacultyState extends State<AddFaculty> {
                             controller: _Designation,
                             keyboardType: TextInputType.name,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Designation  is required";
-                              }
-                              return null;
-                            },
                             title: 'Designation ',
                           ),
                         ),
@@ -469,12 +452,6 @@ class _AddFacultyState extends State<AddFaculty> {
                             controller: _Qualification,
                             keyboardType: TextInputType.name,
                             readOnly: false,
-                            validator: (str) {
-                              if (str!.isEmpty) {
-                                return "Qualification  is required";
-                              }
-                              return null;
-                            },
                             title: 'Qualification ',
                           ),
                         ),
@@ -507,7 +484,14 @@ class _AddFacultyState extends State<AddFaculty> {
                                   setState(() {
                                     _selProgram = val as String;
                                   });
-                                }),
+                                },
+                              validator: (value) {
+                                if (value!.isEmpty ||
+                                    _selProgram == "--Please Select--") {
+                                  return "Please Select Program";
+                                }
+                              },
+                                ),
                           ),
                         ),
                       ],
@@ -526,30 +510,32 @@ class _AddFacultyState extends State<AddFaculty> {
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
-                            Faculty newfaculty = Faculty(
-                              firstname: _firstNameController.text,
-                              lastname: _lastNameController.text,
-                              gender: _selectedGender.toString(),
-                              profile: imjUrl.toString(),
-                              FacultyId: _facultyId.text,
-                              email: _emailController.text,
-                              mobile: _phoneController.text,
-                              program: _selProgram.toString(),
-                              qualification: _Qualification.text,
-                              Designation: _Designation.text,
-                            );
-                            _firestoreService.addFaculty(newfaculty);
-
-                            _firstNameController.text = "";
-                            _fileNameController.text = "";
-                            _middleNameController.text = "";
-                            _lastNameController.text = "";
-                            _selectedGender = "";
-                            _emailController.text = "";
-                            _phoneController.text = "";
-                            _selProgram = _programs[0];
-                            _Qualification.text = "";
-                            _Designation.text = "";
+                            if(_formKey.currentState!.validate()){
+                              Faculty newfaculty = Faculty(
+                                firstname: _firstNameController.text,
+                                lastname: _lastNameController.text,
+                                gender: _selectedGender.toString(),
+                                profile: imjUrl.toString(),
+                                FacultyId: _facultyId.text,
+                                email: _emailController.text,
+                                mobile: _phoneController.text,
+                                program: _selProgram.toString(),
+                                qualification: _Qualification.text,
+                                Designation: _Designation.text,
+                              );
+                              _incrementUserId();
+                              _firestoreService.addFaculty(newfaculty);
+                              _firstNameController.text = "";
+                              _fileNameController.text = "";
+                              _middleNameController.text = "";
+                              _lastNameController.text = "";
+                              _selectedGender = "";
+                              _emailController.text = "";
+                              _phoneController.text = "";
+                              _selProgram = _programs[0];
+                              _Qualification.text = "";
+                              _Designation.text = "";
+                            }
                             // Update TextField value after increment
                           },
                           child: const Text(
@@ -598,6 +584,9 @@ class _FacultyListState extends State<FacultyList> {
     super.initState();
     _searchTerm = '';
     _searchController = TextEditingController();
+    _getUserId();
+    _UserIdDoc =
+        FirebaseFirestore.instance.collection('metadata').doc('FacultyId');
   }
 
   @override
@@ -781,151 +770,111 @@ class _FacultyListState extends State<FacultyList> {
     final TextEditingController lastNameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
     final TextEditingController mobileNoController = TextEditingController();
+    final TextEditingController DesignationController = TextEditingController();
+    final TextEditingController QualificationController = TextEditingController();
+
     String? selProgram = "--Please Select--";
     firstNameController.text = faculty.firstname;
     lastNameController.text = faculty.lastname;
     emailController.text = faculty.email;
     mobileNoController.text = faculty.mobile;
     selProgram = faculty.program;
+    DesignationController.text=faculty.Designation;
+    QualificationController.text=faculty.qualification;
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text('${faculty.FacultyId}'),
           content: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ReusableTextField(
-                          controller: _facultyId,
-                          maxLength: 10,
-                          keyboardType: TextInputType.phone,
-                          readOnly: false,
-                          title: 'Id',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ReusableTextField(
-                          controller: firstNameController,
-                          keyboardType: TextInputType.name,
-                          readOnly: false,
-                          title: 'First Name',
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 15,
-                      ),
-                      Expanded(
-                        child: ReusableTextField(
-                          controller: lastNameController,
-                          keyboardType: TextInputType.name,
-                          readOnly: false,
-                          title: 'Last Name',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ReusableTextField(
-                          controller: emailController,
-                          keyboardType: TextInputType.name,
-                          readOnly: false,
-                          validator: (str) {
-                            if (str!.isEmpty) {
-                              return "Email is required";
-                            }
-                            return null;
-                          },
-                          title: 'Email',
-                        ),
-                      ),
-                      SizedBox(
-                        width: 15,
-                      ),
-                      Expanded(
-                        child: ReusableTextField(
-                          controller: phoneController,
-                          maxLength: 10,
-                          keyboardType: TextInputType.phone,
-                          readOnly: false,
-                          validator: (str) {
-                            if (str!.isEmpty) {
-                              return "Mobile is required";
-                            }
-                            return null;
-                          },
-                          title: 'Mobile',
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ReusableTextField(
-                          controller: _Designation,
-                          keyboardType: TextInputType.name,
-                          readOnly: false,
-                          validator: (str) {
-                            if (str!.isEmpty) {
-                              return "Designation  is required";
-                            }
-                            return null;
-                          },
-                          title: 'Designation ',
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 15,
-                      ),
-                      Expanded(
-                        child: ReusableTextField(
-                          controller: _Qualification,
-                          keyboardType: TextInputType.name,
-                          readOnly: false,
-                          validator: (str) {
-                            if (str!.isEmpty) {
-                              return "Qualification  is required";
-                            }
-                            return null;
-                          },
-                          title: 'Qualification ',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: Text(
-                            "Program",
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          subtitle: ReusableTextField(
-                            controller: _Qualification,
+            child: Container(
+              width: MediaQuery.of(context).size.width/1,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: firstNameController,
                             keyboardType: TextInputType.name,
+                            readOnly: false,
+                            title: 'First Name',
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: lastNameController,
+                            keyboardType: TextInputType.name,
+                            readOnly: false,
+                            title: 'Last Name',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: emailController,
+                            keyboardType: TextInputType.name,
+                            readOnly: false,
+                            validator: (str) {
+                              if (str!.isEmpty) {
+                                return "Email is required";
+                              }
+                              return null;
+                            },
+                            title: 'Email',
+                          ),
+                        ),
+                        SizedBox(
+                          width: 15,
+                        ),
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: mobileNoController,
+                            maxLength: 10,
+                            keyboardType: TextInputType.phone,
+                            readOnly: false,
+                            validator: (str) {
+                              if (str!.isEmpty) {
+                                return "Mobile is required";
+                              }
+                              return null;
+                            },
+                            title: 'Mobile',
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: DesignationController,
+                            keyboardType: TextInputType.multiline,
+                            isMulti: true,
+                            readOnly: false,
+                            title: 'Designation ',
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        Expanded(
+                          child: ReusableTextField(
+                            controller: QualificationController,
+                            keyboardType: TextInputType.multiline,
                             readOnly: false,
                             validator: (str) {
                               if (str!.isEmpty) {
@@ -936,10 +885,13 @@ class _FacultyListState extends State<FacultyList> {
                             title: 'Qualification ',
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -957,11 +909,13 @@ class _FacultyListState extends State<FacultyList> {
                 final String newEmail = emailController.text;
                 final String newMobile = mobileNoController.text;
                 final String newProgram = selProgram.toString();
+                final String newDesignation=DesignationController.text;
+                final String newQualification=QualificationController.text;
 
                 FirebaseFirestore.instance
-                    .collection('students')
-                    .doc(program)
-                    .collection('student')
+                    .collection('faculty')
+                    .doc(newProgram)
+                    .collection('faculty')
                     .doc(facultyId)
                     .update({
                   'First Name': newFirstName,
@@ -969,6 +923,8 @@ class _FacultyListState extends State<FacultyList> {
                   'Mobile': newMobile,
                   'Email': newEmail,
                   'program': newProgram,
+                  'Designation':newDesignation,
+                  'Qualification':newQualification
                 });
                 Navigator.of(context).pop();
               },
@@ -978,6 +934,22 @@ class _FacultyListState extends State<FacultyList> {
         );
       },
     );
+  }
+  Future<void> _getUserId() async {
+    final userIdDocSnapshot = await _UserIdDoc.get();
+    setState(() {
+      _totalFaculty =
+      userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
+          ? (userIdDocSnapshot.data()
+      as Map<String, dynamic>)['Total Faculty'] ??
+          0
+          : 0;
+    });
+  }
+
+  Future<void> _decreamentTotalFaculties() async {
+    _totalFaculty--;
+    await _UserIdDoc.update({'Total Faculty': _totalFaculty});
   }
 
   void _confirmDelete(BuildContext context, String program, String userId) {
@@ -1009,6 +981,7 @@ class _FacultyListState extends State<FacultyList> {
               onPressed: () {
                 if (_passwordController.text == 'superAdmin') {
                   DeleteStudent(program, userId);
+                  _decreamentTotalFaculties();
                   Navigator.of(context).pop();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
