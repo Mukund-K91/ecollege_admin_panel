@@ -253,8 +253,3 @@ class _EventListPageState extends State<EventListPage> {
   }
 }
 
-void main() {
-  runApp(MaterialApp(
-    home: EventListPage(),
-  ));
-}
