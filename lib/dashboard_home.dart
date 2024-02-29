@@ -137,7 +137,7 @@ class _HomeState extends State<Home> {
               ),
               DataCell(
                 Container(
-                  width: 150, // Adjust the width of the column
+                  width: 250, // Adjust the width of the column
                   child: Text(
                     eventData['title'] ?? 'Title not available',
                     // Null check
@@ -151,18 +151,13 @@ class _HomeState extends State<Home> {
               ),
               DataCell(
                 SizedBox(
-                  width: 500,
-                  height: double.tryParse(eventData['description']),// Adjust the width of the column
-                  child: ReadMoreText(
+                  width: 500, // Adjust the width of the column
+                  child:
+                  Text(
                     eventData['description'] ??
                         'Description not available',
                     // Null check
                     style: TextStyle(color: Colors.black),
-                    colorClickableText: Colors.grey,
-                    trimLines: 2,
-                    trimMode: TrimMode.Line,
-                    trimCollapsedText: 'Read more',
-                    trimExpandedText: '^Read less',
                   ),
                 ),
               ),
