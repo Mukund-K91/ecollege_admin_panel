@@ -44,195 +44,194 @@ class _EventManagementState extends State<EventManagement> {
     super.initState();
   }
 
+  ScrollController _dataController1 = ScrollController();
+  ScrollController _dataController2 = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Event List'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+                onPressed: () {
+                  _buildEventForm(context);
+                },
+                icon: Icon(
+                  FontAwesomeIcons.add,
+                  color: Color(0xff002233),
+                )),
+          )
+        ],
       ),
       body: Column(
         children: [
-          _buildEventForm(),
           Expanded(child: _buildEventList()),
         ],
       ),
     );
   }
 
-  Widget _buildEventForm() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ReusableTextField(
-              title: 'Title',
-              controller: _titleController,
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            ReusableTextField(
-              isMulti: true,
-              keyboardType: TextInputType.multiline,
-              title: 'Description',
-              controller: _descriptionController,
-            ),
-            SizedBox(height: 16.0),
-            Row(
-              children: [
-                Expanded(
-                  child: ListTile(
-                    title: const Text(
-                      "Assign To",
-                      style: TextStyle(fontSize: 15),
-                    ),
-                    subtitle: MultiSelectDropDown(
-                      showClearIcon: true,
-                      controller: _controller,
-                      hint: 'Please Select',
-                      onOptionSelected: (value) {
-                        setState(() {
-                          _selectedOptions = value;
-                        });
-                      },
-                      options: const <ValueItem>[
-                        ValueItem(label: 'Dashboard', value: 'Dashboard'),
-                        ValueItem(label: 'BCA', value: 'BCA'),
-                        ValueItem(label: 'BBA', value: 'BBA'),
-                        ValueItem(label: 'B-Com', value: 'B-Com'),
-                      ],
-                      selectionType: SelectionType.multi,
-                      chipConfig: const ChipConfig(wrapType: WrapType.wrap),
-                      dropdownHeight: 300,
-                      optionTextStyle: const TextStyle(fontSize: 16),
-                      selectedOptionIcon: const Icon(Icons.check_circle),
-                    ),
+  void  _buildEventForm(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context){
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          content: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ReusableTextField(
+                    title: 'Title',
+                    controller: _titleController,
                   ),
-                ),
-              ],
+                  SizedBox(
+                    height: 15,
+                  ),
+                  ReusableTextField(
+                    isMulti: true,
+                    keyboardType: TextInputType.multiline,
+                    title: 'Description',
+                    controller: _descriptionController,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          title: const Text(
+                            "Assign To",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          subtitle: MultiSelectDropDown(
+                            showClearIcon: true,
+                            controller: _controller,
+                            hint: 'Please Select',
+                            onOptionSelected: (value) {
+                              setState(() {
+                                _selectedOptions = value;
+                              });
+                            },
+                            options: const <ValueItem>[
+                              ValueItem(label: 'Dashboard', value: 'Dashboard'),
+                              ValueItem(label: 'BCA', value: 'BCA'),
+                              ValueItem(label: 'BBA', value: 'BBA'),
+                              ValueItem(label: 'B-Com', value: 'B-Com'),
+                            ],
+                            selectionType: SelectionType.multi,
+                            chipConfig: const ChipConfig(wrapType: WrapType.wrap),
+                            dropdownHeight: 300,
+                            optionTextStyle: const TextStyle(fontSize: 16),
+                            selectedOptionIcon: const Icon(Icons.check_circle),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        // _selectedOptions.clear();
+                        // _selectedOptions.addAll(_controller.selectedOptions);
+                        final String AssignTo =
+                        _selectedOptions.map((item) => item.value).join(',');
+                        _addEvent(AssignTo);
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: Text('Add Event'),
+                  ),
+                ],
+              ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  // _selectedOptions.clear();
-                  // _selectedOptions.addAll(_controller.selectedOptions);
-                  final String AssignTo =
-                      _selectedOptions.map((item) => item.value).join(',');
-                  _addEvent(AssignTo);
-                }
-              },
-              child: Text('Add Event'),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
+      }
+     );
   }
 
   Widget _buildEventList() {
     return StreamBuilder<QuerySnapshot>(
-        stream: eventsCollection.orderBy('date', descending: true).snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          }
+      stream: eventsCollection.orderBy('date', descending: true).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: const CircularProgressIndicator());
-          }
-          final events = snapshot.data;
-          if (events == null) {
-            return const Center(
-              child: Text('No Events found'),
-            );
-          }
-          return DataTable(
-            columns: const [
-              DataColumn(label: Text('Date')),
-              DataColumn(label: Text('Title')),
-              DataColumn(label: Text('Description')),
-              DataColumn(label: Text('Actions')),
-            ],
-            rows: events.docs.map((event) {
-              final eventData = event.data() as Map<String, dynamic>;
-              final Timestamp timestamp = eventData['date']; // Get the Timestamp
-              final DateTime date = timestamp.toDate(); // Convert to DateTime
-              String _month = DateFormat('MMM').format(date);
-              return DataRow(cells: [
-                DataCell(
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${_month}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Color(0xff002233),
-                        ),
-                      ),
-                      Text(
-                        '${date.day}',
-                        style: TextStyle(
-                          color: Color(0xff4b8fbf),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                DataCell(
-                  Text(
-                    eventData['title'] ?? 'Title not available', // Null check
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-                DataCell(
-                  ReadMoreText(
-                    eventData['description'] ?? 'Description not available', // Null check
-                    style: TextStyle(color: Colors.black),
-                    colorClickableText: Colors.grey,
-                    trimLines: 2,
-                    trimMode: TrimMode.Line,
-                    trimCollapsedText: 'Read more',
-                    trimExpandedText: '^Read less',
-                  ),
-                ),
-                DataCell(
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          FontAwesomeIcons.edit,
-                          color: Colors.green.shade300,
-                        ),
-                        onPressed: () => _editEvent(event as Event),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          FontAwesomeIcons.trash,
-                          color: Colors.redAccent.shade400,
-                        ),
-                        onPressed: () => _deleteEvent(event as Event),
-                      ),
-                    ],
-                  ),
-                ),
-              ]);
-            }).toList(),
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: const CircularProgressIndicator());
+        }
+
+        final events = snapshot.data;
+        if (events == null || events.docs.isEmpty) {
+          return Center(
+            child: const Text('No Events found'),
           );
+        }
 
-        });
+        return ListView.builder(
+          itemCount: events.docs.length,
+          itemBuilder: (BuildContext context, int index) {
+            final event = events.docs[index];
+            final eventData = event.data() as Map<String, dynamic>;
+            final Timestamp timestamp = eventData['date'];
+            final DateTime date = timestamp.toDate();
+            String _month = DateFormat('MMM').format(date);
+
+            return Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black),
+              ),
+              child: ListTile(
+                leading: Column(
+                  children: [
+                    Text(_month),
+                    Text('${date.day}')
+                  ],
+                ),
+                title: Text(eventData['title'] ?? 'Title not available'),
+                subtitle: ReadMoreText(
+                  eventData['description'] ??
+                      'Description not available',
+                  style: TextStyle(color: Colors.black),
+                  colorClickableText: Colors.grey,
+                  trimLines: 2,
+                  trimMode: TrimMode.Line,
+                  trimCollapsedText: 'Read more',
+                  trimExpandedText: '^Read less',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        FontAwesomeIcons.edit,
+                        color: Colors.green.shade300,
+                      ),
+                      onPressed: () => _editEvent(events as Event),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        FontAwesomeIcons.trash,
+                        color: Colors.redAccent.shade400,
+                      ),
+                      onPressed: () => _deleteEvent(event.id),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
+
 
   void _addEvent(String assignTo) {
     final newEvent = Event(
@@ -300,13 +299,13 @@ class _EventManagementState extends State<EventManagement> {
     );
   }
 
-  void _deleteEvent(Event event) {
+  void _deleteEvent(String eventId) {
     AwesomeDialog(
       width: 400,
       context: context,
       dialogType: DialogType.question,
       btnOkOnPress: () async {
-        await eventsCollection.doc(event.id).delete();
+        await eventsCollection.doc(eventId).delete();
         // for snackBar
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text("Deleted")));
