@@ -190,8 +190,8 @@ class _EventManagementState extends State<EventManagement> {
               child: ListTile(
                 leading: Column(
                   children: [
-                    Text(_month),
-                    Text('${date.day}')
+                    Text(_month,style: TextStyle(color: Color(0xff4b8fbf),fontWeight: FontWeight.bold,fontSize: 15),),
+                    Text('${date.day}',style: TextStyle(color: Color(0xff002233),fontWeight: FontWeight.bold,fontSize: 15),)
                   ],
                 ),
                 title: Text(eventData['title'] ?? 'Title not available'),
