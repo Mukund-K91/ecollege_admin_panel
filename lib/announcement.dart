@@ -3,26 +3,27 @@ import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
 import 'package:readmore/readmore.dart';
+
 class Event {
   final String id;
   final String title;
   final String description;
+  final String assignTo;
   final DateTime date;
 
   Event({
     required this.id,
     required this.title,
     required this.description,
+    required this.assignTo,
     required this.date,
   });
 }
-
-final _assignTo = ["Dashboard", "BCA", "B-Com", "BBA"];
-String? _selectedassignTo="Dashboard";
 
 class EventManagement extends StatefulWidget {
   @override
@@ -36,6 +37,12 @@ class _EventManagementState extends State<EventManagement> {
 
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _controller = MultiSelectController();
+  List<ValueItem> _selectedOptions = [];
+
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +71,9 @@ class _EventManagementState extends State<EventManagement> {
               title: 'Title',
               controller: _titleController,
             ),
-            SizedBox(height: 15,),
+            SizedBox(
+              height: 15,
+            ),
             ReusableTextField(
               isMulti: true,
               keyboardType: TextInputType.multiline,
@@ -77,25 +86,24 @@ class _EventManagementState extends State<EventManagement> {
                 Expanded(
                   child: ListTile(
                     title: const Text(
-                      "Program",
+                      "Assign To",
                       style: TextStyle(fontSize: 15),
                     ),
-                    subtitle:
-                    MultiSelectDropDown(
+                    subtitle: MultiSelectDropDown(
                       showClearIcon: true,
                       controller: _controller,
-                      onOptionSelected: (options) {
-                        debugPrint(options.toString());
+                      hint: 'Please Select',
+                      onOptionSelected: (value) {
+                        setState(() {
+                          _selectedOptions = value;
+                        });
                       },
                       options: const <ValueItem>[
-                        ValueItem(label: 'Option 1', value: '1'),
-                        ValueItem(label: 'Option 2', value: '2'),
-                        ValueItem(label: 'Option 3', value: '3'),
-                        ValueItem(label: 'Option 4', value: '4'),
-                        ValueItem(label: 'Option 5', value: '5'),
-                        ValueItem(label: 'Option 6', value: '6'),
+                        ValueItem(label: 'Dashboard', value: 'Dashboard'),
+                        ValueItem(label: 'BCA', value: 'BCA'),
+                        ValueItem(label: 'BBA', value: 'BBA'),
+                        ValueItem(label: 'B-Com', value: 'B-Com'),
                       ],
-                      disabledOptions: const [ValueItem(label: 'Option 1', value: '1')],
                       selectionType: SelectionType.multi,
                       chipConfig: const ChipConfig(wrapType: WrapType.wrap),
                       dropdownHeight: 300,
@@ -109,7 +117,11 @@ class _EventManagementState extends State<EventManagement> {
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  _addEvent();
+                  // _selectedOptions.clear();
+                  // _selectedOptions.addAll(_controller.selectedOptions);
+                  final String AssignTo =
+                      _selectedOptions.map((item) => item.value).join(',');
+                  _addEvent(AssignTo);
                 }
               },
               child: Text('Add Event'),
@@ -122,105 +134,119 @@ class _EventManagementState extends State<EventManagement> {
 
   Widget _buildEventList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: eventsCollection.orderBy('date', descending: true).snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        }
+        stream: eventsCollection.orderBy('date', descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: const CircularProgressIndicator());
-        }
-
-        List<Event> events = snapshot.data!.docs.map((doc) {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          return Event(
-            id: doc.id,
-            title: data['title'],
-            description: data['description'],
-            date: (data['date'] as Timestamp).toDate(),
-          );
-        }).toList();
-
-        return ListView.separated(
-          itemCount: events.length,
-          separatorBuilder: (context, index) => Divider(
-            color: Colors.grey,
-          ),
-          itemBuilder: (context, index) {
-            Event event = events[index];
-            String _month = DateFormat('MMM').format(event.date);
-            return ListTile(
-              leading: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${_month}',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Color(0xff002233)),
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: const CircularProgressIndicator());
+          }
+          final events = snapshot.data;
+          if (events == null) {
+            return const Center(
+              child: Text('No Events found'),
+            );
+          }
+          return DataTable(
+            columns: const [
+              DataColumn(label: Text('Date')),
+              DataColumn(label: Text('Title')),
+              DataColumn(label: Text('Description')),
+              DataColumn(label: Text('Actions')),
+            ],
+            rows: events.docs.map((event) {
+              final eventData = event.data() as Map<String, dynamic>;
+              final Timestamp timestamp = eventData['date']; // Get the Timestamp
+              final DateTime date = timestamp.toDate(); // Convert to DateTime
+              String _month = DateFormat('MMM').format(date);
+              return DataRow(cells: [
+                DataCell(
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${_month}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Color(0xff002233),
+                        ),
+                      ),
+                      Text(
+                        '${date.day}',
+                        style: TextStyle(
+                          color: Color(0xff4b8fbf),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                DataCell(
                   Text(
-                    '${event.date.day}',
+                    eventData['title'] ?? 'Title not available', // Null check
                     style: TextStyle(
-                        color: Color(0xff4b8fbf),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15),
-                  ),
-                ],
-              ),
-              title: Text(event.title,
-                  style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
-                      color: Colors.black)),
-              subtitle: ReadMoreText(
-                event.description,
-                style: TextStyle(color: Colors.black),
-                colorClickableText: Colors.grey,
-                trimLines: 2,
-                trimMode: TrimMode.Line,
-                trimCollapsedText: 'Read more',
-                trimExpandedText: '^Read less',
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      FontAwesomeIcons.edit,
-                      color: Colors.green.shade300,
+                      color: Colors.black,
                     ),
-                    onPressed: () => _editEvent(event),
                   ),
-                  IconButton(
-                    icon: Icon(
-                      FontAwesomeIcons.trash,
-                      color: Colors.redAccent.shade400,
-                    ),
-                    onPressed: () => _deleteEvent(event),
+                ),
+                DataCell(
+                  ReadMoreText(
+                    eventData['description'] ?? 'Description not available', // Null check
+                    style: TextStyle(color: Colors.black),
+                    colorClickableText: Colors.grey,
+                    trimLines: 2,
+                    trimMode: TrimMode.Line,
+                    trimCollapsedText: 'Read more',
+                    trimExpandedText: '^Read less',
                   ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
+                ),
+                DataCell(
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          FontAwesomeIcons.edit,
+                          color: Colors.green.shade300,
+                        ),
+                        onPressed: () => _editEvent(event as Event),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          FontAwesomeIcons.trash,
+                          color: Colors.redAccent.shade400,
+                        ),
+                        onPressed: () => _deleteEvent(event as Event),
+                      ),
+                    ],
+                  ),
+                ),
+              ]);
+            }).toList(),
+          );
+
+        });
   }
 
-  void _addEvent() {
+  void _addEvent(String assignTo) {
     final newEvent = Event(
       id: '',
       title: _titleController.text,
       description: _descriptionController.text,
       date: DateTime.now(),
+      assignTo: assignTo,
     );
     eventsCollection.add({
       'title': newEvent.title,
       'description': newEvent.description,
       'date': newEvent.date,
+      'assign To': newEvent.assignTo
     });
     _titleController.clear();
     _descriptionController.clear();
@@ -290,4 +316,3 @@ class _EventManagementState extends State<EventManagement> {
     ).show();
   }
 }
-
