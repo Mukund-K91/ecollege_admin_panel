@@ -194,7 +194,7 @@ class _EventManagementState extends State<EventManagement> {
                     Text('${date.day}',style: TextStyle(color: Color(0xff002233),fontWeight: FontWeight.bold,fontSize: 15),)
                   ],
                 ),
-                title: Text(eventData['title'] ?? 'Title not available'),
+                title: Text(eventData['title'],style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),),
                 subtitle: ReadMoreText(
                   eventData['description'] ??
                       'Description not available',
