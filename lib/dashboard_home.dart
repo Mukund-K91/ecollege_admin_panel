@@ -20,6 +20,12 @@ class Event {
   });
 }
 
+int _totalStudent = 0;
+int _totalFaculty = 0;
+ScrollController _dataController1 = ScrollController();
+ScrollController _dataController2 = ScrollController();
+
+
 class Home extends StatefulWidget {
   Home({super.key});
 
@@ -34,9 +40,6 @@ class _HomeState extends State<Home> {
   late DocumentReference _IdDoc;
   late TextEditingController _totalStudentsController = TextEditingController();
   late TextEditingController _totalFacultyController = TextEditingController();
-
-  int _totalStudent = 0;
-  int _totalFaculty = 0;
 
   void initState() {
     super.initState();
@@ -78,171 +81,210 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ListTile(
-              leading: Icon(
-                FontAwesomeIcons.houseChimney,
-                color: Color(0xff002233),
-              ),
-              title: Text(
-                "Dashboard",
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height: 200,
-                    child: Card(
-                      elevation: 5,
-                      shape: ContinuousRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(20))),
-                      color: Colors.green.shade300,
-                      child: Padding(
-                        padding: const EdgeInsets.all(50),
-                        child: ListTile(
-                          title: Text(
-                            "Total Students",
-                            style: TextStyle(fontSize: 20, color: Colors.white),
-                          ),
-                          subtitle: Text(
-                            _totalStudent.toString(),
-                            style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                )),
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height: 200,
-                    child: Card(
-                      elevation: 5,
-                      shape: ContinuousRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(20))),
-                      color: Colors.orangeAccent.shade100,
-                      child: Padding(
-                        padding: const EdgeInsets.all(50),
-                        child: ListTile(
-                          title: Text(
-                            "Total Faculty",
-                            style: TextStyle(fontSize: 20, color: Colors.white),
-                          ),
-                          subtitle: Text(
-                            _totalFaculty.toString(),
-                            style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                )),
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height: 200,
-                    child: Card(
-                      elevation: 5,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'hi',
-                            style: TextStyle(
-                                fontSize: 32, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ))
-              ],
-            ),
-            // _builEventList()
-          ],
+        appBar: AppBar(
+          title: Text(
+            'DASHBOARD',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
-    );
+        body: Column(
+          children: [_userData(), Expanded(child: _buildEventList())],
+        )
+        //_buildEventList()
+        );
   }
 
-  Widget _builEventList() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('events').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          }
+  Widget _buildEventList() {
+    int rowIndex = 0; // Initialize the row index
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
-          }
+    return StreamBuilder<QuerySnapshot>(
+      stream: eventsCollection.orderBy('date', descending: true).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
 
-          final events = snapshot.data!.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return Event(
-              title: data['title'],
-              description: data['description'],
-              date: (data['date'] as Timestamp).toDate(),
-            );
-          }).toList();
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: const CircularProgressIndicator());
+        }
 
-          return DataTable(
-            columns: [
-              DataColumn(label: Text('Row')),
-              DataColumn(label: Text('Title')),
-              DataColumn(label: Text('Description')),
-              DataColumn(label: Text('Date')),
-            ],
-            rows: events
-                .mapIndexed(
-                  (index, event) => DataRow(
-                    cells: [
-                      DataCell(Text((index + 1).toString())),
-                      DataCell(Text(event.title)),
-                      DataCell(
-                        Expanded(
-                          child: ReadMoreText(
-                            event.description,
-                            style: TextStyle(color: Colors.black),
-                            colorClickableText: Colors.grey,
-                            trimLines: 2,
-                            trimMode: TrimMode.Line,
-                            trimCollapsedText: 'Read more',
-                            trimExpandedText: '^Read less',
-                          ),
-                        ),
-                      ),
-                      DataCell(Text(event.date.day.toString())),
-                    ],
-                  ),
-                )
-                .toList(),
+        final events = snapshot.data;
+        if (events == null) {
+          return const Center(
+            child: Text('No Events found'),
           );
-        },
-      ),
+        }
+
+        return DataTable(
+          columns: const [
+            DataColumn(label: Text('No.')), // Add column for row number
+            DataColumn(label: Text('Title')),
+            DataColumn(label: Text('Description')),
+            DataColumn(label: Text('Date')),
+          ],
+          columnSpacing: 20, // Adjust the spacing between columns
+          rows: events.docs.map((event) {
+            final eventData = event.data() as Map<String, dynamic>;
+            final Timestamp timestamp =
+            eventData['date']; // Get the Timestamp
+            final DateTime date =
+            timestamp.toDate(); // Convert to DateTime
+            String _month = DateFormat('MMM').format(date);
+            rowIndex++; // Increment row index for each row
+            return DataRow(cells: [
+              DataCell(
+                Text('$rowIndex'), // Display the row index
+              ),
+              DataCell(
+                Container(
+                  width: 150, // Adjust the width of the column
+                  child: Text(
+                    eventData['title'] ?? 'Title not available',
+                    // Null check
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ),
+              DataCell(
+                SizedBox(
+                  width: 500,
+                  height: double.tryParse(eventData['description']),// Adjust the width of the column
+                  child: ReadMoreText(
+                    eventData['description'] ??
+                        'Description not available',
+                    // Null check
+                    style: TextStyle(color: Colors.black),
+                    colorClickableText: Colors.grey,
+                    trimLines: 2,
+                    trimMode: TrimMode.Line,
+                    trimCollapsedText: 'Read more',
+                    trimExpandedText: '^Read less',
+                  ),
+                ),
+              ),
+              DataCell(
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${_month}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Color(0xff002233),
+                      ),
+                    ),
+                    Text(
+                      '${date.day}',
+                      style: TextStyle(
+                        color: Color(0xff4b8fbf),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ]);
+          }).toList(),
+        );
+      },
     );
   }
+
+}
+
+Widget _userData() {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceAround,
+    children: [
+      Expanded(
+          child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          height: 200,
+          child: Card(
+            elevation: 5,
+            shape: ContinuousRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20))),
+            color: Colors.green.shade300,
+            child: Padding(
+              padding: const EdgeInsets.all(50),
+              child: ListTile(
+                title: Text(
+                  "Total Students",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+                subtitle: Text(
+                  _totalStudent.toString(),
+                  style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ),
+      )),
+      Expanded(
+          child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          height: 200,
+          child: Card(
+            elevation: 5,
+            shape: ContinuousRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20))),
+            color: Colors.blueAccent.shade100,
+            child: Padding(
+              padding: const EdgeInsets.all(50),
+              child: ListTile(
+                title: Text(
+                  "Total Faculty",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+                subtitle: Text(
+                  _totalFaculty.toString(),
+                  style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ),
+      )),
+      Expanded(
+          child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          height: 200,
+          child: Card(
+            elevation: 5,
+            shape: ContinuousRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20))),
+            color: Colors.red.shade200,
+            child: Padding(
+              padding: const EdgeInsets.all(50),
+              child: Text(
+                'heloo',
+                style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+      )),
+    ],
+  );
 }
 
 extension IndexedIterable<E> on Iterable<E> {
