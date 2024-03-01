@@ -10,11 +10,11 @@ class ReusableTextField extends StatelessWidget {
   final String? label;
   final Widget? sufIcon;
   final Widget? preIcon;
-  final bool isMulti;
   final String title;
   final bool readOnly;
   final VoidCallback? OnTap;
   final int? maxLength;
+  final int? maxLines;
 
   const ReusableTextField(
       {super.key,
@@ -22,8 +22,8 @@ class ReusableTextField extends StatelessWidget {
       this.validator,
       this.keyboardType = TextInputType.text,
       this.obSecure = false,
-      this.isMulti = false,
       this.readOnly = false,
+      this.maxLines,
       this.errorText,
       this.label,
       this.sufIcon,
@@ -47,7 +47,7 @@ class ReusableTextField extends StatelessWidget {
           obscureText: obSecure,
           keyboardType: keyboardType,
           controller: controller,
-          maxLines: isMulti ? 3 : 1,
+          maxLines: maxLines,
           readOnly: readOnly,
           maxLength: maxLength,
           onTap: OnTap,

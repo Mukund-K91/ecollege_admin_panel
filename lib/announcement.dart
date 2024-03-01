@@ -74,85 +74,88 @@ class _EventManagementState extends State<EventManagement> {
     );
   }
 
-  void  _buildEventForm(BuildContext context) {
+  void _buildEventForm(BuildContext context) {
     showDialog(
-      context: context,
-      builder: (context){
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          content: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ReusableTextField(
-                    title: 'Title',
-                    controller: _titleController,
-                  ),
-                  SizedBox(
-                    height: 15,
-                  ),
-                  ReusableTextField(
-                    isMulti: true,
-                    keyboardType: TextInputType.multiline,
-                    title: 'Description',
-                    controller: _descriptionController,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: const Text(
-                            "Assign To",
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          subtitle: MultiSelectDropDown(
-                            showClearIcon: true,
-                            controller: _controller,
-                            hint: 'Please Select',
-                            onOptionSelected: (value) {
-                              setState(() {
-                                _selectedOptions = value;
-                              });
-                            },
-                            options: const <ValueItem>[
-                              ValueItem(label: 'Dashboard', value: 'Dashboard'),
-                              ValueItem(label: 'BCA', value: 'BCA'),
-                              ValueItem(label: 'BBA', value: 'BBA'),
-                              ValueItem(label: 'B-Com', value: 'B-Com'),
-                            ],
-                            selectionType: SelectionType.multi,
-                            chipConfig: const ChipConfig(wrapType: WrapType.wrap),
-                            dropdownHeight: 300,
-                            optionTextStyle: const TextStyle(fontSize: 16),
-                            selectedOptionIcon: const Icon(Icons.check_circle),
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            content: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ReusableTextField(
+                      title: 'Title',
+                      controller: _titleController,
+                    ),
+                    SizedBox(
+                      height: 15,
+                    ),
+                    ReusableTextField(
+                      maxLines: 5,
+                      keyboardType: TextInputType.multiline,
+                      title: 'Description',
+                      controller: _descriptionController,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ListTile(
+                            title: const Text(
+                              "Assign To",
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            subtitle: MultiSelectDropDown(
+                              showClearIcon: true,
+                              controller: _controller,
+                              hint: 'Please Select',
+                              onOptionSelected: (value) {
+                                setState(() {
+                                  _selectedOptions = value;
+                                });
+                              },
+                              options: const <ValueItem>[
+                                ValueItem(
+                                    label: 'Dashboard', value: 'Dashboard'),
+                                ValueItem(label: 'BCA', value: 'BCA'),
+                                ValueItem(label: 'BBA', value: 'BBA'),
+                                ValueItem(label: 'B-Com', value: 'B-Com'),
+                              ],
+                              selectionType: SelectionType.multi,
+                              chipConfig:
+                                  const ChipConfig(wrapType: WrapType.wrap),
+                              dropdownHeight: 300,
+                              optionTextStyle: const TextStyle(fontSize: 16),
+                              selectedOptionIcon:
+                                  const Icon(Icons.check_circle),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // _selectedOptions.clear();
-                        // _selectedOptions.addAll(_controller.selectedOptions);
-                        final String AssignTo =
-                        _selectedOptions.map((item) => item.value).join(',');
-                        _addEvent(AssignTo);
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: Text('Add Event'),
-                  ),
-                ],
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          // _selectedOptions.clear();
+                          // _selectedOptions.addAll(_controller.selectedOptions);
+                          final String AssignTo = _selectedOptions
+                              .map((item) => item.value)
+                              .join(',');
+                          _addEvent(AssignTo);
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      child: Text('Add Event'),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      }
-     );
+          );
+        });
   }
 
   Widget _buildEventList() {
@@ -190,14 +193,29 @@ class _EventManagementState extends State<EventManagement> {
               child: ListTile(
                 leading: Column(
                   children: [
-                    Text(_month,style: TextStyle(color: Color(0xff4b8fbf),fontWeight: FontWeight.bold,fontSize: 15),),
-                    Text('${date.day}',style: TextStyle(color: Color(0xff002233),fontWeight: FontWeight.bold,fontSize: 15),)
+                    Text(
+                      _month,
+                      style: TextStyle(
+                          color: Color(0xff4b8fbf),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15),
+                    ),
+                    Text(
+                      '${date.day}',
+                      style: TextStyle(
+                          color: Color(0xff002233),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15),
+                    )
                   ],
                 ),
-                title: Text(eventData['title'],style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),),
+                title: Text(
+                  eventData['title'],
+                  style: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.bold),
+                ),
                 subtitle: ReadMoreText(
-                  eventData['description'] ??
-                      'Description not available',
+                  eventData['description'] ?? 'Description not available',
                   style: TextStyle(color: Colors.black),
                   colorClickableText: Colors.grey,
                   trimLines: 2,
@@ -213,7 +231,12 @@ class _EventManagementState extends State<EventManagement> {
                         FontAwesomeIcons.edit,
                         color: Colors.green.shade300,
                       ),
-                      onPressed: () => _editEvent(events as Event),
+                      onPressed: () => _editEvent(Event(
+                          id: event.id,
+                          title: eventData['title'],
+                          description: eventData['description'],
+                          assignTo: eventData['assignTo'],
+                          date: date)),
                     ),
                     IconButton(
                       icon: Icon(
@@ -232,7 +255,6 @@ class _EventManagementState extends State<EventManagement> {
     );
   }
 
-
   void _addEvent(String assignTo) {
     final newEvent = Event(
       id: '',
@@ -245,7 +267,7 @@ class _EventManagementState extends State<EventManagement> {
       'title': newEvent.title,
       'description': newEvent.description,
       'date': newEvent.date,
-      'assign To': newEvent.assignTo
+      'assignTo': newEvent.assignTo
     });
     _titleController.clear();
     _descriptionController.clear();
@@ -267,7 +289,7 @@ class _EventManagementState extends State<EventManagement> {
                 controller: _titleController,
               ),
               ReusableTextField(
-                isMulti: true,
+                maxLines: 5,
                 keyboardType: TextInputType.multiline,
                 title: 'Description',
                 controller: _descriptionController,

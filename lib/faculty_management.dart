@@ -889,7 +889,7 @@ class _FacultyListState extends State<FacultyList> {
                           child: ReusableTextField(
                             controller: DesignationController,
                             keyboardType: TextInputType.multiline,
-                            isMulti: true,
+                            maxLines: 3,
                             readOnly: false,
                             title: 'Designation ',
                           ),
