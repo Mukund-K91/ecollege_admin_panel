@@ -105,8 +105,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() {
     if (_formkey.currentState!.validate()) {
-      if(_usernameController.text=='superAdmin@123' && _passwordController.text=='superadmin'){
+      if(_usernameController.text=='superadmin@123' && _passwordController.text=='superadmin'){
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen(userType: 'SuperAdmin',),));
+      }
+      else if(_usernameController.text=='admin@123' && _passwordController.text=='admin'){
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen(userType: 'Admin',),));
       }
       else{
         ScaffoldMessenger.of(context).showSnackBar(

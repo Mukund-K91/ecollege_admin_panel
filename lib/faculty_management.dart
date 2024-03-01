@@ -151,6 +151,9 @@ final FirestoreService _firestoreService = FirestoreService();
 final TextEditingController _searchController = TextEditingController();
 
 class AddFaculty extends StatefulWidget {
+  final userType;
+
+  const AddFaculty({super.key, this.userType});
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp(
@@ -511,30 +514,53 @@ class _AddFacultyState extends State<AddFaculty> {
                           ),
                           onPressed: () async {
                             if(_formKey.currentState!.validate()){
-                              Faculty newfaculty = Faculty(
-                                firstname: _firstNameController.text,
-                                lastname: _lastNameController.text,
-                                gender: _selectedGender.toString(),
-                                profile: imjUrl.toString(),
-                                FacultyId: _facultyId.text,
-                                email: _emailController.text,
-                                mobile: _phoneController.text,
-                                program: _selProgram.toString(),
-                                qualification: _Qualification.text,
-                                Designation: _Designation.text,
-                              );
-                              _incrementUserId();
-                              _firestoreService.addFaculty(newfaculty);
-                              _firstNameController.text = "";
-                              _fileNameController.text = "";
-                              _middleNameController.text = "";
-                              _lastNameController.text = "";
-                              _selectedGender = "";
-                              _emailController.text = "";
-                              _phoneController.text = "";
-                              _selProgram = _programs[0];
-                              _Qualification.text = "";
-                              _Designation.text = "";
+                              if(widget.userType=='SuperAdmin'){
+                                Faculty newfaculty = Faculty(
+                                  firstname: _firstNameController.text,
+                                  lastname: _lastNameController.text,
+                                  gender: _selectedGender.toString(),
+                                  profile: imjUrl.toString(),
+                                  FacultyId: _facultyId.text,
+                                  email: _emailController.text,
+                                  mobile: _phoneController.text,
+                                  program: _selProgram.toString(),
+                                  qualification: _Qualification.text,
+                                  Designation: _Designation.text,
+                                );
+                                _incrementUserId();
+                                _firestoreService.addFaculty(newfaculty);
+                                _firstNameController.text = "";
+                                _fileNameController.text = "";
+                                _middleNameController.text = "";
+                                _lastNameController.text = "";
+                                _selectedGender = "";
+                                _emailController.text = "";
+                                _phoneController.text = "";
+                                _selProgram = _programs[0];
+                                _Qualification.text = "";
+                                _Designation.text = "";
+                              }
+                              else{
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      backgroundColor: Colors.white,
+                                      shape: ContinuousRectangleBorder(),
+                                      content: Text(
+                                        'You are not allowed to do this',
+                                        style: TextStyle(color: Colors.black),
+                                      )),
+                                );
+                                _firstNameController.text = "";
+                                _fileNameController.text = "";
+                                _middleNameController.text = "";
+                                _lastNameController.text = "";
+                                _selectedGender = "";
+                                _emailController.text = "";
+                                _phoneController.text = "";
+                                _selProgram = _programs[0];
+                                _Qualification.text = "";
+                                _Designation.text = "";
+                              }
                             }
                             // Update TextField value after increment
                           },

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:readmore/readmore.dart';
 
 class Event {
@@ -77,6 +78,22 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
+  DataRowAdapter? getDataRow(int index) {
+    final eventData = events[index].data() as Map<String, dynamic>;
+    final Timestamp timestamp = eventData['date'];
+    final DateTime date = timestamp.toDate();
+    String _month = DateFormat('MMM').format(date);
+    return DataRowAdapter(
+      cells: <DataGridCell>[
+        DataGridCell<int>(columnName: 'no', value: index + 1),
+        DataGridCell<String>(columnName: 'title', value: eventData['title']),
+        DataGridCell<String>(
+            columnName: 'description', value: eventData['description']),
+        DataGridCell<DateTime>(columnName: 'date', value: date),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,8 +111,6 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildEventList() {
-    int rowIndex = 0; // Initialize the row index
-
     return StreamBuilder<QuerySnapshot>(
       stream: eventsCollection.orderBy('date', descending: true).snapshots(),
       builder: (context, snapshot) {
@@ -114,81 +129,37 @@ class _HomeState extends State<Home> {
           );
         }
 
-        return DataTable(
-          columns: const [
-            DataColumn(label: Text('No.')), // Add column for row number
-            DataColumn(label: Text('Title')),
-            DataColumn(label: Text('Description')),
-            DataColumn(label: Text('Date')),
-          ],
-          columnSpacing: 20, // Adjust the spacing between columns
-          rows: events.docs.map((event) {
-            final eventData = event.data() as Map<String, dynamic>;
-            final Timestamp timestamp = eventData['date']; // Get the Timestamp
-            final DateTime date = timestamp.toDate(); // Convert to DateTime
-            String _month = DateFormat('MMM').format(date);
-            rowIndex++; // Increment row index for each row
-            return DataRow(cells: [
-              DataCell(
-                Text('$rowIndex'), // Display the row index
-              ),
-              DataCell(
-                Container(
-                  width: 250, // Adjust the width of the column
-                  child: Text(
-                    eventData['title'] ?? 'Title not available',
-                    // Null check
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-              DataCell(
-                Container(
+        return
+          SfDataGrid(
+          source: EventDataSource(events.docs),
+          columns: <GridColumn>[
+            GridTextColumn(
+                columnName: 'no', label: Container(child: Text('No.'))),
+            GridTextColumn(
+                columnName: 'title',
+                label: Container(
+                    width: 250,
+                    child: Text(
+                      'Title',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ))),
+            GridTextColumn(
+                columnName: 'description',
+                label: Container(
                   width: 600,
-                  child:
-                  SingleChildScrollView(child:Text(
-                    '${eventData['description']}',
-                    overflow: TextOverflow.clip,
-                    // softWrap: false,
-                    maxLines: 4,
-                  ) ,)
-
-                // Tooltip(
-                //   enableTapToDismiss: true,
-                //   message: eventData['description'],
-                //   child: Text('${eventData['description']}'),
-                // )
-              ),
-              ),
-              DataCell(
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${_month}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Color(0xff002233),
-                      ),
-                    ),
-                    Text(
-                      '${date.day}',
-                      style: TextStyle(
-                        color: Color(0xff4b8fbf),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ]);
-          }).toList(),
+                  child: Text(
+                    'Description',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                )),
+            GridTextColumn(
+                columnName: 'date',
+                label: Container(
+                    child: Text(
+                      'Date',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ))),
+          ],
         );
       },
     );

@@ -9,9 +9,10 @@ import 'firebase_options.dart';
 import 'student_management.dart';
 
 class DashboardScreen extends StatefulWidget {
-  final String userType;
+  final userType;
 
-  const DashboardScreen({super.key, required this.userType});
+  const DashboardScreen({Key? key, required this.userType}) : super(key: key);
+
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp(
@@ -19,22 +20,27 @@ class DashboardScreen extends StatefulWidget {
     );
     //  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: SystemUiOverlay.values);
   }
+
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
-
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    Home(),
-    AddStudents(),
-    StudentList(),
-    AddFaculty(),
-    FacultyList(),
-    EventManagement()
-  ];
+  late final List<Widget> _screens;
+
+  void initState() {
+    super.initState();
+    _screens = [
+      Home(),
+      AddStudents(userType: widget.userType),
+      StudentList(),
+      AddFaculty(),
+      FacultyList(),
+      EventManagement(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
