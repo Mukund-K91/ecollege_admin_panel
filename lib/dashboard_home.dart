@@ -110,7 +110,10 @@ class _HomeState extends State<Home> {
     int rowIndex = 0; // Initialize the row index
 
     return StreamBuilder<QuerySnapshot>(
-      stream: eventsCollection.orderBy('date', descending: true).snapshots(),
+      stream: eventsCollection
+          .where('assignTo', isEqualTo: 'Dashboard') // Filter events by assignTo value
+          .orderBy('date', descending: true)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
@@ -133,37 +136,40 @@ class _HomeState extends State<Home> {
             border: TableBorder.all(color: Colors.black),
             columns: const [
               DataColumn(
-                  label: Text(
-                'No.',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              )),
+                label: Text(
+                  'No.',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
               // Add column for row number
               DataColumn(
-                  label: Text(
-                'Title',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              )),
+                label: Text(
+                  'Title',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
               DataColumn(
-                  label: Text(
-                'Description',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              )),
+                label: Text(
+                  'Description',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
               DataColumn(
-                  label: Text(
-                'Date',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              )),
+                label: Text(
+                  'Date',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
             columnSpacing: 20,
             dataRowMaxHeight: double.infinity,
             // Adjust the spacing between columns
             rows: events.docs.map((event) {
               final eventData = event.data() as Map<String, dynamic>;
-              final Timestamp timestamp =
-                  eventData['date']; // Get the Timestamp
+              final Timestamp timestamp = eventData['date']; // Get the Timestamp
               final DateTime date = timestamp.toDate();
-              final _date = DateFormat('dd-mm-yyyy hh:mm a')
-                  .format(date); // Convert to DateTime
+              final _date =
+              DateFormat('dd-MM-yyyy hh:mm a').format(date); // Convert to DateTime
               rowIndex++; // Increment row index for each row
 
               return DataRow(cells: [
@@ -187,14 +193,17 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
-                DataCell(Text(
-                  '${eventData['description']}',
-
-                  // Allow the description to take multiple lines
-                )),
+                DataCell(
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      '${eventData['description']}',
+                    ),
+                  ),
+                ),
                 DataCell(
                   Text(
-                    '${_date}',
+                    '$_date',
                     style: TextStyle(
                       color: Color(0xff4b8fbf),
                       fontWeight: FontWeight.bold,
@@ -209,6 +218,7 @@ class _HomeState extends State<Home> {
       },
     );
   }
+
 }
 
 Widget _userData() {
