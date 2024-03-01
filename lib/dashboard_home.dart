@@ -1,13 +1,10 @@
 import 'dart:async';
-
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:readmore/readmore.dart';
 
 class Event {
   final String title;
@@ -77,7 +74,6 @@ class _HomeState extends State<Home> {
     _totalFacultyController.dispose();
     super.dispose();
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +84,12 @@ class _HomeState extends State<Home> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        body: Column(
-          children: [_userData(), Expanded(child: _buildEventList())],
+        body: SingleChildScrollView(
+          child: Expanded(
+            child: Column(
+              children: [_userData(), _buildEventList()],
+            ),
+          ),
         )
         //_buildEventList()
         );
@@ -117,54 +117,53 @@ class _HomeState extends State<Home> {
         }
 
         return DataTable(
+          border: TableBorder.all(color: Colors.black),
           columns: const [
             DataColumn(label: Text('No.')), // Add column for row number
             DataColumn(label: Text('Title')),
             DataColumn(label: Text('Description')),
             DataColumn(label: Text('Date')),
           ],
-          columnSpacing: 20, // Adjust the spacing between columns
+          columnSpacing: 20,
+          // Adjust the spacing between columns
           rows: events.docs.map((event) {
             final eventData = event.data() as Map<String, dynamic>;
-            final Timestamp timestamp = eventData['date']; // Get the Timestamp
+            final Timestamp timestamp =
+            eventData['date']; // Get the Timestamp
             final DateTime date = timestamp.toDate(); // Convert to DateTime
             String _month = DateFormat('MMM').format(date);
             rowIndex++; // Increment row index for each row
+
+            // Calculate the height of the description text
+            final descriptionTextHeight = calculateDescriptionHeight(
+              '${eventData['description']}',
+            );
+
             return DataRow(cells: [
               DataCell(
                 Text('$rowIndex'), // Display the row index
               ),
               DataCell(
-                Container(
-                  width: 250, // Adjust the width of the column
-                  child: Text(
-                    eventData['title'] ?? 'Title not available',
-                    // Null check
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Colors.black,
-                    ),
+                Text(
+                  eventData['title'] ?? 'Title not available',
+                  // Null check
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.black,
                   ),
                 ),
               ),
               DataCell(
-
                 Container(
-                    width: 600,
-                    child:
-                    SingleChildScrollView(child:Text(
+                  height: descriptionTextHeight,
+                  child: SingleChildScrollView(
+                    child: Text(
                       '${eventData['description']}',
-                      overflow: TextOverflow.clip,
-                      // softWrap: false,
-                      maxLines: 4,
-                    ) ,)
-
-                  // Tooltip(
-                  //   enableTapToDismiss: true,
-                  //   message: eventData['description'],
-                  //   child: Text('${eventData['description']}'),
-                  // )
+                      maxLines: null,
+                      // Allow the description to take multiple lines
+                    ),
+                  ),
                 ),
               ),
               DataCell(
@@ -180,7 +179,7 @@ class _HomeState extends State<Home> {
                       ),
                     ),
                     Text(
-                      '${date.day}',
+                      '${date}',
                       style: TextStyle(
                         color: Color(0xff4b8fbf),
                         fontWeight: FontWeight.bold,
@@ -196,8 +195,20 @@ class _HomeState extends State<Home> {
       },
     );
   }
-}
 
+  double calculateDescriptionHeight(String description) {
+    final textPainter = TextPainter(
+      textDirection: TextDirection.LTR,
+      text: TextSpan(
+        text: description,
+        style: TextStyle(fontSize: 15),
+      ),
+    );
+
+    textPainter.layout(maxWidth: 600); // Set the max width according to your needs
+    return textPainter.size.height;
+  }
+}
 
 Widget _userData() {
   return Row(
