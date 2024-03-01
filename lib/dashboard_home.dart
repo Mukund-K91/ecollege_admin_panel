@@ -155,6 +155,7 @@ class _HomeState extends State<Home> {
               )),
             ],
             columnSpacing: 20,
+            dataRowMaxHeight: double.infinity,
             // Adjust the spacing between columns
             rows: events.docs.map((event) {
               final eventData = event.data() as Map<String, dynamic>;
@@ -186,12 +187,10 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
-                DataCell(Expanded(
-                  child: Text(
-                    '${eventData['description']}',
-                    maxLines: 10,
-                    // Allow the description to take multiple lines
-                  ),
+                DataCell(Text(
+                  '${eventData['description']}',
+
+                  // Allow the description to take multiple lines
                 )),
                 DataCell(
                   Text(
