@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
@@ -87,12 +88,22 @@ class _HomeState extends State<Home> {
         body: SingleChildScrollView(
           child: Expanded(
             child: Column(
-              children: [_userData(), _buildEventList()],
+              children: [
+                _userData(),
+                _buildEventList(),
+                SizedBox(
+                  height: 50,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                      style: TextStyle(color: Colors.grey),
+                      'Copyright © 2024 eCollege - Virtual College Management System. All rights reserved.'),
+                )
+              ],
             ),
           ),
-        )
-        //_buildEventList()
-        );
+        ));
   }
 
   Widget _buildEventList() {
@@ -116,97 +127,88 @@ class _HomeState extends State<Home> {
           );
         }
 
-        return DataTable(
-          border: TableBorder.all(color: Colors.black),
-          columns: const [
-            DataColumn(label: Text('No.')), // Add column for row number
-            DataColumn(label: Text('Title')),
-            DataColumn(label: Text('Description')),
-            DataColumn(label: Text('Date')),
-          ],
-          columnSpacing: 20,
-          // Adjust the spacing between columns
-          rows: events.docs.map((event) {
-            final eventData = event.data() as Map<String, dynamic>;
-            final Timestamp timestamp =
-            eventData['date']; // Get the Timestamp
-            final DateTime date = timestamp.toDate(); // Convert to DateTime
-            String _month = DateFormat('MMM').format(date);
-            rowIndex++; // Increment row index for each row
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: DataTable(
+            border: TableBorder.all(color: Colors.black),
+            columns: const [
+              DataColumn(
+                  label: Text(
+                'No.',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              )),
+              // Add column for row number
+              DataColumn(
+                  label: Text(
+                'Title',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              )),
+              DataColumn(
+                  label: Text(
+                'Description',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              )),
+              DataColumn(
+                  label: Text(
+                'Date',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              )),
+            ],
+            columnSpacing: 20,
+            // Adjust the spacing between columns
+            rows: events.docs.map((event) {
+              final eventData = event.data() as Map<String, dynamic>;
+              final Timestamp timestamp =
+                  eventData['date']; // Get the Timestamp
+              final DateTime date = timestamp.toDate();
+              final _date = DateFormat('dd-mm-yyyy hh:mm a')
+                  .format(date); // Convert to DateTime
+              rowIndex++; // Increment row index for each row
 
-            // Calculate the height of the description text
-            final descriptionTextHeight = calculateDescriptionHeight(
-              '${eventData['description']}',
-            );
-
-            return DataRow(cells: [
-              DataCell(
-                Text('$rowIndex'), // Display the row index
-              ),
-              DataCell(
-                Text(
-                  eventData['title'] ?? 'Title not available',
-                  // Null check
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Colors.black,
-                  ),
+              return DataRow(cells: [
+                DataCell(
+                  Text(
+                    '$rowIndex',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ), // Display the row index
                 ),
-              ),
-              DataCell(
-                Container(
-                  height: descriptionTextHeight,
-                  child: SingleChildScrollView(
+                DataCell(
+                  Container(
+                    width: 150,
                     child: Text(
-                      '${eventData['description']}',
-                      maxLines: null,
-                      // Allow the description to take multiple lines
+                      eventData['title'] ?? 'Title not available',
+                      // Null check
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              DataCell(
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${_month}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Color(0xff002233),
-                      ),
+                DataCell(Expanded(
+                  child: Text(
+                    '${eventData['description']}',
+                    maxLines: 10,
+                    // Allow the description to take multiple lines
+                  ),
+                )),
+                DataCell(
+                  Text(
+                    '${_date}',
+                    style: TextStyle(
+                      color: Color(0xff4b8fbf),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
                     ),
-                    Text(
-                      '${date}',
-                      style: TextStyle(
-                        color: Color(0xff4b8fbf),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ]);
-          }).toList(),
+              ]);
+            }).toList(),
+          ),
         );
       },
     );
-  }
-
-  double calculateDescriptionHeight(String description) {
-    final textPainter = TextPainter(
-      textDirection: TextDirection.LTR,
-      text: TextSpan(
-        text: description,
-        style: TextStyle(fontSize: 15),
-      ),
-    );
-
-    textPainter.layout(maxWidth: 600); // Set the max width according to your needs
-    return textPainter.size.height;
   }
 }
 
