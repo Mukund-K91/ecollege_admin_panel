@@ -25,7 +25,6 @@ int _totalFaculty = 0;
 ScrollController _dataController1 = ScrollController();
 ScrollController _dataController2 = ScrollController();
 
-
 class Home extends StatefulWidget {
   Home({super.key});
 
@@ -125,10 +124,8 @@ class _HomeState extends State<Home> {
           columnSpacing: 20, // Adjust the spacing between columns
           rows: events.docs.map((event) {
             final eventData = event.data() as Map<String, dynamic>;
-            final Timestamp timestamp =
-            eventData['date']; // Get the Timestamp
-            final DateTime date =
-            timestamp.toDate(); // Convert to DateTime
+            final Timestamp timestamp = eventData['date']; // Get the Timestamp
+            final DateTime date = timestamp.toDate(); // Convert to DateTime
             String _month = DateFormat('MMM').format(date);
             rowIndex++; // Increment row index for each row
             return DataRow(cells: [
@@ -150,16 +147,22 @@ class _HomeState extends State<Home> {
                 ),
               ),
               DataCell(
-                SizedBox(
-                  width: 500, // Adjust the width of the column
+                Container(
+                  width: 600,
                   child:
-                  Text(
-                    eventData['description'] ??
-                        'Description not available',
-                    // Null check
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
+                  SingleChildScrollView(child:Text(
+                    '${eventData['description']}',
+                    overflow: TextOverflow.clip,
+                    // softWrap: false,
+                    maxLines: 4,
+                  ) ,)
+
+                // Tooltip(
+                //   enableTapToDismiss: true,
+                //   message: eventData['description'],
+                //   child: Text('${eventData['description']}'),
+                // )
+              ),
               ),
               DataCell(
                 Column(
@@ -190,7 +193,6 @@ class _HomeState extends State<Home> {
       },
     );
   }
-
 }
 
 Widget _userData() {

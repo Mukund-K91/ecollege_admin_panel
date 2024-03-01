@@ -9,6 +9,9 @@ import 'firebase_options.dart';
 import 'student_management.dart';
 
 class DashboardScreen extends StatefulWidget {
+  final String userType;
+
+  const DashboardScreen({super.key, required this.userType});
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp(
@@ -16,9 +19,9 @@ class DashboardScreen extends StatefulWidget {
     );
     //  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: SystemUiOverlay.values);
   }
-
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
+
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
@@ -27,7 +30,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> _screens = [
     Home(),
     AddStudents(),
-    //YourPage(),
     StudentList(),
     AddFaculty(),
     FacultyList(),

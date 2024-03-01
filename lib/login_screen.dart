@@ -10,7 +10,10 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formkey = GlobalKey<FormState>();
   bool passwordObscured = true;
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -26,88 +29,96 @@ class _LoginScreenState extends State<LoginScreen> {
           Center(
             child: Container(
               width: 500,
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset('assets/Images/logo.png'),
-                  SizedBox(height: 10),
-                  ReusableTextField(
-                    validator: (str) {
-                      if (str!.isEmpty) {
-                        return "Register Email Id is required for login";
-                      }
-                      return null;
-                    },
-                    preIcon: const Icon(FontAwesomeIcons.solidUser,
-                        color: Color(0xff002233)),
-                    readOnly: false,
-                    title: 'Username *',
-                  ),
-                  SizedBox(height: 10),
-                  ReusableTextField(
-                    obSecure: passwordObscured,
-                    readOnly: false,
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return "Password is required for login";
-                      }
-                      return null;
-                    },
-                    preIcon: const Icon(
-                      Icons.fingerprint,
-                      color: Color(0xff002233),
+              child: Form(
+                key: _formkey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset('assets/Images/logo.png'),
+                    const SizedBox(height: 10),
+                    ReusableTextField(
+                      controller: _usernameController,
+                      preIcon: Icon(FontAwesomeIcons.solidUser,
+                          color: Color(0xff002233)),
+                      readOnly: false,
+                      title: 'Username',
                     ),
-                    sufIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          passwordObscured = !passwordObscured;
-                        });
-                      },
-                      icon: passwordObscured
-                          ? const Icon(Icons.visibility_off)
-                          : const Icon(Icons.visibility),
-                    ),
-                    title: 'Password *',
-                  ),
-                  CheckboxListTile(
-                    value: true,
-                    onChanged: (value) {},
-                    checkColor: Color(0xff002233),
-                    activeColor: Colors.grey,
-                    title: Text("Remeber Me"),
-                  ),
-                  SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xff002233),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5))),
+                    const SizedBox(height: 10),
+                    ReusableTextField(
+                      controller: _passwordController,
+                      obSecure: passwordObscured,
+                      readOnly: false,
+                      preIcon: const Icon(
+                        Icons.fingerprint,
+                        color: Color(0xff002233),
+                      ),
+                      sufIcon: IconButton(
                         onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DashboardScreen(),
-                              ));
+                          setState(() {
+                            passwordObscured = !passwordObscured;
+                          });
                         },
-                        child: const Text(
-                          "LOGIN",
-                          style: TextStyle(color: Colors.white, fontSize: 15),
-                        )),
-                  ),
-                ],
+                        icon: passwordObscured
+                            ? const Icon(Icons.visibility_off)
+                            : const Icon(Icons.visibility),
+                      ),
+                      title: 'Password',
+                    ),
+                    CheckboxListTile(
+                      value: true,
+                      onChanged: (value) {},
+                      checkColor: const Color(0xff002233),
+                      activeColor: Colors.grey,
+                      title: const Text("Remeber Me"),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff002233),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5))),
+                          onPressed: () async {
+                            _login();
+                          },
+                          child: const Text(
+                            "LOGIN",
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          )),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  void _login() {
+    if (_formkey.currentState!.validate()) {
+      if(_usernameController.text=='superAdmin@123' && _passwordController.text=='superadmin'){
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen(userType: 'SuperAdmin',),));
+      }
+      else{
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              backgroundColor: Colors.white,
+              shape: ContinuousRectangleBorder(),
+              content: Text(
+                'Invalid username or password please try again',
+                style: TextStyle(color: Colors.black),
+              )),
+        );
+      }
+    }
   }
 }
