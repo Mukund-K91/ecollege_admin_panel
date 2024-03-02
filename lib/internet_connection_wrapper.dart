@@ -40,21 +40,6 @@ class _InternetConnectionWrapperState extends State<InternetConnectionWrapper> {
 
   Widget _buildNoInternetWidget() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.wifi_off,
-            size: 64,
-            color: Colors.red,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'No Internet Connection',
-            style: TextStyle(fontSize: 18),
-          ),
-        ],
-      ),
-    );
+        child: Image(image: AssetImage('assets/Images/noInternet.png')));
   }
 }
