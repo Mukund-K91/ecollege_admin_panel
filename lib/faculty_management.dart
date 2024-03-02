@@ -750,7 +750,7 @@ class _FacultyListState extends State<FacultyList> {
                         DataCell(Text(faculty.email)),
                         DataCell(Text(faculty.qualification)),
                         DataCell(Text(faculty.Designation)),
-                        DataCell(Row(
+                        DataCell(widget.userType=="Super Admin"?Row(
                           children: [
                             IconButton(
                                 onPressed: () {
@@ -774,7 +774,7 @@ class _FacultyListState extends State<FacultyList> {
                                   color: Colors.redAccent,
                                 )),
                           ],
-                        ))
+                        ):Text("Not Allowed!!"))
                       ]),
                     )
                     .toList(),

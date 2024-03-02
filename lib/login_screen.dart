@@ -106,22 +106,35 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _login()async {
+  void _login() async {
     if (_formkey.currentState!.validate()) {
-
-      if(_usernameController.text=='superadmin@123' && _passwordController.text=='superadmin'){
-        var sharedPref=await SharedPreferences.getInstance();
+      if (_usernameController.text == 'superadmin@123' &&
+          _passwordController.text == 'superadmin') {
+        var sharedPref = await SharedPreferences.getInstance();
         sharedPref.setBool(SplashScreenState.KEYLOGIN, true);
         sharedPref.setString(SplashScreenState.KEYUSERNAME, 'superadmin@123');
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen(userType: 'SuperAdmin',),));
-      }
-      else if(_usernameController.text=='admin@123' && _passwordController.text=='admin'){
-        var sharedPref=await SharedPreferences.getInstance();
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DashboardScreen(
+                userType: 'Super Admin',
+                userName: _usernameController.text,
+              ),
+            ));
+      } else if (_usernameController.text == 'admin@123' &&
+          _passwordController.text == 'admin') {
+        var sharedPref = await SharedPreferences.getInstance();
         sharedPref.setBool(SplashScreenState.KEYLOGIN, true);
         sharedPref.setString(SplashScreenState.KEYUSERNAME, 'admin@123');
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen(userType: 'Admin',),));
-      }
-      else{
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DashboardScreen(
+                userType: 'Admin',
+                userName: _usernameController.text,
+              ),
+            ));
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               backgroundColor: Colors.white,

@@ -838,6 +838,7 @@ class StudentList extends StatefulWidget {
   final userType;
 
   const StudentList({super.key, this.userType});
+
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp(
@@ -1074,35 +1075,37 @@ class _StudentListState extends State<StudentList> {
                         DataCell(Text(student.DOB)),
                         DataCell(Text(student.mobile)),
                         DataCell(Text(student.email)),
-                        DataCell(Row(
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  _updateStudentDetails(
-                                      context,
-                                      student,
-                                      _selectedProgram!,
-                                      _selectedProgramTerm!,
-                                      _selectedDivision!,
-                                      student.userId);
-                                },
-                                icon: const Icon(
-                                  FontAwesomeIcons.edit,
-                                  color: Colors.green,
-                                )),
-                            IconButton(
-                                onPressed: () => _confirmDelete(
-                                    context,
-                                    _selectedProgram!,
-                                    _selectedProgramTerm!,
-                                    _selectedDivision!,
-                                    student.userId),
-                                icon: const Icon(
-                                  FontAwesomeIcons.trash,
-                                  color: Colors.redAccent,
-                                )),
-                          ],
-                        ))
+                        DataCell(widget.userType == "Super Admin"
+                            ? Row(
+                                children: [
+                                  IconButton(
+                                      onPressed: () {
+                                        _updateStudentDetails(
+                                            context,
+                                            student,
+                                            _selectedProgram!,
+                                            _selectedProgramTerm!,
+                                            _selectedDivision!,
+                                            student.userId);
+                                      },
+                                      icon: const Icon(
+                                        FontAwesomeIcons.edit,
+                                        color: Colors.green,
+                                      )),
+                                  IconButton(
+                                      onPressed: () => _confirmDelete(
+                                          context,
+                                          _selectedProgram!,
+                                          _selectedProgramTerm!,
+                                          _selectedDivision!,
+                                          student.userId),
+                                      icon: const Icon(
+                                        FontAwesomeIcons.trash,
+                                        color: Colors.redAccent,
+                                      )),
+                                ],
+                              )
+                            : Text("Not Allowed!!"))
                       ]),
                     )
                     .toList(),
@@ -1131,6 +1134,7 @@ class _StudentListState extends State<StudentList> {
       });
     }
   }
+
   Future<void> _updateStudentDetails(
       BuildContext context,
       Student student,
