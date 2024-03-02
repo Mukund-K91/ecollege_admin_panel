@@ -28,8 +28,8 @@ class MyApp extends StatelessWidget {
             //TextFieldColorChangeDemo()
             //DOBTextField()
             //ImageUpload()
-        InternetConnectionWrapper(child: SplashScreen())
-      //SplashScreen()
+       // InternetConnectionWrapper(child: SplashScreen())
+      SplashScreen()
         //LoginScreen()
       //UploadImageAndMore()
        // DashboardScreen(userType: 'SuperAdmin',),
