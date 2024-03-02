@@ -152,8 +152,6 @@ class FirestoreService {
   }
 }
 
-
-
 final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
 final _programTerm = [
   "--Please Select--",
@@ -205,7 +203,8 @@ final _formKey = GlobalKey<FormState>();
 class AddStudents extends StatefulWidget {
   final userType;
 
-   const AddStudents({super.key,this.userType});
+  const AddStudents({super.key, this.userType});
+
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp(
@@ -746,74 +745,73 @@ class _AddStudentsState extends State<AddStudents> {
                           ),
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
-                             if(widget.userType=='SuperAdmin'){
-                               final _activedate = DateFormat('dd-MMMM-yyyy')
-                                   .format(_activationDate);
+                              if (widget.userType == 'Super Admin') {
+                                final _activedate = DateFormat('dd-MMMM-yyyy')
+                                    .format(_activationDate);
 
-                               final _password = _mobileNoController.text;
-                               Student newStudent = Student(
-                                 firstname: _firstNameController.text,
-                                 middlename: _middleNameController.text,
-                                 lastname: _lastNameController.text,
-                                 gender: _selectedGender.toString(),
-                                 profile: imjUrl.toString(),
-                                 userId: _lastUserId.toString(),
-                                 email: _emailController.text,
-                                 mobile: _mobileNoController.text,
-                                 program: _selProgram.toString(),
-                                 programTerm: _selProgramTerm.toString(),
-                                 division: _seldiv.toString(),
-                                 DOB: _dobController.text,
-                                 activationDate: _activedate,
-                                 password: _password,
-                               );
-                               Uint8List pdfBytes = await generatePdf(
-                                   _firstNameController.text,
-                                   _mobileNoController.text,
-                                   _selProgram.toString(),
-                                   _selProgramTerm.toString(),
-                                   _seldiv.toString(),
-                                   _lastUserId.toString());
+                                final _password = _mobileNoController.text;
+                                Student newStudent = Student(
+                                  firstname: _firstNameController.text,
+                                  middlename: _middleNameController.text,
+                                  lastname: _lastNameController.text,
+                                  gender: _selectedGender.toString(),
+                                  profile: imjUrl.toString(),
+                                  userId: _lastUserId.toString(),
+                                  email: _emailController.text,
+                                  mobile: _mobileNoController.text,
+                                  program: _selProgram.toString(),
+                                  programTerm: _selProgramTerm.toString(),
+                                  division: _seldiv.toString(),
+                                  DOB: _dobController.text,
+                                  activationDate: _activedate,
+                                  password: _password,
+                                );
+                                Uint8List pdfBytes = await generatePdf(
+                                    _firstNameController.text,
+                                    _mobileNoController.text,
+                                    _selProgram.toString(),
+                                    _selProgramTerm.toString(),
+                                    _seldiv.toString(),
+                                    _lastUserId.toString());
 
-                               _firestoreService.addStudent(newStudent);
-                               _firstNameController.text = "";
-                               _fileNameController.text = "";
-                               _middleNameController.text = "";
-                               _lastNameController.text = "";
-                               _selectedGender = "";
-                               _emailController.text = "";
-                               _mobileNoController.text = "";
-                               _dobController.text = "";
-                               _selProgram = _programs[0];
-                               _selProgramTerm = _programTerm[0];
-                               _seldiv = "--Please Select--";
+                                _firestoreService.addStudent(newStudent);
+                                _firstNameController.text = "";
+                                _fileNameController.text = "";
+                                _middleNameController.text = "";
+                                _lastNameController.text = "";
+                                _selectedGender = "";
+                                _emailController.text = "";
+                                _mobileNoController.text = "";
+                                _dobController.text = "";
+                                _selProgram = _programs[0];
+                                _selProgramTerm = _programTerm[0];
+                                _seldiv = "--Please Select--";
 
-                               await _incrementUserId();
-                               // Update TextField value after increment
-                               _UserIdController.text = _lastUserId.toString();
-                             }
-                             else{
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 const SnackBar(
-                                     backgroundColor: Colors.white,
-                                     shape: ContinuousRectangleBorder(),
-                                     content: Text(
-                                       'You are not allowed to do this',
-                                       style: TextStyle(color: Colors.black),
-                                     )),
-                               );
-                               _firstNameController.text = "";
-                               _fileNameController.text = "";
-                               _middleNameController.text = "";
-                               _lastNameController.text = "";
-                               _selectedGender = "";
-                               _emailController.text = "";
-                               _mobileNoController.text = "";
-                               _dobController.text = "";
-                               _selProgram ="--Please Select--";
-                               _selProgramTerm ="--Please Select--";
-                               _seldiv = "--Please Select--";
-                             }
+                                await _incrementUserId();
+                                // Update TextField value after increment
+                                _UserIdController.text = _lastUserId.toString();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      backgroundColor: Colors.white,
+                                      shape: ContinuousRectangleBorder(),
+                                      content: Text(
+                                        'You are not allowed to do this',
+                                        style: TextStyle(color: Colors.black),
+                                      )),
+                                );
+                                _firstNameController.text = "";
+                                _fileNameController.text = "";
+                                _middleNameController.text = "";
+                                _lastNameController.text = "";
+                                _selectedGender = "";
+                                _emailController.text = "";
+                                _mobileNoController.text = "";
+                                _dobController.text = "";
+                                _selProgram = "--Please Select--";
+                                _selProgramTerm = "--Please Select--";
+                                _seldiv = "--Please Select--";
+                              }
                             }
                           },
                           child: const Text(
@@ -1075,7 +1073,7 @@ class _StudentListState extends State<StudentList> {
                           children: [
                             IconButton(
                                 onPressed: () {
-                                  _updateStudentDetails(
+                                  _confirmUpdate(
                                       context,
                                       student,
                                       _selectedProgram!,
@@ -1128,9 +1126,11 @@ class _StudentListState extends State<StudentList> {
       });
     }
   }
-  void _confirmUpdate(BuildContext context,Student student, String program, String programTerm,
-      String division, String userId) {
+
+  void _confirmUpdate(BuildContext context, Student student, String program,
+      String programTerm, String division, String userId) {
     TextEditingController _passwordController = TextEditingController();
+    bool passwordObscured = true;
     showDialog(
       context: context,
       builder: (context) {
@@ -1140,10 +1140,25 @@ class _StudentListState extends State<StudentList> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text('Please enter your password to update process:'),
-              TextField(
+              ReusableTextField(
                 controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password'),
+                readOnly: false,
+                obSecure: passwordObscured,
+                preIcon: const Icon(
+                  Icons.fingerprint,
+                  color: Color(0xff002233),
+                ),
+                sufIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      passwordObscured = !passwordObscured;
+                    });
+                  },
+                  icon: passwordObscured
+                      ? const Icon(Icons.visibility_off)
+                      : const Icon(Icons.visibility),
+                ),
+                title: 'Password',
               ),
             ],
           ),
@@ -1157,7 +1172,8 @@ class _StudentListState extends State<StudentList> {
             ElevatedButton(
               onPressed: () {
                 if (_passwordController.text == 'superAdmin') {
-                  _updateStudentDetails(context,student , program, programTerm, division, userId);
+                  _updateStudentDetails(
+                      context, student, program, programTerm, division, userId);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -1169,6 +1185,7 @@ class _StudentListState extends State<StudentList> {
                         )),
                   );
                 }
+                Navigator.of(context).pop();
               },
               child: const Text('Confirm'),
             ),
@@ -1470,8 +1487,7 @@ class _StudentListState extends State<StudentList> {
                     'division': newDivision,
                     'DOB': newDOB
                   });
-                }
-                else {
+                } else {
                   FirebaseFirestore.instance
                       .collection('students')
                       .doc(program)
@@ -1500,7 +1516,6 @@ class _StudentListState extends State<StudentList> {
       },
     );
   }
-
 
   void _confirmDelete(BuildContext context, String program, String programTerm,
       String division, String userId) {
@@ -1553,8 +1568,9 @@ class _StudentListState extends State<StudentList> {
       },
     );
   }
-  Future<void> DeleteStudent(
-      String program, String programTerm, String division, String userId) async {
+
+  Future<void> DeleteStudent(String program, String programTerm,
+      String division, String userId) async {
     FirebaseFirestore.instance
         .collection('students')
         .doc(program)

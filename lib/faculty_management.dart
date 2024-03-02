@@ -514,7 +514,7 @@ class _AddFacultyState extends State<AddFaculty> {
                           ),
                           onPressed: () async {
                             if(_formKey.currentState!.validate()){
-                              if(widget.userType=='SuperAdmin'){
+                              if(widget.userType=='Super Admin'){
                                 Faculty newfaculty = Faculty(
                                   firstname: _firstNameController.text,
                                   lastname: _lastNameController.text,
