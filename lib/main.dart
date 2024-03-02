@@ -1,3 +1,4 @@
+import 'package:ecollege_admin_panel/internet_connection_wrapper.dart';
 import 'package:ecollege_admin_panel/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,7 +28,8 @@ class MyApp extends StatelessWidget {
             //TextFieldColorChangeDemo()
             //DOBTextField()
             //ImageUpload()
-      SplashScreen()
+        InternetConnectionWrapper(child: SplashScreen())
+      //SplashScreen()
         //LoginScreen()
       //UploadImageAndMore()
        // DashboardScreen(userType: 'SuperAdmin',),
