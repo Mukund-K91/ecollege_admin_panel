@@ -43,9 +43,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _screens = [
       Home(),
       AddStudents(userType: widget.userType),
-      StudentList(),
-      AddFaculty(),
-      FacultyList(),
+      StudentList(userType: widget.userType,),
+      AddFaculty(userType: widget.userType,),
+      FacultyList(userType: widget.userType,),
       EventManagement(),
     ];
   }

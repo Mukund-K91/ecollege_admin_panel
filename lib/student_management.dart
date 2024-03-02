@@ -835,6 +835,9 @@ class _AddStudentsState extends State<AddStudents> {
 /*===============================================*/
 
 class StudentList extends StatefulWidget {
+  final userType;
+
+  const StudentList({super.key, this.userType});
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp(
@@ -848,6 +851,8 @@ class StudentList extends StatefulWidget {
 }
 
 class _StudentListState extends State<StudentList> {
+  bool passwordObscured = true;
+
   Future<void> _getUserId() async {
     final userIdDocSnapshot = await _UserIdDoc.get();
     setState(() {
@@ -1073,7 +1078,7 @@ class _StudentListState extends State<StudentList> {
                           children: [
                             IconButton(
                                 onPressed: () {
-                                  _confirmUpdate(
+                                  _updateStudentDetails(
                                       context,
                                       student,
                                       _selectedProgram!,
@@ -1126,75 +1131,6 @@ class _StudentListState extends State<StudentList> {
       });
     }
   }
-
-  void _confirmUpdate(BuildContext context, Student student, String program,
-      String programTerm, String division, String userId) {
-    TextEditingController _passwordController = TextEditingController();
-    bool passwordObscured = true;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Administration'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Please enter your password to update process:'),
-              ReusableTextField(
-                controller: _passwordController,
-                readOnly: false,
-                obSecure: passwordObscured,
-                preIcon: const Icon(
-                  Icons.fingerprint,
-                  color: Color(0xff002233),
-                ),
-                sufIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      passwordObscured = !passwordObscured;
-                    });
-                  },
-                  icon: passwordObscured
-                      ? const Icon(Icons.visibility_off)
-                      : const Icon(Icons.visibility),
-                ),
-                title: 'Password',
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_passwordController.text == 'superAdmin') {
-                  _updateStudentDetails(
-                      context, student, program, programTerm, division, userId);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        backgroundColor: Colors.white,
-                        shape: ContinuousRectangleBorder(),
-                        content: Text(
-                          'Invalid password',
-                          style: TextStyle(color: Colors.black),
-                        )),
-                  );
-                }
-                Navigator.of(context).pop();
-              },
-              child: const Text('Confirm'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> _updateStudentDetails(
       BuildContext context,
       Student student,

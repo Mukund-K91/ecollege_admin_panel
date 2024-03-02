@@ -585,6 +585,9 @@ class _AddFacultyState extends State<AddFaculty> {
 /*===============================================*/
 
 class FacultyList extends StatefulWidget {
+  final userType;
+
+  const FacultyList({super.key, this.userType});
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp(
