@@ -1,10 +1,7 @@
-import 'package:ecollege_admin_panel/demo.dart';
-import 'package:ecollege_admin_panel/student_management.dart';
+import 'package:ecollege_admin_panel/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import 'dashboard_screen.dart';
 import 'firebase_options.dart';
 import 'login_screen.dart';
 
@@ -30,9 +27,10 @@ class MyApp extends StatelessWidget {
             //TextFieldColorChangeDemo()
             //DOBTextField()
             //ImageUpload()
-            //LoginScreen()
+      SplashScreen()
+        //LoginScreen()
       //UploadImageAndMore()
-        DashboardScreen(userType: 'SuperAdmin',),
+       // DashboardScreen(userType: 'SuperAdmin',),
         //AddStudentPage()
       //UpdateStudentDetails()
       //UploadImageForm()

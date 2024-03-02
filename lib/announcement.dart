@@ -95,6 +95,7 @@ class _EventManagementState extends State<EventManagement> {
                       height: 15,
                     ),
                     ReusableTextField(
+                      isMulti: true,
                       maxLines: 5,
                       keyboardType: TextInputType.multiline,
                       title: 'Description',
@@ -289,6 +290,7 @@ class _EventManagementState extends State<EventManagement> {
                 controller: _titleController,
               ),
               ReusableTextField(
+                isMulti: true,
                 maxLines: 5,
                 keyboardType: TextInputType.multiline,
                 title: 'Description',

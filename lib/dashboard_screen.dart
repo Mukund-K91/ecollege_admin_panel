@@ -1,17 +1,24 @@
 import 'package:ecollege_admin_panel/announcement.dart';
 import 'package:ecollege_admin_panel/dashboard_home.dart';
 import 'package:ecollege_admin_panel/demo.dart';
+import 'package:ecollege_admin_panel/login_screen.dart';
+import 'package:ecollege_admin_panel/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'faculty_management.dart';
 import 'firebase_options.dart';
 import 'student_management.dart';
 
+enum SampleItem { itemOne, itemTwo, itemThree }
+
 class DashboardScreen extends StatefulWidget {
   final userType;
+  final userName;
 
-  const DashboardScreen({Key? key, required this.userType}) : super(key: key);
+  const DashboardScreen({Key? key,this.userType, this.userName,})
+      : super(key: key);
 
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +34,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
+  SampleItem? selectedItem;
 
   late final List<Widget> _screens;
 
@@ -59,14 +67,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  FontAwesomeIcons.powerOff,
-                  color: Color(0xff002233),
-                )),
-          )
+            padding: const EdgeInsets.all(10),
+            child: PopupMenuButton<String>(
+              position: PopupMenuPosition.under,
+              child: Row(
+                children: [
+                  widget.userType == "Super Admin"
+                      ? Icon(FontAwesomeIcons.userTie, color: Color(0xff002233))
+                      : Icon(
+                          Icons.person,
+                          color: Color(0xff002233),
+                        ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Text(
+                    '${widget.userType}',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xff4b8bbf),
+                        fontSize: 15),
+                  ),
+                ],
+              ),
+              onSelected: (value) {
+                print('Selected: $value');
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  child: Text(
+                    'User: ${widget.userName}',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                PopupMenuItem(
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      var sharedPref = await SharedPreferences.getInstance();
+                      sharedPref.remove(SplashScreenState.KEYLOGIN);
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoginScreen(),
+                          ));
+                    },
+                    icon: Icon(FontAwesomeIcons.signOut),
+                    label: Text("Log Out"),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
       body: Row(

@@ -1,8 +1,11 @@
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
+import 'package:ecollege_admin_panel/splash_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ecollege_admin_panel/dashboard_screen.dart';
+import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -51,8 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 10),
                     ReusableTextField(
                       controller: _passwordController,
-                      obSecure: passwordObscured,
                       readOnly: false,
+                      obSecure: passwordObscured,
                       preIcon: const Icon(
                         Icons.fingerprint,
                         color: Color(0xff002233),
@@ -103,12 +106,19 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _login() {
+  void _login()async {
     if (_formkey.currentState!.validate()) {
+
       if(_usernameController.text=='superadmin@123' && _passwordController.text=='superadmin'){
+        var sharedPref=await SharedPreferences.getInstance();
+        sharedPref.setBool(SplashScreenState.KEYLOGIN, true);
+        sharedPref.setString(SplashScreenState.KEYUSERNAME, 'superadmin@123');
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen(userType: 'SuperAdmin',),));
       }
       else if(_usernameController.text=='admin@123' && _passwordController.text=='admin'){
+        var sharedPref=await SharedPreferences.getInstance();
+        sharedPref.setBool(SplashScreenState.KEYLOGIN, true);
+        sharedPref.setString(SplashScreenState.KEYUSERNAME, 'admin@123');
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen(userType: 'Admin',),));
       }
       else{

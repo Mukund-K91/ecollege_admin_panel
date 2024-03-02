@@ -12,6 +12,7 @@ class ReusableTextField extends StatelessWidget {
   final Widget? preIcon;
   final String title;
   final bool readOnly;
+  final bool isMulti;
   final VoidCallback? OnTap;
   final int? maxLength;
   final int? maxLines;
@@ -23,6 +24,7 @@ class ReusableTextField extends StatelessWidget {
       this.keyboardType = TextInputType.text,
       this.obSecure = false,
       this.readOnly = false,
+        this.isMulti=false,
       this.maxLines,
       this.errorText,
       this.label,
@@ -47,7 +49,7 @@ class ReusableTextField extends StatelessWidget {
           obscureText: obSecure,
           keyboardType: keyboardType,
           controller: controller,
-          maxLines: maxLines,
+          maxLines: isMulti==true?maxLines:1,
           readOnly: readOnly,
           maxLength: maxLength,
           onTap: OnTap,
