@@ -21,8 +21,6 @@ class Event {
 
 int _totalStudent = 0;
 int _totalFaculty = 0;
-ScrollController _dataController1 = ScrollController();
-ScrollController _dataController2 = ScrollController();
 
 class Home extends StatefulWidget {
   Home({super.key});
@@ -33,7 +31,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final CollectionReference eventsCollection =
-      FirebaseFirestore.instance.collection('events');
+  FirebaseFirestore.instance.collection('events');
   late DocumentReference _UserIdDoc;
   late DocumentReference _IdDoc;
   late TextEditingController _totalStudentsController = TextEditingController();
@@ -56,11 +54,11 @@ class _HomeState extends State<Home> {
 
     setState(() {
       _totalStudent =
-          userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
-              ? (userIdDocSnapshot.data()
-                      as Map<String, dynamic>)['Total Students'] ??
-                  0
-              : 0;
+      userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
+          ? (userIdDocSnapshot.data()
+      as Map<String, dynamic>)['Total Students'] ??
+          0
+          : 0;
       _totalStudentsController.text = _totalStudent.toString();
 
       _totalFaculty = IdDocSnapshot.exists && IdDocSnapshot.data() != null
@@ -80,7 +78,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text(
+          title: const Text(
             'DASHBOARD',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
@@ -91,11 +89,11 @@ class _HomeState extends State<Home> {
               children: [
                 _userData(),
                 _buildEventList(),
-                SizedBox(
+                const SizedBox(
                   height: 50,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
                   child: Text(
                       style: TextStyle(color: Colors.grey),
                       'Copyright © 2024 eCollege - Virtual College Management System. All rights reserved.'),
@@ -120,7 +118,7 @@ class _HomeState extends State<Home> {
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: const CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         final events = snapshot.data;
@@ -176,7 +174,7 @@ class _HomeState extends State<Home> {
                 DataCell(
                   Text(
                     '$rowIndex',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ), // Display the row index
                 ),
                 DataCell(
@@ -185,7 +183,7 @@ class _HomeState extends State<Home> {
                     child: Text(
                       eventData['title'] ?? 'Title not available',
                       // Null check
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                         color: Colors.black,
@@ -204,7 +202,7 @@ class _HomeState extends State<Home> {
                 DataCell(
                   Text(
                     '$_date',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Color(0xff4b8fbf),
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -227,85 +225,85 @@ Widget _userData() {
     children: [
       Expanded(
           child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Container(
-          height: 200,
-          child: Card(
-            elevation: 5,
-            shape: ContinuousRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20))),
-            color: Colors.green.shade300,
-            child: Padding(
-              padding: const EdgeInsets.all(50),
-              child: ListTile(
-                title: Text(
-                  "Total Students",
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-                subtitle: Text(
-                  _totalStudent.toString(),
-                  style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              height: 200,
+              child: Card(
+                elevation: 5,
+                shape: const ContinuousRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                color: Colors.green.shade300,
+                child: Padding(
+                  padding: const EdgeInsets.all(50),
+                  child: ListTile(
+                    title: const Text(
+                      "Total Students",
+                      style: TextStyle(fontSize: 20, color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      _totalStudent.toString(),
+                      style: const TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-      )),
+          )),
       Expanded(
           child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Container(
-          height: 200,
-          child: Card(
-            elevation: 5,
-            shape: ContinuousRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20))),
-            color: Colors.blueAccent.shade100,
-            child: Padding(
-              padding: const EdgeInsets.all(50),
-              child: ListTile(
-                title: Text(
-                  "Total Faculty",
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-                subtitle: Text(
-                  _totalFaculty.toString(),
-                  style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              height: 200,
+              child: Card(
+                elevation: 5,
+                shape: const ContinuousRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                color: Colors.blueAccent.shade100,
+                child: Padding(
+                  padding: const EdgeInsets.all(50),
+                  child: ListTile(
+                    title: const Text(
+                      "Total Faculty",
+                      style: TextStyle(fontSize: 20, color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      _totalFaculty.toString(),
+                      style: const TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-      )),
+          )),
       Expanded(
           child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Container(
-          height: 200,
-          child: Card(
-            elevation: 5,
-            shape: ContinuousRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20))),
-            color: Colors.red.shade200,
-            child: Padding(
-              padding: const EdgeInsets.all(50),
-              child: Text(
-                'heloo',
-                style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              height: 200,
+              child: Card(
+                elevation: 5,
+                shape: const ContinuousRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                color: Colors.red.shade200,
+                child: const Padding(
+                  padding: EdgeInsets.all(50),
+                  child: Text(
+                    'heloo',
+                    style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-      )),
+          )),
     ],
   );
 }

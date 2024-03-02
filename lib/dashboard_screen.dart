@@ -1,6 +1,5 @@
 import 'package:ecollege_admin_panel/announcement.dart';
 import 'package:ecollege_admin_panel/dashboard_home.dart';
-import 'package:ecollege_admin_panel/demo.dart';
 import 'package:ecollege_admin_panel/login_screen.dart';
 import 'package:ecollege_admin_panel/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
