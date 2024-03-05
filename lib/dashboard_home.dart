@@ -309,6 +309,7 @@ Widget _userData() {
                 _getGreeting(),
                 style: TextStyle(
                     fontSize: 25,
+                    fontFamily:'Open Sans',
                     fontWeight: FontWeight.bold,
                     ),
               ),
