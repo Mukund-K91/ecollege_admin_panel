@@ -30,6 +30,17 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
+String _getGreeting() {
+  var hour = DateTime.now().hour;
+  if (hour < 12) {
+    return 'Good Morning, Admin!';
+  } else if (hour < 18) {
+    return 'Good Afternoon, Admin!';
+  } else {
+    return 'Good Evening, Admin!';
+  }
+}
+
 class _HomeState extends State<Home> {
   final CollectionReference eventsCollection =
       FirebaseFirestore.instance.collection('events');
@@ -287,15 +298,19 @@ Widget _userData() {
             elevation: 5,
             shape: const ContinuousRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(20))),
-            color: Colors.red.shade200,
-            child: const Padding(
+            color: _getGreeting() == "Good Morning, Admin!"
+                ? Colors.deepOrange.shade300
+                : _getGreeting() == "Good Afternoon, Admin!"
+                    ? Colors.orange.shade300
+                    : Colors.blue.shade300,
+            child: Padding(
               padding: EdgeInsets.all(50),
               child: Text(
-                'heloo',
+                _getGreeting(),
                 style: TextStyle(
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white),
+                    ),
               ),
             ),
           ),

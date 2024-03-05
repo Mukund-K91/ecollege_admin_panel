@@ -13,6 +13,7 @@ class CopyrightFooter extends StatelessWidget {
             '© ${DateTime.now().year} Team Aarambh', // Replace "Your Company Name" with your actual company name
             style: TextStyle(
               fontSize: 14.0,
+              color: Colors.grey,
               fontWeight: FontWeight.bold,
             ),
           ),
