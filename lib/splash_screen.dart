@@ -52,7 +52,7 @@ class SplashScreenState extends State<SplashScreen> {
     var isLoggedIn = sharedPref.getBool(KEYLOGIN);
     String userType;
     Timer(
-      Duration(seconds: 5),
+      Duration(seconds: 1),
       () {
         if (isLoggedIn != null) {
           if (isLoggedIn) {

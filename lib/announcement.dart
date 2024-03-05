@@ -1,4 +1,5 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:ecollege_admin_panel/copyright_2024.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -69,6 +70,7 @@ class _EventManagementState extends State<EventManagement> {
       body: Column(
         children: [
           Expanded(child: _buildEventList()),
+          CopyrightFooter()
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecollege_admin_panel/copyright_2024.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:ecollege_admin_panel/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
@@ -715,70 +716,76 @@ class _FacultyListState extends State<FacultyList> {
             scrollDirection: Axis.horizontal,
             child: SingleChildScrollView(
               controller: _dataController1,
-              child: DataTable(
-                border: TableBorder.all(),
-                columns: const [
-                  DataColumn(label: Text('Id')),
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Profile')),
-                  DataColumn(label: Text('Program')),
-                  DataColumn(label: Text('Mobile')),
-                  DataColumn(label: Text('Email')),
-                  DataColumn(label: Text('Qualification')),
-                  DataColumn(label: Text('Designation')),
-                  DataColumn(label: Text('Action')),
+              child: Column(
+                children: [
+                  DataTable(
+                    border: TableBorder.all(),
+                    columns: const [
+                      DataColumn(label: Text('Id')),
+                      DataColumn(label: Text('Name')),
+                      DataColumn(label: Text('Profile')),
+                      DataColumn(label: Text('Program')),
+                      DataColumn(label: Text('Mobile')),
+                      DataColumn(label: Text('Email')),
+                      DataColumn(label: Text('Qualification')),
+                      DataColumn(label: Text('Designation')),
+                      DataColumn(label: Text('Action')),
+                    ],
+                    rows: faculties
+                        .map(
+                          (faculty) => DataRow(cells: [
+                            DataCell(Text(faculty.FacultyId)),
+                            DataCell(
+                                Text(faculty.firstname + " " + faculty.lastname)),
+                            DataCell(CircleAvatar(
+                              radius: 27,
+                              child: ClipOval(
+                                child: Image.network(
+                                  faculty.profile,
+                                  fit: BoxFit.cover,
+                                  height: 70,
+                                  width: 70,
+                                ),
+                              ),
+                            )),
+                            DataCell(Text(faculty.program)),
+                            DataCell(Text(faculty.mobile)),
+                            DataCell(Text(faculty.email)),
+                            DataCell(Text(faculty.qualification)),
+                            DataCell(Text(faculty.Designation)),
+                            DataCell(widget.userType=="Super Admin"?Row(
+                              children: [
+                                IconButton(
+                                    onPressed: () {
+                                      _updateFacultyDetails(
+                                          context,
+                                          faculty,
+                                          _selProgram.toString(),
+                                          faculty.FacultyId);
+                                    },
+                                    icon: Icon(
+                                      FontAwesomeIcons.edit,
+                                      color: Colors.green,
+                                    )),
+                                IconButton(
+                                    onPressed: () {
+                                      _confirmDelete(context, _selectedProgram,
+                                          faculty.FacultyId);
+                                    },
+                                    icon: Icon(
+                                      FontAwesomeIcons.trash,
+                                      color: Colors.redAccent,
+                                    )),
+                              ],
+                            ):Text("Not Allowed!!"))
+                          ]),
+                        )
+                        .toList(),
+                  ),
+                  SizedBox(height: 30,)
                 ],
-                rows: faculties
-                    .map(
-                      (faculty) => DataRow(cells: [
-                        DataCell(Text(faculty.FacultyId)),
-                        DataCell(
-                            Text(faculty.firstname + " " + faculty.lastname)),
-                        DataCell(CircleAvatar(
-                          radius: 27,
-                          child: ClipOval(
-                            child: Image.network(
-                              faculty.profile,
-                              fit: BoxFit.cover,
-                              height: 70,
-                              width: 70,
-                            ),
-                          ),
-                        )),
-                        DataCell(Text(faculty.program)),
-                        DataCell(Text(faculty.mobile)),
-                        DataCell(Text(faculty.email)),
-                        DataCell(Text(faculty.qualification)),
-                        DataCell(Text(faculty.Designation)),
-                        DataCell(widget.userType=="Super Admin"?Row(
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  _updateFacultyDetails(
-                                      context,
-                                      faculty,
-                                      _selProgram.toString(),
-                                      faculty.FacultyId);
-                                },
-                                icon: Icon(
-                                  FontAwesomeIcons.edit,
-                                  color: Colors.green,
-                                )),
-                            IconButton(
-                                onPressed: () {
-                                  _confirmDelete(context, _selectedProgram,
-                                      faculty.FacultyId);
-                                },
-                                icon: Icon(
-                                  FontAwesomeIcons.trash,
-                                  color: Colors.redAccent,
-                                )),
-                          ],
-                        ):Text("Not Allowed!!"))
-                      ]),
-                    )
-                    .toList(),
               ),
+
             ),
           ),
         );

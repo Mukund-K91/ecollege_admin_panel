@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecollege_admin_panel/copyright_2024.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:ecollege_admin_panel/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
@@ -1036,79 +1037,86 @@ class _StudentListState extends State<StudentList> {
             scrollDirection: Axis.horizontal,
             child: SingleChildScrollView(
               controller: _dataController1,
-              child: DataTable(
-                border: TableBorder.all(),
-                columns: const [
-                  DataColumn(label: Text('User Id')),
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Profile')),
-                  DataColumn(label: Text('Program')),
-                  DataColumn(label: Text('Program Term')),
-                  DataColumn(label: Text('Division')),
-                  DataColumn(label: Text('Activation Date')),
-                  DataColumn(label: Text('DOB')),
-                  DataColumn(label: Text('Mobile')),
-                  DataColumn(label: Text('Email')),
-                  DataColumn(label: Text('Action')),
+              child: Column(
+                children: [
+                  DataTable(
+                    border: TableBorder.all(),
+                    columns: const [
+                      DataColumn(label: Text('User Id')),
+                      DataColumn(label: Text('Name')),
+                      DataColumn(label: Text('Profile')),
+                      DataColumn(label: Text('Program')),
+                      DataColumn(label: Text('Program Term')),
+                      DataColumn(label: Text('Division')),
+                      DataColumn(label: Text('Activation Date')),
+                      DataColumn(label: Text('DOB')),
+                      DataColumn(label: Text('Mobile')),
+                      DataColumn(label: Text('Email')),
+                      DataColumn(label: Text('Action')),
+                    ],
+                    rows: students
+                        .map(
+                          (student) => DataRow(cells: [
+                            DataCell(Text(student.userId)),
+                            DataCell(Text(
+                                student.firstname + " " + student.lastname)),
+                            DataCell(CircleAvatar(
+                              radius: 27,
+                              child: ClipOval(
+                                child: Image.network(
+                                  student.profile,
+                                  fit: BoxFit.cover,
+                                  height: 70,
+                                  width: 70,
+                                ),
+                              ),
+                            )),
+                            DataCell(Text(student.program)),
+                            DataCell(Text(student.programTerm)),
+                            DataCell(Text(student.division)),
+                            DataCell(Text(student.activationDate)),
+                            DataCell(Text(student.DOB)),
+                            DataCell(Text(student.mobile)),
+                            DataCell(Text(student.email)),
+                            DataCell(widget.userType == "Super Admin"
+                                ? Row(
+                                    children: [
+                                      IconButton(
+                                          onPressed: () {
+                                            _updateStudentDetails(
+                                                context,
+                                                student,
+                                                _selectedProgram!,
+                                                _selectedProgramTerm!,
+                                                _selectedDivision!,
+                                                student.userId);
+                                          },
+                                          icon: const Icon(
+                                            FontAwesomeIcons.edit,
+                                            color: Colors.green,
+                                          )),
+                                      IconButton(
+                                          onPressed: () => _confirmDelete(
+                                              context,
+                                              _selectedProgram!,
+                                              _selectedProgramTerm!,
+                                              _selectedDivision!,
+                                              student.userId),
+                                          icon: const Icon(
+                                            FontAwesomeIcons.trash,
+                                            color: Colors.redAccent,
+                                          )),
+                                    ],
+                                  )
+                                : Text("Not Allowed!!"))
+                          ]),
+                        )
+                        .toList(),
+                  ),
+                  SizedBox(
+                    height: 30,
+                  )
                 ],
-                rows: students
-                    .map(
-                      (student) => DataRow(cells: [
-                        DataCell(Text(student.userId)),
-                        DataCell(
-                            Text(student.firstname + " " + student.lastname)),
-                        DataCell(CircleAvatar(
-                          radius: 27,
-                          child: ClipOval(
-                            child: Image.network(
-                              student.profile,
-                              fit: BoxFit.cover,
-                              height: 70,
-                              width: 70,
-                            ),
-                          ),
-                        )),
-                        DataCell(Text(student.program)),
-                        DataCell(Text(student.programTerm)),
-                        DataCell(Text(student.division)),
-                        DataCell(Text(student.activationDate)),
-                        DataCell(Text(student.DOB)),
-                        DataCell(Text(student.mobile)),
-                        DataCell(Text(student.email)),
-                        DataCell(widget.userType == "Super Admin"
-                            ? Row(
-                                children: [
-                                  IconButton(
-                                      onPressed: () {
-                                        _updateStudentDetails(
-                                            context,
-                                            student,
-                                            _selectedProgram!,
-                                            _selectedProgramTerm!,
-                                            _selectedDivision!,
-                                            student.userId);
-                                      },
-                                      icon: const Icon(
-                                        FontAwesomeIcons.edit,
-                                        color: Colors.green,
-                                      )),
-                                  IconButton(
-                                      onPressed: () => _confirmDelete(
-                                          context,
-                                          _selectedProgram!,
-                                          _selectedProgramTerm!,
-                                          _selectedDivision!,
-                                          student.userId),
-                                      icon: const Icon(
-                                        FontAwesomeIcons.trash,
-                                        color: Colors.redAccent,
-                                      )),
-                                ],
-                              )
-                            : Text("Not Allowed!!"))
-                      ]),
-                    )
-                    .toList(),
               ),
             ),
           ),

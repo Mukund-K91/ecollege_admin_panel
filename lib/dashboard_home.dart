@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecollege_admin_panel/copyright_2024.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -31,7 +32,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final CollectionReference eventsCollection =
-  FirebaseFirestore.instance.collection('events');
+      FirebaseFirestore.instance.collection('events');
   late DocumentReference _UserIdDoc;
   late DocumentReference _IdDoc;
   late TextEditingController _totalStudentsController = TextEditingController();
@@ -54,11 +55,11 @@ class _HomeState extends State<Home> {
 
     setState(() {
       _totalStudent =
-      userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
-          ? (userIdDocSnapshot.data()
-      as Map<String, dynamic>)['Total Students'] ??
-          0
-          : 0;
+          userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
+              ? (userIdDocSnapshot.data()
+                      as Map<String, dynamic>)['Total Students'] ??
+                  0
+              : 0;
       _totalStudentsController.text = _totalStudent.toString();
 
       _totalFaculty = IdDocSnapshot.exists && IdDocSnapshot.data() != null
@@ -92,12 +93,7 @@ class _HomeState extends State<Home> {
                 const SizedBox(
                   height: 50,
                 ),
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                      style: TextStyle(color: Colors.grey),
-                      'Copyright © 2024 eCollege - Virtual College Management System. All rights reserved.'),
-                )
+                CopyrightFooter()
               ],
             ),
           ),
@@ -109,7 +105,8 @@ class _HomeState extends State<Home> {
 
     return StreamBuilder<QuerySnapshot>(
       stream: eventsCollection
-          .where('assignTo', isEqualTo: 'Dashboard') // Filter events by assignTo value
+          .where('assignTo',
+              isEqualTo: 'Dashboard') // Filter events by assignTo value
           .orderBy('date', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
@@ -164,10 +161,11 @@ class _HomeState extends State<Home> {
             // Adjust the spacing between columns
             rows: events.docs.map((event) {
               final eventData = event.data() as Map<String, dynamic>;
-              final Timestamp timestamp = eventData['date']; // Get the Timestamp
+              final Timestamp timestamp =
+                  eventData['date']; // Get the Timestamp
               final DateTime date = timestamp.toDate();
-              final _date =
-              DateFormat('dd-MM-yyyy hh:mm a').format(date); // Convert to DateTime
+              final _date = DateFormat('dd-MM-yyyy hh:mm a')
+                  .format(date); // Convert to DateTime
               rowIndex++; // Increment row index for each row
 
               return DataRow(cells: [
@@ -216,7 +214,6 @@ class _HomeState extends State<Home> {
       },
     );
   }
-
 }
 
 Widget _userData() {
@@ -225,85 +222,85 @@ Widget _userData() {
     children: [
       Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 200,
-              child: Card(
-                elevation: 5,
-                shape: const ContinuousRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(20))),
-                color: Colors.green.shade300,
-                child: Padding(
-                  padding: const EdgeInsets.all(50),
-                  child: ListTile(
-                    title: const Text(
-                      "Total Students",
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      _totalStudent.toString(),
-                      style: const TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                  ),
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          height: 200,
+          child: Card(
+            elevation: 5,
+            shape: const ContinuousRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20))),
+            color: Colors.green.shade300,
+            child: Padding(
+              padding: const EdgeInsets.all(50),
+              child: ListTile(
+                title: const Text(
+                  "Total Students",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+                subtitle: Text(
+                  _totalStudent.toString(),
+                  style: const TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
               ),
             ),
-          )),
+          ),
+        ),
+      )),
       Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 200,
-              child: Card(
-                elevation: 5,
-                shape: const ContinuousRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(20))),
-                color: Colors.blueAccent.shade100,
-                child: Padding(
-                  padding: const EdgeInsets.all(50),
-                  child: ListTile(
-                    title: const Text(
-                      "Total Faculty",
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      _totalFaculty.toString(),
-                      style: const TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                  ),
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          height: 200,
+          child: Card(
+            elevation: 5,
+            shape: const ContinuousRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20))),
+            color: Colors.blueAccent.shade100,
+            child: Padding(
+              padding: const EdgeInsets.all(50),
+              child: ListTile(
+                title: const Text(
+                  "Total Faculty",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+                subtitle: Text(
+                  _totalFaculty.toString(),
+                  style: const TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
               ),
             ),
-          )),
+          ),
+        ),
+      )),
       Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 200,
-              child: Card(
-                elevation: 5,
-                shape: const ContinuousRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(20))),
-                color: Colors.red.shade200,
-                child: const Padding(
-                  padding: EdgeInsets.all(50),
-                  child: Text(
-                    'heloo',
-                    style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                  ),
-                ),
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          height: 200,
+          child: Card(
+            elevation: 5,
+            shape: const ContinuousRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20))),
+            color: Colors.red.shade200,
+            child: const Padding(
+              padding: EdgeInsets.all(50),
+              child: Text(
+                'heloo',
+                style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
               ),
             ),
-          )),
+          ),
+        ),
+      )),
     ],
   );
 }
