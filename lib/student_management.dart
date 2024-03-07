@@ -615,6 +615,7 @@ class _AddStudentsState extends State<AddStudents> {
                         Expanded(
                             flex: 1,
                             child: ReusableTextField(
+                              readOnly: true,
                               controller: _dobController,
                               OnTap: () => _selectDate(context),
                               title: 'DOB',
@@ -895,6 +896,7 @@ class _StudentListState extends State<StudentList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: CopyrightFooter(),
       appBar: AppBar(
         title: const Text('Student List'),
       ),

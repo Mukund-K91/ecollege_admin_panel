@@ -51,7 +51,8 @@ class Faculty {
       "Mobile": mobile,
       'program': program,
       "Qualification": qualification,
-      "Designation": Designation
+      "Designation": Designation,
+      "Designation": Designation,
     };
   }
 }
@@ -121,6 +122,7 @@ class FirestoreService {
             .toList());
   }
 }
+
 final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 StorageService service = StorageService();
 
@@ -148,13 +150,13 @@ late TextEditingController _fileNameController = TextEditingController();
 late TextEditingController _totalFacultyController = TextEditingController();
 final FirestoreService _firestoreService = FirestoreService();
 
-
 final TextEditingController _searchController = TextEditingController();
 
 class AddFaculty extends StatefulWidget {
   final userType;
 
   const AddFaculty({super.key, this.userType});
+
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp(
@@ -473,29 +475,29 @@ class _AddFacultyState extends State<AddFaculty> {
                               style: TextStyle(fontSize: 15),
                             ),
                             subtitle: DropdownButtonFormField(
-                                decoration: const InputDecoration(
-                                    border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.all(Radius.zero))),
-                                value: _selProgram,
-                                items: _programs
-                                    .map((e) => DropdownMenuItem(
-                                          value: e,
-                                          child: Text(e),
-                                        ))
-                                    .toList(),
-                                onChanged: (val) {
-                                  setState(() {
-                                    _selProgram = val as String;
-                                  });
-                                },
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.zero))),
+                              value: _selProgram,
+                              items: _programs
+                                  .map((e) => DropdownMenuItem(
+                                        value: e,
+                                        child: Text(e),
+                                      ))
+                                  .toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  _selProgram = val as String;
+                                });
+                              },
                               validator: (value) {
                                 if (value!.isEmpty ||
                                     _selProgram == "--Please Select--") {
                                   return "Please Select Program";
                                 }
                               },
-                                ),
+                            ),
                           ),
                         ),
                       ],
@@ -514,8 +516,9 @@ class _AddFacultyState extends State<AddFaculty> {
                             backgroundColor: const Color(0xff002233),
                           ),
                           onPressed: () async {
-                            if(_formKey.currentState!.validate()){
-                              if(widget.userType=='Super Admin'){
+                            String password=_phoneController.text;
+                            if (_formKey.currentState!.validate()) {
+                              if (widget.userType == 'Super Admin') {
                                 Faculty newfaculty = Faculty(
                                   firstname: _firstNameController.text,
                                   lastname: _lastNameController.text,
@@ -540,8 +543,7 @@ class _AddFacultyState extends State<AddFaculty> {
                                 _selProgram = _programs[0];
                                 _Qualification.text = "";
                                 _Designation.text = "";
-                              }
-                              else{
+                              } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       backgroundColor: Colors.white,
@@ -589,6 +591,7 @@ class FacultyList extends StatefulWidget {
   final userType;
 
   const FacultyList({super.key, this.userType});
+
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp(
@@ -622,6 +625,7 @@ class _FacultyListState extends State<FacultyList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: CopyrightFooter(),
       appBar: AppBar(
         title: Text('Faculty List'),
       ),
@@ -645,7 +649,7 @@ class _FacultyListState extends State<FacultyList> {
             child: TextField(
               decoration: InputDecoration(
                 labelText: 'Search',
-                hintText: 'Search by name',
+                hintText: 'Search by Mobile',
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) {
@@ -735,8 +739,8 @@ class _FacultyListState extends State<FacultyList> {
                         .map(
                           (faculty) => DataRow(cells: [
                             DataCell(Text(faculty.FacultyId)),
-                            DataCell(
-                                Text(faculty.firstname + " " + faculty.lastname)),
+                            DataCell(Text(
+                                faculty.firstname + " " + faculty.lastname)),
                             DataCell(CircleAvatar(
                               radius: 27,
                               child: ClipOval(
@@ -753,39 +757,44 @@ class _FacultyListState extends State<FacultyList> {
                             DataCell(Text(faculty.email)),
                             DataCell(Text(faculty.qualification)),
                             DataCell(Text(faculty.Designation)),
-                            DataCell(widget.userType=="Super Admin"?Row(
-                              children: [
-                                IconButton(
-                                    onPressed: () {
-                                      _updateFacultyDetails(
-                                          context,
-                                          faculty,
-                                          _selProgram.toString(),
-                                          faculty.FacultyId);
-                                    },
-                                    icon: Icon(
-                                      FontAwesomeIcons.edit,
-                                      color: Colors.green,
-                                    )),
-                                IconButton(
-                                    onPressed: () {
-                                      _confirmDelete(context, _selectedProgram,
-                                          faculty.FacultyId);
-                                    },
-                                    icon: Icon(
-                                      FontAwesomeIcons.trash,
-                                      color: Colors.redAccent,
-                                    )),
-                              ],
-                            ):Text("Not Allowed!!"))
+                            DataCell(widget.userType == "Super Admin"
+                                ? Row(
+                                    children: [
+                                      IconButton(
+                                          onPressed: () {
+                                            _updateFacultyDetails(
+                                                context,
+                                                faculty,
+                                                _selProgram.toString(),
+                                                faculty.FacultyId);
+                                          },
+                                          icon: Icon(
+                                            FontAwesomeIcons.edit,
+                                            color: Colors.green,
+                                          )),
+                                      IconButton(
+                                          onPressed: () {
+                                            _confirmDelete(
+                                                context,
+                                                _selectedProgram,
+                                                faculty.FacultyId);
+                                          },
+                                          icon: Icon(
+                                            FontAwesomeIcons.trash,
+                                            color: Colors.redAccent,
+                                          )),
+                                    ],
+                                  )
+                                : Text("Not Allowed!!"))
                           ]),
                         )
                         .toList(),
                   ),
-                  SizedBox(height: 30,)
+                  SizedBox(
+                    height: 30,
+                  )
                 ],
               ),
-
             ),
           ),
         );
@@ -807,7 +816,8 @@ class _FacultyListState extends State<FacultyList> {
     final TextEditingController emailController = TextEditingController();
     final TextEditingController mobileNoController = TextEditingController();
     final TextEditingController DesignationController = TextEditingController();
-    final TextEditingController QualificationController = TextEditingController();
+    final TextEditingController QualificationController =
+        TextEditingController();
 
     String? selProgram = "--Please Select--";
     firstNameController.text = faculty.firstname;
@@ -815,8 +825,8 @@ class _FacultyListState extends State<FacultyList> {
     emailController.text = faculty.email;
     mobileNoController.text = faculty.mobile;
     selProgram = faculty.program;
-    DesignationController.text=faculty.Designation;
-    QualificationController.text=faculty.qualification;
+    DesignationController.text = faculty.Designation;
+    QualificationController.text = faculty.qualification;
     showDialog(
       context: context,
       builder: (context) {
@@ -824,7 +834,7 @@ class _FacultyListState extends State<FacultyList> {
           title: Text('${faculty.FacultyId}'),
           content: SingleChildScrollView(
             child: Container(
-              width: MediaQuery.of(context).size.width/1,
+              width: MediaQuery.of(context).size.width / 1,
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -945,8 +955,8 @@ class _FacultyListState extends State<FacultyList> {
                 final String newEmail = emailController.text;
                 final String newMobile = mobileNoController.text;
                 final String newProgram = selProgram.toString();
-                final String newDesignation=DesignationController.text;
-                final String newQualification=QualificationController.text;
+                final String newDesignation = DesignationController.text;
+                final String newQualification = QualificationController.text;
 
                 FirebaseFirestore.instance
                     .collection('faculty')
@@ -959,8 +969,8 @@ class _FacultyListState extends State<FacultyList> {
                   'Mobile': newMobile,
                   'Email': newEmail,
                   'program': newProgram,
-                  'Designation':newDesignation,
-                  'Qualification':newQualification
+                  'Designation': newDesignation,
+                  'Qualification': newQualification
                 });
                 Navigator.of(context).pop();
               },
@@ -971,15 +981,16 @@ class _FacultyListState extends State<FacultyList> {
       },
     );
   }
+
   Future<void> _getUserId() async {
     final userIdDocSnapshot = await _UserIdDoc.get();
     setState(() {
       _totalFaculty =
-      userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
-          ? (userIdDocSnapshot.data()
-      as Map<String, dynamic>)['Total Faculty'] ??
-          0
-          : 0;
+          userIdDocSnapshot.exists && userIdDocSnapshot.data() != null
+              ? (userIdDocSnapshot.data()
+                      as Map<String, dynamic>)['Total Faculty'] ??
+                  0
+              : 0;
     });
   }
 

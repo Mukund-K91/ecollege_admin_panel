@@ -1,6 +1,10 @@
+import 'dart:developer';
+
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:ecollege_admin_panel/copyright_2024.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,6 +19,7 @@ class Event {
   final String title;
   final String description;
   final String assignTo;
+  final String Files;
   final DateTime date;
 
   Event({
@@ -22,6 +27,7 @@ class Event {
     required this.title,
     required this.description,
     required this.assignTo,
+    required this.Files,
     required this.date,
   });
 }
@@ -39,6 +45,9 @@ class _EventManagementState extends State<EventManagement> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _controller = MultiSelectController();
+  final _filenameController = TextEditingController();
+  final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+  late String imjUrl;
   List<ValueItem> _selectedOptions = [];
 
   void initState() {
@@ -51,6 +60,7 @@ class _EventManagementState extends State<EventManagement> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: CopyrightFooter(),
       appBar: AppBar(
         title: Text('Event List'),
         actions: [
@@ -68,10 +78,7 @@ class _EventManagementState extends State<EventManagement> {
         ],
       ),
       body: Column(
-        children: [
-          Expanded(child: _buildEventList()),
-          CopyrightFooter()
-        ],
+        children: [Expanded(child: _buildEventList())],
       ),
     );
   }
@@ -137,6 +144,81 @@ class _EventManagementState extends State<EventManagement> {
                             ),
                           ),
                         ),
+                        Expanded(
+                            child: Column(
+                          children: [
+                            ReusableTextField(
+                              readOnly: true,
+                              controller: _filenameController,
+                              title: 'Image',
+                              sufIcon: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        minimumSize: const Size(100, 50),
+                                        backgroundColor:
+                                            const Color(0xff002233),
+                                        shape:
+                                            const ContinuousRectangleBorder()),
+                                    onPressed: () async {
+                                      var result = await FilePicker.platform
+                                          .pickFiles(
+                                              allowMultiple: true,
+                                              type: FileType.image);
+                                      if (result == null) {
+                                        print("Error: No file selected");
+                                      } else {
+                                        var path = result.files.single.bytes;
+                                        final fileName =
+                                            result.files.single.name;
+
+                                        setState(() {
+                                          _filenameController.text = fileName;
+                                          result = null;
+                                        });
+
+                                        try {
+                                          await firebaseStorage
+                                              .ref('Notice/$fileName')
+                                              .putData(path!)
+                                              .then((p0) async {
+                                            log("Uploaded");
+                                          });
+                                        } catch (e) {
+                                          log("Error: $e");
+                                        }
+                                        var imgurl = await firebaseStorage
+                                            .ref('Notice/$fileName')
+                                            .getDownloadURL();
+                                        print(imgurl);
+                                        imjUrl = imgurl.toString();
+                                        print("imj" + imjUrl);
+                                      }
+
+                                      // html.FileUploadInputElement
+                                      //     uploadInput =
+                                      //     html.FileUploadInputElement()
+                                      //       ..accept = 'image/*';
+                                      // uploadInput.click();
+                                      // uploadInput.onChange
+                                      //     .listen((event) {
+                                      //   final files = uploadInput.files;
+                                      //   if (files != null &&
+                                      //       files.length == 1) {
+                                      //     final file = files[0];
+                                      //     _handleFileUpload(file);
+                                      //   }
+                                      // });
+                                    },
+                                    child: const Text(
+                                      "Upload",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 15),
+                                    )),
+                              ),
+                            ),
+                          ],
+                        )),
                       ],
                     ),
                     ElevatedButton(
@@ -162,97 +244,130 @@ class _EventManagementState extends State<EventManagement> {
   }
 
   Widget _buildEventList() {
+    int rowIndex = 0; // Initialize the row index
+
     return StreamBuilder<QuerySnapshot>(
-      stream: eventsCollection.orderBy('date', descending: true).snapshots(),
+      stream: eventsCollection
+          // Filter events by assignTo value
+          .orderBy('date', descending: true)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: const CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         final events = snapshot.data;
-        if (events == null || events.docs.isEmpty) {
-          return Center(
-            child: const Text('No Events found'),
+        if (events == null) {
+          return const Center(
+            child: Text('No Events found'),
           );
         }
-
-        return ListView.builder(
-          itemCount: events.docs.length,
-          itemBuilder: (BuildContext context, int index) {
-            final event = events.docs[index];
-            final eventData = event.data() as Map<String, dynamic>;
-            final Timestamp timestamp = eventData['date'];
-            final DateTime date = timestamp.toDate();
-            String _month = DateFormat('MMM').format(date);
-
-            return Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black),
-              ),
-              child: ListTile(
-                leading: Column(
-                  children: [
-                    Text(
-                      _month,
-                      style: TextStyle(
-                          color: Color(0xff4b8fbf),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15),
-                    ),
-                    Text(
-                      '${date.day}',
-                      style: TextStyle(
-                          color: Color(0xff002233),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15),
-                    )
-                  ],
-                ),
-                title: Text(
-                  eventData['title'],
-                  style: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.bold),
-                ),
-                subtitle: ReadMoreText(
-                  eventData['description'] ?? 'Description not available',
-                  style: TextStyle(color: Colors.black),
-                  colorClickableText: Colors.grey,
-                  trimLines: 2,
-                  trimMode: TrimMode.Line,
-                  trimCollapsedText: 'Read more',
-                  trimExpandedText: '^Read less',
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        FontAwesomeIcons.edit,
-                        color: Colors.green.shade300,
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: events.docs.isEmpty
+              ? Center(
+                  child: Text("No Announcement Published"),
+                )
+              : DataTable(
+                  border: TableBorder.all(color: Colors.black),
+                  columns: const [
+                    DataColumn(
+                      label: Text(
+                        'No.',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      onPressed: () => _editEvent(Event(
-                          id: event.id,
-                          title: eventData['title'],
-                          description: eventData['description'],
-                          assignTo: eventData['assignTo'],
-                          date: date)),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        FontAwesomeIcons.trash,
-                        color: Colors.redAccent.shade400,
+                    // Add column for row number
+                    DataColumn(
+                      label: Text(
+                        'Title',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      onPressed: () => _deleteEvent(event.id),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Description',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Assign To',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Date',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
+                  columnSpacing: 20,
+                  dataRowMaxHeight: double.infinity,
+                  // Adjust the spacing between columns
+                  rows: events.docs.map((event) {
+                    final eventData = event.data() as Map<String, dynamic>;
+                    final Timestamp timestamp =
+                        eventData['date']; // Get the Timestamp
+                    final DateTime date = timestamp.toDate();
+                    final _date = DateFormat('dd-MM-yyyy hh:mm a')
+                        .format(date); // Convert to DateTime
+                    rowIndex++; // Increment row index for each row
+
+                    return DataRow(cells: [
+                      DataCell(
+                        Text(
+                          '$rowIndex',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ), // Display the row index
+                      ),
+                      DataCell(
+                        Container(
+                          child: Text(
+                            eventData['title'] ?? 'Title not available',
+                            // Null check
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            '${eventData['description']}',
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            '${eventData['assignTo']}',
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          '$_date',
+                          style: const TextStyle(
+                            color: Color(0xff4b8fbf),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ]);
+                  }).toList(),
                 ),
-              ),
-            );
-          },
         );
       },
     );
@@ -265,6 +380,7 @@ class _EventManagementState extends State<EventManagement> {
       description: _descriptionController.text,
       date: DateTime.now(),
       assignTo: assignTo,
+      Files: imjUrl.toString(),
     );
     eventsCollection.add({
       'title': newEvent.title,
