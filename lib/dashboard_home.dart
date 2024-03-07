@@ -89,7 +89,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: CopyrightFooter(),
+        bottomNavigationBar: CopyrightFooter(),
         appBar: AppBar(
           title: const Text(
             'DASHBOARD',
@@ -117,7 +117,7 @@ class _HomeState extends State<Home> {
     return StreamBuilder<QuerySnapshot>(
       stream: eventsCollection
           .where('assignTo',
-              isEqualTo: 'Dashboard') // Filter events by assignTo value
+              arrayContains: 'Dashboard') // Filter events by assignTo value
           .orderBy('date', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
@@ -135,93 +135,99 @@ class _HomeState extends State<Home> {
             child: Text('No Events found'),
           );
         }
-        return
-            Padding(
-                padding: const EdgeInsets.all(8.0),
-                child:events.docs.isEmpty?Center(child: Text("No Announcement Published"),): DataTable(
-                  border: TableBorder.all(color: Colors.black),
-                  columns: const [
-                    DataColumn(
-                      label: Text(
-                        'No.',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: events.docs.isEmpty
+              ? Center(
+                  child: Text("No Announcement Published On Dashboard"),
+                )
+              : Container(
+            width: double.infinity,
+                child: DataTable(
+                    border: TableBorder.all(color: Colors.black),
+                    columns: const [
+                      DataColumn(
+                        label: Text(
+                          'No.',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                    // Add column for row number
-                    DataColumn(
-                      label: Text(
-                        'Title',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      // Add column for row number
+                      DataColumn(
+                        label: Text(
+                          'Title',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Description',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Text(
+                          'Description',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Date',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Text(
+                          'Date',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                  ],
-                  columnSpacing: 20,
-                  dataRowMaxHeight: double.infinity,
-                  // Adjust the spacing between columns
-                  rows: events.docs.map((event) {
-                    final eventData = event.data() as Map<String, dynamic>;
-                    final Timestamp timestamp =
-                        eventData['date']; // Get the Timestamp
-                    final DateTime date = timestamp.toDate();
-                    final _date = DateFormat('dd-MM-yyyy hh:mm a')
-                        .format(date); // Convert to DateTime
-                    rowIndex++; // Increment row index for each row
+                    ],
+                    columnSpacing: 20,
+                    dataRowMaxHeight: double.infinity,
+                    // Adjust the spacing between columns
+                    rows: events.docs.map((event) {
+                      final eventData = event.data() as Map<String, dynamic>;
+                      final Timestamp timestamp =
+                          eventData['date']; // Get the Timestamp
+                      final DateTime date = timestamp.toDate();
+                      final _date = DateFormat('dd-MM-yyyy hh:mm a')
+                          .format(date); // Convert to DateTime
+                      rowIndex++; // Increment row index for each row
 
-                    return DataRow(cells: [
-                      DataCell(
-                        Text(
-                          '$rowIndex',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ), // Display the row index
-                      ),
-                      DataCell(
-                        Container(
-                          width: 150,
-                          child: Text(
-                            eventData['title'] ?? 'Title not available',
-                            // Null check
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: Colors.black,
+                      return DataRow(cells: [
+                        DataCell(
+                          Text(
+                            '$rowIndex',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ), // Display the row index
+                        ),
+                        DataCell(
+                          Container(
+                            width: 150,
+                            child: Text(
+                              eventData['title'] ?? 'Title not available',
+                              // Null check
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            '${eventData['description']}',
+                        DataCell(
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              '${eventData['description']}',
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Text(
-                          '$_date',
-                          style: const TextStyle(
-                            color: Color(0xff4b8fbf),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                        DataCell(
+                          Text(
+                            '$_date',
+                            style: const TextStyle(
+                              color: Color(0xff4b8fbf),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
-                      ),
-                    ]);
-                  }).toList(),
-                ),
-              );
+                      ]);
+                    }).toList(),
+                  ),
+              ),
+        );
       },
     );
   }

@@ -13,13 +13,16 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
 import 'package:readmore/readmore.dart';
+import 'dart:html' as html;
+import 'package:path/path.dart' as path;
 
 class Event {
   final String id;
   final String title;
   final String description;
   final String assignTo;
-  final String Files;
+  final String? Files;
+  final String? FileName;
   final DateTime date;
 
   Event({
@@ -27,7 +30,8 @@ class Event {
     required this.title,
     required this.description,
     required this.assignTo,
-    required this.Files,
+    this.Files,
+    this.FileName,
     required this.date,
   });
 }
@@ -45,9 +49,9 @@ class _EventManagementState extends State<EventManagement> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _controller = MultiSelectController();
-  final _filenameController = TextEditingController();
+  final _filenameController = TextEditingController(text: "-");
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-  late String imjUrl;
+  late String imjUrl="null";
   List<ValueItem> _selectedOptions = [];
 
   void initState() {
@@ -147,75 +151,63 @@ class _EventManagementState extends State<EventManagement> {
                         Expanded(
                             child: Column(
                           children: [
-                            ReusableTextField(
-                              readOnly: true,
+                            TextFormField(
+                              readOnly: false,
                               controller: _filenameController,
-                              title: 'Image',
-                              sufIcon: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        minimumSize: const Size(100, 50),
-                                        backgroundColor:
-                                            const Color(0xff002233),
-                                        shape:
-                                            const ContinuousRectangleBorder()),
-                                    onPressed: () async {
-                                      var result = await FilePicker.platform
-                                          .pickFiles(
-                                              allowMultiple: true,
-                                              type: FileType.image);
-                                      if (result == null) {
-                                        print("Error: No file selected");
-                                      } else {
-                                        var path = result.files.single.bytes;
-                                        final fileName =
-                                            result.files.single.name;
+                              decoration: InputDecoration(
+                                label: Text("Uploade"),
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                          minimumSize: const Size(100, 50),
+                                          backgroundColor:
+                                          const Color(0xff002233),
+                                          shape:
+                                          const ContinuousRectangleBorder()),
+                                      onPressed: () async {
+                                        var result = await FilePicker.platform
+                                            .pickFiles(
+                                            allowMultiple: true,
+                                            type: FileType.any);
+                                        if (result == null) {
+                                          print("Error: No file selected");
+                                        } else {
+                                          var path = result.files.single.bytes;
+                                          final fileName =
+                                              result.files.single.name;
 
-                                        setState(() {
-                                          _filenameController.text = fileName;
-                                          result = null;
-                                        });
-
-                                        try {
-                                          await firebaseStorage
-                                              .ref('Notice/$fileName')
-                                              .putData(path!)
-                                              .then((p0) async {
-                                            log("Uploaded");
+                                          setState(() {
+                                            _filenameController.text = fileName;
+                                            result = null;
                                           });
-                                        } catch (e) {
-                                          log("Error: $e");
-                                        }
-                                        var imgurl = await firebaseStorage
-                                            .ref('Notice/$fileName')
-                                            .getDownloadURL();
-                                        print(imgurl);
-                                        imjUrl = imgurl.toString();
-                                        print("imj" + imjUrl);
-                                      }
 
-                                      // html.FileUploadInputElement
-                                      //     uploadInput =
-                                      //     html.FileUploadInputElement()
-                                      //       ..accept = 'image/*';
-                                      // uploadInput.click();
-                                      // uploadInput.onChange
-                                      //     .listen((event) {
-                                      //   final files = uploadInput.files;
-                                      //   if (files != null &&
-                                      //       files.length == 1) {
-                                      //     final file = files[0];
-                                      //     _handleFileUpload(file);
-                                      //   }
-                                      // });
-                                    },
-                                    child: const Text(
-                                      "Upload",
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 15),
-                                    )),
+                                          try {
+                                            await firebaseStorage
+                                                .ref('Notice/$fileName')
+                                                .putData(path!)
+                                                .then((p0) async {
+                                              log("Uploaded");
+                                            });
+                                          } catch (e) {
+                                            log("Error: $e");
+                                          }
+                                          var imgurl = await firebaseStorage
+                                              .ref('Notice/$fileName')
+                                              .getDownloadURL();
+                                          print(imgurl);
+                                          imjUrl = imgurl.toString();
+                                          print("imj" + imjUrl);
+                                        }
+                                      },
+                                      child: const Text(
+                                        "Upload",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 15),
+                                      )),
+                                ),
                               ),
+
                             ),
                           ],
                         )),
@@ -230,7 +222,6 @@ class _EventManagementState extends State<EventManagement> {
                               .map((item) => item.value)
                               .join(',');
                           _addEvent(AssignTo);
-                          Navigator.of(context).pop();
                         }
                       },
                       child: Text('Add Event'),
@@ -245,6 +236,8 @@ class _EventManagementState extends State<EventManagement> {
 
   Widget _buildEventList() {
     int rowIndex = 0; // Initialize the row index
+    ScrollController _dataController1 = ScrollController();
+    ScrollController _dataController2 = ScrollController();
 
     return StreamBuilder<QuerySnapshot>(
       stream: eventsCollection
@@ -272,102 +265,193 @@ class _EventManagementState extends State<EventManagement> {
               ? Center(
                   child: Text("No Announcement Published"),
                 )
-              : DataTable(
-                  border: TableBorder.all(color: Colors.black),
-                  columns: const [
-                    DataColumn(
-                      label: Text(
-                        'No.',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+              : SingleChildScrollView(
+                child: Container(
+                  width: double.infinity,
+                  child: DataTable(
+                    border: TableBorder.all(color: Colors.black),
+                    columns: const [
+                      DataColumn(
+                        label: Text(
+                          'No.',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                    // Add column for row number
-                    DataColumn(
-                      label: Text(
-                        'Title',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      // Add column for row number
+                      DataColumn(
+                        label: Text(
+                          'Title',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Description',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Text(
+                          'Description',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Assign To',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Text(
+                          'Assign To',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Date',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      DataColumn(
+                        label: Text(
+                          'Files',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                  ],
-                  columnSpacing: 20,
-                  dataRowMaxHeight: double.infinity,
-                  // Adjust the spacing between columns
-                  rows: events.docs.map((event) {
-                    final eventData = event.data() as Map<String, dynamic>;
-                    final Timestamp timestamp =
-                        eventData['date']; // Get the Timestamp
-                    final DateTime date = timestamp.toDate();
-                    final _date = DateFormat('dd-MM-yyyy hh:mm a')
-                        .format(date); // Convert to DateTime
-                    rowIndex++; // Increment row index for each row
-
-                    return DataRow(cells: [
-                      DataCell(
-                        Text(
-                          '$rowIndex',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ), // Display the row index
+                      DataColumn(
+                        label: Text(
+                          'Date',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                      DataCell(
-                        Container(
-                          child: Text(
-                            eventData['title'] ?? 'Title not available',
-                            // Null check
+                      DataColumn(
+                        label: Text(
+                          'Action',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                    columnSpacing: 20,
+                    dataRowMaxHeight: double.infinity,
+                    // Adjust the spacing between columns
+                    rows: events.docs.map((event) {
+                      final eventData =
+                          event.data() as Map<String, dynamic>;
+                      final Timestamp timestamp =
+                          eventData['date']; // Get the Timestamp
+                      final DateTime date = timestamp.toDate();
+                      final _date = DateFormat('dd-MM-yyyy \nhh:mm')
+                          .format(date); // Convert to DateTime
+                      final _time = DateFormat('hh:mm').format(date);
+                      rowIndex++; // Increment row index for each row
+                      String fileUrl = eventData['File'];
+                      String fileName = path.basename(fileUrl);
+                
+                      return DataRow(cells: [
+                        DataCell(
+                          Text(
+                            '$rowIndex',
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ), // Display the row index
+                        ),
+                        DataCell(
+                          Container(
+                            width:
+                                MediaQuery.of(context).size.width / 10,
+                            child: Text(
+                              eventData['title'] ??
+                                  'Title not available',
+                              // Null check
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            '${eventData['description']}',
+                        DataCell(
+                          Container(
+                            width:
+                                MediaQuery.of(context).size.width / 5,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                '${eventData['description']}',
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            '${eventData['assignTo']}',
+                        DataCell(
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              '${eventData['assignTo']}',
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Text(
-                          '$_date',
-                          style: const TextStyle(
-                            color: Color(0xff4b8fbf),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                        DataCell(
+                            fileUrl.toString()!="null"?InkWell(
+                            onTap: () {
+                              String fileUrl = eventData['File'];
+                              html.AnchorElement anchor =
+                                  html.AnchorElement(href: fileUrl);
+                              anchor.target = 'fileViewer';
+                              anchor.click();
+                            },
+                            child: Text(
+                              // Extract the file name from the URL
+                              eventData['FileName']??'-',
+                              style: const TextStyle(
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ): Text(
+                              // Extract the file name from the URL
+                              'No file',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+                        ),
+                        // DataCell(
+                        //   Padding(
+                        //     padding: const EdgeInsets.all(8.0),
+                        //     child: Text(
+                        //       '${eventData['File']}',
+                        //     ),
+                        //   ),
+                        // ),
+                        DataCell(
+                          Text(
+                            "${_date}",
+                            style: const TextStyle(
+                              color: Color(0xff4b8fbf),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
-                      ),
-                    ]);
-                  }).toList(),
+                        DataCell(Row(
+                          children: [
+                            IconButton(
+                                onPressed: () {
+                                  _editEvent(
+                                    Event(
+                                        id: event.id,
+                                        title: eventData['title'],
+                                        description:
+                                            eventData['description'],
+                                        assignTo: eventData['assignTo'],
+                                        date: date,
+                                        Files: eventData['File'],
+                                        FileName:
+                                            eventData['FileName']),
+                                  );
+                                },
+                                icon: const Icon(
+                                  FontAwesomeIcons.edit,
+                                  color: Colors.green,
+                                )),
+                            IconButton(
+                                onPressed: () => _deleteEvent(event.id),
+                                icon: const Icon(
+                                  FontAwesomeIcons.trash,
+                                  color: Colors.redAccent,
+                                )),
+                          ],
+                        ))
+                      ]);
+                    }).toList(),
+                  ),
                 ),
+              ),
         );
       },
     );
@@ -380,16 +464,20 @@ class _EventManagementState extends State<EventManagement> {
       description: _descriptionController.text,
       date: DateTime.now(),
       assignTo: assignTo,
-      Files: imjUrl.toString(),
+      Files: imjUrl.toString(), FileName: _filenameController.text,
     );
     eventsCollection.add({
       'title': newEvent.title,
       'description': newEvent.description,
       'date': newEvent.date,
-      'assignTo': newEvent.assignTo
+      'assignTo': newEvent.assignTo,
+      'File': newEvent.Files,
+      'FileName':newEvent.FileName
     });
+    Navigator.of(context).pop();
     _titleController.clear();
     _descriptionController.clear();
+    _filenameController.clear();
   }
 
   void _editEvent(Event event) {
@@ -398,44 +486,47 @@ class _EventManagementState extends State<EventManagement> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Edit Event'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ReusableTextField(
-                title: 'Title',
-                controller: _titleController,
+        return Container(
+          width: double.infinity,
+          child: AlertDialog(
+            title: Text('Edit Event'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ReusableTextField(
+                  title: 'Title',
+                  controller: _titleController,
+                ),
+                ReusableTextField(
+                  isMulti: true,
+                  maxLines: 5,
+                  keyboardType: TextInputType.multiline,
+                  title: 'Description',
+                  controller: _descriptionController,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
               ),
-              ReusableTextField(
-                isMulti: true,
-                maxLines: 5,
-                keyboardType: TextInputType.multiline,
-                title: 'Description',
-                controller: _descriptionController,
+              ElevatedButton(
+                onPressed: () {
+                  eventsCollection.doc(event.id).update({
+                    'title': _titleController.text,
+                    'description': _descriptionController.text,
+                  });
+                  Navigator.of(context).pop();
+                  _titleController.clear();
+                  _descriptionController.clear();
+                },
+                child: Text('Update'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                eventsCollection.doc(event.id).update({
-                  'title': _titleController.text,
-                  'description': _descriptionController.text,
-                });
-                Navigator.of(context).pop();
-                _titleController.clear();
-                _descriptionController.clear();
-              },
-              child: Text('Update'),
-            ),
-          ],
         );
       },
     );
