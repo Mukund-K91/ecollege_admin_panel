@@ -20,7 +20,7 @@ class Event {
   final String id;
   final String title;
   final String description;
-  final String assignTo;
+  final List<String> assignTo;
   final String? Files;
   final String? FileName;
   final DateTime date;
@@ -218,10 +218,12 @@ class _EventManagementState extends State<EventManagement> {
                         if (_formKey.currentState!.validate()) {
                           // _selectedOptions.clear();
                           // _selectedOptions.addAll(_controller.selectedOptions);
-                          final String AssignTo = _selectedOptions
+                          List<String> selectedAssignTo = _selectedOptions
                               .map((item) => item.value)
-                              .join(',');
-                          _addEvent(AssignTo);
+                              .where((value) => value != null)
+                              .cast<String>()
+                              .toList();
+                          _addEvent(selectedAssignTo);
                         }
                       },
                       child: Text('Add Event'),
@@ -457,7 +459,7 @@ class _EventManagementState extends State<EventManagement> {
     );
   }
 
-  void _addEvent(String assignTo) {
+  void _addEvent(List<String> assignTo) {
     final newEvent = Event(
       id: '',
       title: _titleController.text,
