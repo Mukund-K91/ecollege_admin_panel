@@ -1,6 +1,7 @@
 import 'package:ecollege_admin_panel/announcement.dart';
 import 'package:ecollege_admin_panel/dashboard_home.dart';
 import 'package:ecollege_admin_panel/login_screen.dart';
+import 'package:ecollege_admin_panel/slider_img.dart';
 import 'package:ecollege_admin_panel/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       AddFaculty(userType: widget.userType,),
       FacultyList(userType: widget.userType,),
       EventManagement(),
+      SliderPage()
     ];
   }
 
@@ -231,6 +233,16 @@ class SideMenu extends StatelessWidget {
           MenuItem(
             title: ' Announcement',
             index: 5,
+            selectedIndex: selectedIndex,
+            onMenuItemSelected: onMenuItemSelected,
+            icon: Icon(
+              FontAwesomeIcons.bullhorn,
+              color: Colors.white,
+            ),
+          ),
+          MenuItem(
+            title: ' Sliders',
+            index: 6,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
             icon: Icon(
