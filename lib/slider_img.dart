@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:flutter/cupertino.dart';
@@ -23,7 +25,7 @@ class appSlider {
 final DateTime _date = DateTime.now();
 
 final _filenameController = TextEditingController();
-final TextEditingController _endDateController =
+late TextEditingController _endDateController =
     TextEditingController(text: "DD-MM-YYYY");
 DateTime? _selectedDate;
 
@@ -34,7 +36,6 @@ class SliderPage extends StatefulWidget {
 
 class _SliderPageState extends State<SliderPage> {
   String? imageUrl;
-  DateTime? startDate;
   DateTime? endDate;
 
   Future<void> uploadImage() async {
@@ -54,14 +55,25 @@ class _SliderPageState extends State<SliderPage> {
     }
   }
 
+  final _publishdate = DateFormat('dd-MM-yyyy').format(_date);
+  List<Map<String, dynamic>> sliderData = [];
+
   void saveSliderData() {
     if (imageUrl != null && endDate != null) {
       FirebaseFirestore.instance.collection('slider_data').add({
         'imageUrl': imageUrl,
-        'startDate': startDate,
+        'startDate': _date,
         'endDate': endDate,
       }).then((value) {
-
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              backgroundColor: Colors.white,
+              shape: ContinuousRectangleBorder(),
+              content: Text(
+                'Added',
+                style: TextStyle(color: Colors.black),
+              )),
+        );
         // Data saved successfully
         print('Data saved to Firestore');
       }).catchError((error) {
@@ -71,6 +83,30 @@ class _SliderPageState extends State<SliderPage> {
     }
     _filenameController.clear();
     _endDateController.clear();
+    setState(() {});
+  }
+  Future<void> fetchSliderData() async {
+    final querySnapshot =
+    await FirebaseFirestore.instance.collection('slider_data').get();
+
+    final List<Map<String, dynamic>> data = [];
+
+    querySnapshot.docs.forEach((doc) {
+      final Map<String, dynamic> slider = {
+        'imageUrl': doc['imageUrl'],
+        'endDate': (doc['endDate'] as Timestamp).toDate(),
+      };
+      data.add(slider);
+    });
+
+    setState(() {
+      sliderData = data;
+    });
+  }
+  void initState() {
+    super.initState();
+    _endDateController = TextEditingController();
+    fetchSliderData();
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -83,7 +119,7 @@ class _SliderPageState extends State<SliderPage> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        endDate=_selectedDate;
+        endDate = _selectedDate;
         _endDateController.text =
             DateFormat('dd-MM-yyyy').format(_selectedDate!);
       });
@@ -91,8 +127,6 @@ class _SliderPageState extends State<SliderPage> {
   }
 
   @override
-  final _publishdate = DateFormat('dd-MM-yyyy').format(_date);
-
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
@@ -122,29 +156,30 @@ class _SliderPageState extends State<SliderPage> {
           Row(
             children: [
               Expanded(
-                flex: 2,
+                  flex: 2,
                   child: Column(
-                children: [
-                  ReusableTextField(
-                    readOnly: true,
-                    controller: _filenameController,
-                    title: 'Image',
-                    sufIcon: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(150, 50),
-                              backgroundColor: const Color(0xff002233),
-                              shape: const ContinuousRectangleBorder()),
-                          onPressed: uploadImage,
-                          child: const Text(
-                            "Upload",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          )),
-                    ),
-                  ),
-                ],
-              )),
+                    children: [
+                      ReusableTextField(
+                        readOnly: true,
+                        controller: _filenameController,
+                        title: 'Image',
+                        sufIcon: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size(150, 50),
+                                  backgroundColor: const Color(0xff002233),
+                                  shape: const ContinuousRectangleBorder()),
+                              onPressed: uploadImage,
+                              child: const Text(
+                                "Upload",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 15),
+                              )),
+                        ),
+                      ),
+                    ],
+                  )),
               SizedBox(
                 width: 20,
               ),
@@ -160,9 +195,13 @@ class _SliderPageState extends State<SliderPage> {
               ),
               Expanded(
                   child: RichText(
-                      text: TextSpan(text: "Timeline\n\n", style:TextStyle(fontWeight: FontWeight.bold),children: [
-                        TextSpan(text: "${_publishdate} TO ${_endDateController.text}")
-                      ]))),
+                      text: TextSpan(
+                          text: "Timeline\n\n",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                          children: [
+                    TextSpan(
+                        text: "${_publishdate} TO ${_endDateController.text}")
+                  ]))),
               SizedBox(
                 width: 20,
               ),
@@ -181,7 +220,7 @@ class _SliderPageState extends State<SliderPage> {
                       borderRadius: BorderRadius.all(Radius.circular(5))),
                   backgroundColor: const Color(0xff002233),
                 ),
-                onPressed:saveSliderData,
+                onPressed: saveSliderData,
                 child: const Text(
                   "Add",
                   style: TextStyle(color: Colors.white, fontSize: 20),
@@ -192,3 +231,20 @@ class _SliderPageState extends State<SliderPage> {
     );
   }
 }
+ListView.builder(
+shrinkWrap: true,
+itemCount: sliderData.length,
+itemBuilder: (context, index) {
+final data = sliderData[index];
+return DataRow(
+cells: [
+DataCell(
+Text(data['imageUrl'] ?? ''),
+),
+DataCell(
+Text(DateFormat('dd-MM-yyyy').format(data['endDate'])),
+),
+],
+);
+},
+),
