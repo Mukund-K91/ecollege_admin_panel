@@ -10,6 +10,9 @@ class appSlider {
 
   appSlider({
     required this.id,
+    required this.ImgUrl,
+    required this.publisdate,
+    required this.deletedate
 
   });
 }
