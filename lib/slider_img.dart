@@ -85,9 +85,10 @@ class _SliderPageState extends State<SliderPage> {
     _endDateController.clear();
     setState(() {});
   }
+
   Future<void> fetchSliderData() async {
     final querySnapshot =
-    await FirebaseFirestore.instance.collection('slider_data').get();
+        await FirebaseFirestore.instance.collection('slider_data').get();
 
     final List<Map<String, dynamic>> data = [];
 
@@ -103,6 +104,7 @@ class _SliderPageState extends State<SliderPage> {
       sliderData = data;
     });
   }
+
   void initState() {
     super.initState();
     _endDateController = TextEditingController();
@@ -141,14 +143,16 @@ class _SliderPageState extends State<SliderPage> {
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Container(
-                    color: Colors.grey.shade100, child: _addImgToSlider()),
-              )
+                    color: Colors.grey.shade100,
+                    child: _addImgToSlider(context)),
+              ),
+              _SliderList()
             ],
           ),
         ));
   }
 
-  Widget _addImgToSlider() {
+  Padding _addImgToSlider(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(50),
       child: Column(
@@ -230,21 +234,75 @@ class _SliderPageState extends State<SliderPage> {
       ),
     );
   }
+
+  Widget _SliderList() {
+    int rowIndex = 0; // Initialize the row index
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('slider_data').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(); // Or any other loading indicator
+        }
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Text('No data available'); // Or any other placeholder widget
+        }
+
+        return Container(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: DataTable(
+              border: TableBorder.all(color: Colors.black),
+              columns: [
+                DataColumn(label: Text('No.')),
+                DataColumn(label: Text('Image')),
+                DataColumn(label: Text('Created At')),
+                DataColumn(label: Text('End Date')),
+              ],
+              dataRowMaxHeight: double.infinity,
+              rows: snapshot.data!.docs.map((doc) {
+                rowIndex++;
+                final imageUrl = doc['imageUrl'] ?? '';
+                final startDate = doc['startDate'] != null
+                    ? DateFormat('dd-MM-yyyy hh:mm a')
+                        .format((doc['startDate'] as Timestamp).toDate())
+                    : '';
+                final endDate = doc['endDate'] != null
+                    ? DateFormat('dd-MM-yyyy')
+                        .format((doc['endDate'] as Timestamp).toDate())
+                    : '';
+                return DataRow(cells: [
+                  DataCell(Text('${rowIndex}')),
+                  DataCell(
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Container(
+                        width: 150,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black),
+                        ),
+                        child: imageUrl.isNotEmpty
+                            ? Image.network(
+                                imageUrl,
+                                fit: BoxFit
+                                    .cover, // Adjust the fit as per your requirement
+                              )
+                            : Placeholder(child: Text("NO found"),), // Placeholder if imageUrl is empty
+                      ),
+                    ),
+                  ),
+                  DataCell(Text(startDate)),
+                  DataCell(Text(endDate)),
+                ]);
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
-ListView.builder(
-shrinkWrap: true,
-itemCount: sliderData.length,
-itemBuilder: (context, index) {
-final data = sliderData[index];
-return DataRow(
-cells: [
-DataCell(
-Text(data['imageUrl'] ?? ''),
-),
-DataCell(
-Text(DateFormat('dd-MM-yyyy').format(data['endDate'])),
-),
-],
-);
-},
-),
