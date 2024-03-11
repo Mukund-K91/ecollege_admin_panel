@@ -1,11 +1,13 @@
 import 'dart:html';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker_web/image_picker_web.dart';
 import 'package:intl/intl.dart';
 
@@ -15,24 +17,26 @@ class appSlider {
   final DateTime publisdate;
   final DateTime deletedate;
 
-  appSlider(
-      {required this.id,
-      required this.ImgUrl,
-      required this.publisdate,
-      required this.deletedate});
+  appSlider({required this.id,
+    required this.ImgUrl,
+    required this.publisdate,
+    required this.deletedate});
 }
 
 final DateTime _date = DateTime.now();
 
 final _filenameController = TextEditingController();
 late TextEditingController _endDateController =
-    TextEditingController(text: "DD-MM-YYYY");
+TextEditingController(text: "DD-MM-YYYY");
 DateTime? _selectedDate;
 
 class SliderPage extends StatefulWidget {
   @override
   _SliderPageState createState() => _SliderPageState();
 }
+
+final CollectionReference _sliderDataCol =
+FirebaseFirestore.instance.collection('slider_data');
 
 class _SliderPageState extends State<SliderPage> {
   String? imageUrl;
@@ -88,7 +92,7 @@ class _SliderPageState extends State<SliderPage> {
 
   Future<void> fetchSliderData() async {
     final querySnapshot =
-        await FirebaseFirestore.instance.collection('slider_data').get();
+    await FirebaseFirestore.instance.collection('slider_data').get();
 
     final List<Map<String, dynamic>> data = [];
 
@@ -189,11 +193,11 @@ class _SliderPageState extends State<SliderPage> {
               ),
               Expanded(
                   child: ReusableTextField(
-                readOnly: true,
-                controller: _endDateController,
-                OnTap: () => _selectDate(context),
-                title: 'End Date',
-              )),
+                    readOnly: true,
+                    controller: _endDateController,
+                    OnTap: () => _selectDate(context),
+                    title: 'End Date',
+                  )),
               SizedBox(
                 width: 20,
               ),
@@ -203,9 +207,10 @@ class _SliderPageState extends State<SliderPage> {
                           text: "Timeline\n\n",
                           style: TextStyle(fontWeight: FontWeight.bold),
                           children: [
-                    TextSpan(
-                        text: "${_publishdate} TO ${_endDateController.text}")
-                  ]))),
+                            TextSpan(
+                                text: "${_publishdate} TO ${_endDateController
+                                    .text}")
+                          ]))),
               SizedBox(
                 width: 20,
               ),
@@ -237,6 +242,7 @@ class _SliderPageState extends State<SliderPage> {
 
   Widget _SliderList() {
     int rowIndex = 0; // Initialize the row index
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('slider_data').snapshots(),
       builder: (context, snapshot) {
@@ -261,6 +267,8 @@ class _SliderPageState extends State<SliderPage> {
                 DataColumn(label: Text('Image')),
                 DataColumn(label: Text('Created At')),
                 DataColumn(label: Text('End Date')),
+                DataColumn(label: Text('Status')),
+                DataColumn(label: Text('Action')),
               ],
               dataRowMaxHeight: double.infinity,
               rows: snapshot.data!.docs.map((doc) {
@@ -268,35 +276,52 @@ class _SliderPageState extends State<SliderPage> {
                 final imageUrl = doc['imageUrl'] ?? '';
                 final startDate = doc['startDate'] != null
                     ? DateFormat('dd-MM-yyyy hh:mm a')
-                        .format((doc['startDate'] as Timestamp).toDate())
+                    .format((doc['startDate'] as Timestamp).toDate())
                     : '';
-                final endDate = doc['endDate'] != null
-                    ? DateFormat('dd-MM-yyyy')
-                        .format((doc['endDate'] as Timestamp).toDate())
+                final Timestamp? endDateTimestamp =
+                doc['endDate'] as Timestamp?;
+                final DateTime? endDate =
+                endDateTimestamp != null ? endDateTimestamp.toDate() : null;
+                final String endDateFormatted = endDate != null
+                    ? DateFormat('dd-MM-yyyy').format(endDate)
                     : '';
+                final bool isActive =
+                endDate != null ? DateTime.now().isBefore(endDate) : false;
+
                 return DataRow(cells: [
                   DataCell(Text('${rowIndex}')),
                   DataCell(
                     Padding(
                       padding: const EdgeInsets.all(10),
                       child: Container(
-                        width: 150,
+                        width: 130,
                         height: 50,
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.black),
                         ),
                         child: imageUrl.isNotEmpty
                             ? Image.network(
-                                imageUrl,
-                                fit: BoxFit
-                                    .cover, // Adjust the fit as per your requirement
-                              )
-                            : Placeholder(child: Text("NO found"),), // Placeholder if imageUrl is empty
+                          imageUrl,
+                          fit: BoxFit
+                              .cover, // Adjust the fit as per your requirement
+                        )
+                            : Placeholder(
+                          child: Text("NO found"),
+                        ), // Placeholder if imageUrl is empty
                       ),
                     ),
                   ),
                   DataCell(Text(startDate)),
-                  DataCell(Text(endDate)),
+                  DataCell(Text("${endDateFormatted}")),
+                  DataCell(Text(isActive ? "Active" : "Closed",
+                    style: TextStyle(
+                        color: isActive ? Colors.green : Colors.redAccent),)),
+                  DataCell(IconButton(
+                      onPressed: () => _deleteImg(doc.id),
+                      icon: Icon(
+                        FontAwesomeIcons.trash,
+                        color: Colors.redAccent,
+                      )))
                 ]);
               }).toList(),
             ),
@@ -304,5 +329,21 @@ class _SliderPageState extends State<SliderPage> {
         );
       },
     );
+  }
+
+  void _deleteImg(String id) {
+    AwesomeDialog(
+      width: 400,
+      context: context,
+      dialogType: DialogType.question,
+      btnOkOnPress: () async {
+        await _sliderDataCol.doc(id).delete();
+        // for snackBar
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Deleted")));
+      },
+      showCloseIcon: true,
+      title: "Are You Sure?",
+    ).show();
   }
 }
