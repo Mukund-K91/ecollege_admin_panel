@@ -26,19 +26,19 @@ class Student {
 
   Student(
       {required this.firstname,
-      required this.middlename,
-      required this.lastname,
-      required this.gender,
-      required this.userId,
-      required this.activationDate,
-      required this.profile,
-      required this.email,
-      required this.mobile,
-      required this.DOB,
-      required this.program,
-      required this.programTerm,
-      required this.division,
-      required this.password});
+        required this.middlename,
+        required this.lastname,
+        required this.gender,
+        required this.userId,
+        required this.activationDate,
+        required this.profile,
+        required this.email,
+        required this.mobile,
+        required this.DOB,
+        required this.program,
+        required this.programTerm,
+        required this.division,
+        required this.password});
 
   // Convert Student object to a Map for Firestore
   Map<String, dynamic> toMap() {
@@ -88,23 +88,23 @@ class FirestoreService {
         .orderBy('User Id')
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Student(
-                  firstname: doc['First Name'],
-                  middlename: doc['Middle Name'],
-                  lastname: doc['Last Name'],
-                  gender: doc['Gender'],
-                  userId: doc['User Id'],
-                  activationDate: doc['Activation Date'],
-                  profile: doc['Profile Img'],
-                  email: doc['Email'],
-                  mobile: doc['Mobile'],
-                  DOB: doc['DOB'],
-                  program: doc['program'],
-                  programTerm: doc['programTerm'],
-                  division: doc['division'],
-                  password: doc['Password'],
-                ))
-            .toList());
+        .map((doc) => Student(
+      firstname: doc['First Name'],
+      middlename: doc['Middle Name'],
+      lastname: doc['Last Name'],
+      gender: doc['Gender'],
+      userId: doc['User Id'],
+      activationDate: doc['Activation Date'],
+      profile: doc['Profile Img'],
+      email: doc['Email'],
+      mobile: doc['Mobile'],
+      DOB: doc['DOB'],
+      program: doc['program'],
+      programTerm: doc['programTerm'],
+      division: doc['division'],
+      password: doc['Password'],
+    ))
+        .toList());
   }
 
   Stream<List<Student>> searchStudents(
@@ -119,23 +119,23 @@ class FirestoreService {
         .where('First Name', isLessThanOrEqualTo: searchTerm + '\uf8ff')
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Student(
-                  firstname: doc['First Name'],
-                  middlename: doc['Middle Name'],
-                  lastname: doc['Last Name'],
-                  gender: doc['Gender'],
-                  userId: doc['User Id'],
-                  activationDate: doc['Activation Date'],
-                  profile: doc['Profile Img'],
-                  email: doc['Email'],
-                  mobile: doc['Mobile'],
-                  DOB: doc['DOB'],
-                  program: doc['program'],
-                  programTerm: doc['programTerm'],
-                  division: doc['division'],
-                  password: doc['Password'],
-                ))
-            .toList());
+        .map((doc) => Student(
+      firstname: doc['First Name'],
+      middlename: doc['Middle Name'],
+      lastname: doc['Last Name'],
+      gender: doc['Gender'],
+      userId: doc['User Id'],
+      activationDate: doc['Activation Date'],
+      profile: doc['Profile Img'],
+      email: doc['Email'],
+      mobile: doc['Mobile'],
+      DOB: doc['DOB'],
+      program: doc['program'],
+      programTerm: doc['programTerm'],
+      division: doc['division'],
+      password: doc['Password'],
+    ))
+        .toList());
   }
 }
 
@@ -597,4 +597,3 @@ class _StudentListItemState extends State<StudentListItem> {
     );
   }
 }
-
