@@ -243,7 +243,8 @@ class _SliderPageState extends State<SliderPage> {
   Widget _SliderList() {
     int rowIndex = 0; // Initialize the row index
 
-    return StreamBuilder<QuerySnapshot>(
+    return
+      StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('slider_data').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {

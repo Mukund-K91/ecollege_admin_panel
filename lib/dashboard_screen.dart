@@ -1,4 +1,5 @@
 import 'package:ecollege_admin_panel/announcement.dart';
+import 'package:ecollege_admin_panel/attendance.dart';
 import 'package:ecollege_admin_panel/dashboard_home.dart';
 import 'package:ecollege_admin_panel/login_screen.dart';
 import 'package:ecollege_admin_panel/slider_img.dart';
@@ -47,7 +48,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       AddFaculty(userType: widget.userType,),
       FacultyList(userType: widget.userType,),
       EventManagement(),
-      SliderPage()
+      SliderPage(),
+      Attendance(program: 'BCA',)
     ];
   }
 
@@ -243,6 +245,16 @@ class SideMenu extends StatelessWidget {
           MenuItem(
             title: ' Sliders',
             index: 6,
+            selectedIndex: selectedIndex,
+            onMenuItemSelected: onMenuItemSelected,
+            icon: Icon(
+              FontAwesomeIcons.bullhorn,
+              color: Colors.white,
+            ),
+          ),
+          MenuItem(
+            title: ' Attendance',
+            index: 7,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
             icon: Icon(
