@@ -1,6 +1,7 @@
 import 'package:ecollege_admin_panel/announcement.dart';
 import 'package:ecollege_admin_panel/attendance.dart';
 import 'package:ecollege_admin_panel/dashboard_home.dart';
+import 'package:ecollege_admin_panel/demo.dart';
 import 'package:ecollege_admin_panel/login_screen.dart';
 import 'package:ecollege_admin_panel/slider_img.dart';
 import 'package:ecollege_admin_panel/splash_screen.dart';
@@ -49,7 +50,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       FacultyList(userType: widget.userType,),
       EventManagement(),
       SliderPage(),
-      Attendance(program: 'BCA',)
+      Demo()
+     // Attendance(program: 'BCA',)
     ];
   }
 

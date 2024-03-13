@@ -296,46 +296,6 @@ class _AddStudentsState extends State<AddStudents> {
     return pdf.save();
   }
 
-  // Variable to hold the current roll number
-//  int currentRollNumber = 001;
-
-// Function to initialize the roll number when program, programTerm, and division are selected
-//   void initializeRollNumber(
-//       String program, String programTerm, String division) async {
-//     try {
-//       final rollNumberDocPath = 'rollNo/$program/$programTerm/$division';
-//       final rollNumberDocRef =
-//           FirebaseFirestore.instance.doc(rollNumberDocPath);
-//
-//       // Fetch the last roll number
-//       final rollNumberSnapshot = await rollNumberDocRef.get();
-//       currentRollNumber = rollNumberSnapshot.exists
-//           ? (rollNumberSnapshot.data()!['lastRollNumber'] as int)
-//           : 001;
-//       _rollNumberController.text = currentRollNumber.toString();
-//     } catch (e) {
-//       print('Error fetching roll number: $e');
-//     }
-//   }
-//
-// // Function to increment and store the roll number when the user clicks on submit
-//   Future<void> incrementAndStoreRollNumber(
-//       String program, String programTerm, String division) async {
-//     try {
-//       final rollNumberDocPath = 'rolls/$program/$programTerm/$division';
-//       final rollNumberDocRef =
-//           FirebaseFirestore.instance.doc(rollNumberDocPath);
-//
-//       // Increment the roll number
-//       currentRollNumber++;
-//
-//       // Update the roll number in Firestore
-//       await rollNumberDocRef.set({'lastRollNumber': currentRollNumber});
-//     } catch (e) {
-//       print('Error setting roll number: $e');
-//     }
-//   }
-
   Future<void> _incrementUserId() async {
     _lastUserId++;
     _totalStudent++;

@@ -73,6 +73,7 @@ class AttendanceRecord {
   });
 }
 
+
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -414,6 +415,7 @@ class _AttendanceState extends State<Attendance> {
   late FirestoreService _firestoreService;
   late TextEditingController _searchController;
   late DocumentReference _UserIdDoc;
+  List<AttendanceRecord> attendanceRecords = [];
 
   @override
   void initState() {
@@ -425,7 +427,15 @@ class _AttendanceState extends State<Attendance> {
     _searchController = TextEditingController();
     _UserIdDoc = FirebaseFirestore.instance.collection('metadata').doc('userId');
   }
-
+  void _toggleAttendance(int index, bool isPresent) {
+    setState(() {
+      if (isPresent) {
+        attendanceRecords[index].presentCount++;
+      } else {
+        attendanceRecords[index].absentCount++;
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
