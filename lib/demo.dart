@@ -20,13 +20,11 @@ class Student {
 
 class AttendanceRecord {
   final String subject;
-  int presentCount;
-  int absentCount;
+  bool isPresent;
 
   AttendanceRecord({
     required this.subject,
-    this.presentCount = 0,
-    this.absentCount = 0,
+    this.isPresent = true, // Default isPresent to true (present)
   });
 }
 
@@ -88,13 +86,10 @@ class _DemoState extends State<Demo> {
     setState(() {});
   }
 
-  void _toggleAttendance(int index, bool isPresent) {
+  void _toggleAttendance(int index) {
     setState(() {
-      if (isPresent) {
-        attendanceRecords[index].presentCount++;
-      } else {
-        attendanceRecords[index].absentCount++;
-      }
+      // Toggle the isPresent status for the student at the given index
+      attendanceRecords[index].isPresent = !attendanceRecords[index].isPresent;
     });
   }
 
@@ -142,12 +137,17 @@ class _DemoState extends State<Demo> {
 
       // Update monthly attendance count based on the recorded counts
       AttendanceRecord record = attendanceRecords[i];
-      batch.update(monthlyAttendanceDocRef, {
-        'subjectAttendance.$selectedSubject.presentCount': FieldValue.increment(
-            record.presentCount),
-        'subjectAttendance.$selectedSubject.absentCount': FieldValue.increment(
-            record.absentCount),
-      });
+      if (record.isPresent) {
+        // Increment present count if the student is present
+        batch.update(monthlyAttendanceDocRef, {
+          'subjectAttendance.$selectedSubject.presentCount': FieldValue.increment(1),
+        });
+      } else {
+        // Increment absent count if the student is absent
+        batch.update(monthlyAttendanceDocRef, {
+          'subjectAttendance.$selectedSubject.absentCount': FieldValue.increment(1),
+        });
+      }
     }
 
     // Commit the batch
@@ -164,7 +164,6 @@ class _DemoState extends State<Demo> {
         'Attendance submitted for date: $selectedDate, subject: $selectedSubject');
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -173,120 +172,112 @@ class _DemoState extends State<Demo> {
       ),
       body: Column(
         children: [
-        DropdownButton<String>(
-        value: selectedProgram,
-        onChanged: (value) {
-          setState(() {
-            selectedProgram = value!;
-            fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
-          });
-        },
-        items: [
-          "--Please Select--",
-          "BCA",
-          "B-Com",
-          "BBA"
-        ].map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-      ),
-      DropdownButton<String>(
-        value: selectedProgramTerm,
-        onChanged: (value) {
-          setState(() {
-            selectedProgramTerm = value!;
-            fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
-          });
-        },
-        items: [
-          "--Please Select--",
-          "Sem - 1",
-          "Sem - 2",
-          "Sem - 3",
-          "Sem - 4",
-          "Sem - 5",
-          "Sem - 6"
-        ].map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-      ),
-      DropdownButton<String>(
-        value: selectedDivision,
-        onChanged: (value) {
-          setState(() {
-            selectedDivision = value!;
-            fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
-          });
-        },
-        items: [
-          "--Please Select--",
-          "A",
-          "B",
-          "C",
-          "D",
-          "E",
-          "F",
-          "G"
-        ].map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-      ),
-      ElevatedButton(
-        onPressed: () => _pickDate(context),
-        child: Text('Select Date: ${selectedDate.toLocal()}'),
-      ),
-      Expanded(
-        child: ListView.builder(
-          itemCount: students.length,
-          itemBuilder: (context, index) {
-            Student student = students[index];
+          DropdownButton<String>(
+            value: selectedProgram,
+            onChanged: (value) {
+              setState(() {
+                selectedProgram = value!;
+                fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
+              });
+            },
+            items: [
+              "--Please Select--",
+              "BCA",
+              "B-Com",
+              "BBA"
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+          DropdownButton<String>(
+            value: selectedProgramTerm,
+            onChanged: (value) {
+              setState(() {
+                selectedProgramTerm = value!;
+                fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
+              });
+            },
+            items: [
+              "--Please Select--",
+              "Sem - 1",
+              "Sem - 2",
+              "Sem - 3",
+              "Sem - 4",
+              "Sem - 5",
+              "Sem - 6"
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+          DropdownButton<String>(
+            value: selectedDivision,
+            onChanged: (value) {
+              setState(() {
+                selectedDivision = value!;
+                fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
+              });
+            },
+            items: [
+              "--Please Select--",
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+          ElevatedButton(
+            onPressed: () => _pickDate(context),
+            child: Text('Select Date: ${selectedDate.toLocal()}'),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: students.length,
+              itemBuilder: (context, index) {
+                AttendanceRecord record = attendanceRecords[index];
 
-            return ListTile(
-              title: Text('${student.name} - Roll No: ${student.rollNo}'),
-              subtitle: Text('Subject: $selectedSubject'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Checkbox(
-                    value: false,
-                    // Placeholder value, replace with actual logic
-                    onChanged: (value) =>
-                        _toggleAttendance(index, value ?? false),
+                return ListTile(
+                  title: Text('${students[index].name} - Roll No: ${students[index].rollNo}'),
+                  subtitle: Text('Subject: $selectedSubject'),
+                  trailing: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.black, backgroundColor: record.isPresent ? Colors.green : Colors.red,
+                      minimumSize: Size(100, 40),
+                    ),
+                    onPressed: () {
+                      _toggleAttendance(index);
+                    },
+                    child: Text(
+                      record.isPresent ? 'Present' : 'Absent',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                  Text('Present'),
-                  SizedBox(width: 10),
-                  Checkbox(
-                    value: false,
-                    // Placeholder value, replace with actual logic
-                    onChanged: (value) =>
-                        _toggleAttendance(index, !value! ?? false),
-                  ),
-                  Text('Absent'),
-                ],
-              ),
-            );
-          },
-        ),
+                );
+              },
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _submitAttendance(
+                  selectedProgram, selectedProgramTerm, selectedDivision);
+            },
+            child: Text('Submit Attendance'),
+          ),
+        ],
       ),
-      ElevatedButton(
-          onPressed: () {
-            _submitAttendance(
-                selectedProgram, selectedProgramTerm, selectedDivision);
-          },
-          child: Text('Submit Attendance'),
-    ),]
-    ,
-    )
-    ,
     );
   }
 
