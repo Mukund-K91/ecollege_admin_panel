@@ -50,8 +50,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       FacultyList(userType: widget.userType,),
       EventManagement(),
       SliderPage(),
-      Demo()
-     // Attendance(program: 'BCA',)
+      RollNumberAssignment()     // Attendance(program: 'BCA',)
     ];
   }
 
