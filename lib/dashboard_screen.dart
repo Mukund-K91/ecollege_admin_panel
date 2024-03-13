@@ -1,7 +1,5 @@
 import 'package:ecollege_admin_panel/announcement.dart';
-import 'package:ecollege_admin_panel/attendance.dart';
 import 'package:ecollege_admin_panel/dashboard_home.dart';
-import 'package:ecollege_admin_panel/demo.dart';
 import 'package:ecollege_admin_panel/login_screen.dart';
 import 'package:ecollege_admin_panel/slider_img.dart';
 import 'package:ecollege_admin_panel/splash_screen.dart';
@@ -9,6 +7,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'assign_roll_no.dart';
+import 'attendance.dart';
 import 'faculty_management.dart';
 import 'firebase_options.dart';
 import 'student_management.dart';
@@ -19,8 +19,11 @@ class DashboardScreen extends StatefulWidget {
   final userType;
   final userName;
 
-  const DashboardScreen({Key? key,this.userType, this.userName,})
-      : super(key: key);
+  const DashboardScreen({
+    Key? key,
+    this.userType,
+    this.userName,
+  }) : super(key: key);
 
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -45,12 +48,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _screens = [
       Home(),
       AddStudents(userType: widget.userType),
-      StudentList(userType: widget.userType,),
-      AddFaculty(userType: widget.userType,),
-      FacultyList(userType: widget.userType,),
+      StudentList(
+        userType: widget.userType,
+      ),
+      RollNumberAssignment(),
+      AddFaculty(
+        userType: widget.userType,
+      ),
+      FacultyList(
+        userType: widget.userType,
+      ),
       EventManagement(),
       SliderPage(),
-      RollNumberAssignment()     // Attendance(program: 'BCA',)
+      Attendance(program: 'BCA',)
     ];
   }
 
@@ -200,6 +210,12 @@ class SideMenu extends StatelessWidget {
                 selectedIndex: selectedIndex,
                 onMenuItemSelected: onMenuItemSelected,
               ),
+              MenuItem(
+                title: 'Assign Roll No.',
+                index: 3,
+                selectedIndex: selectedIndex,
+                onMenuItemSelected: onMenuItemSelected,
+              ),
             ],
           ),
           ExpansionTile(
@@ -221,13 +237,13 @@ class SideMenu extends StatelessWidget {
             children: [
               MenuItem(
                 title: 'Add Faculty',
-                index: 3,
+                index: 4,
                 selectedIndex: selectedIndex,
                 onMenuItemSelected: onMenuItemSelected,
               ),
               MenuItem(
                 title: 'Faculty Details',
-                index: 4,
+                index: 5,
                 selectedIndex: selectedIndex,
                 onMenuItemSelected: onMenuItemSelected,
               ),
@@ -235,16 +251,6 @@ class SideMenu extends StatelessWidget {
           ),
           MenuItem(
             title: ' Announcement',
-            index: 5,
-            selectedIndex: selectedIndex,
-            onMenuItemSelected: onMenuItemSelected,
-            icon: Icon(
-              FontAwesomeIcons.bullhorn,
-              color: Colors.white,
-            ),
-          ),
-          MenuItem(
-            title: ' Sliders',
             index: 6,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
@@ -254,8 +260,18 @@ class SideMenu extends StatelessWidget {
             ),
           ),
           MenuItem(
-            title: ' Attendance',
+            title: ' Sliders',
             index: 7,
+            selectedIndex: selectedIndex,
+            onMenuItemSelected: onMenuItemSelected,
+            icon: Icon(
+              FontAwesomeIcons.bullhorn,
+              color: Colors.white,
+            ),
+          ),
+          MenuItem(
+            title: ' Attendance',
+            index: 8,
             selectedIndex: selectedIndex,
             onMenuItemSelected: onMenuItemSelected,
             icon: Icon(
