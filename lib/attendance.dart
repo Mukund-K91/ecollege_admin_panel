@@ -32,9 +32,9 @@ class AttendanceRecord {
 }
 
 class Attendance extends StatefulWidget {
-  final program;
+  final String program;
 
-  const Attendance({super.key, this.program});
+  const Attendance({required this.program});
 
   @override
   _AttendanceState createState() => _AttendanceState();
@@ -46,14 +46,16 @@ class _AttendanceState extends State<Attendance> {
   DateTime selectedDate = DateTime.now();
 
   List<AttendanceRecord> attendanceRecords = [];
-  String selectedProgram = '--Please Select--';
+  late String selectedProgram;
   String selectedProgramTerm = "--Please Select--";
   String selectedDivision = "--Please Select--";
   String searchQuery = '';
+  List<String> subjectList = [];
 
   @override
   void initState() {
     super.initState();
+    selectedProgram = widget.program;
     fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
   }
 
@@ -90,6 +92,17 @@ class _AttendanceState extends State<Attendance> {
     setState(() {
       // Toggle the isPresent status for the student at the given index
       attendanceRecords[index].isPresent = !attendanceRecords[index].isPresent;
+    });
+  }
+
+  void updateSubjectList(String Program, String ProgramTerm) {
+    // Get the subject list based on the selected program and program term
+    subjectList = SubjectLists.getSubjects(Program, ProgramTerm);
+    setState(() {
+      // Reset the selected subject when updating the subject list
+      // to ensure consistency if the current selected subject is not
+      // available in the new subject list
+      //selectedSubject = subjectList.isNotEmpty ? subjectList[0] : null;
     });
   }
 
@@ -164,6 +177,8 @@ class _AttendanceState extends State<Attendance> {
 
     print(
         'Attendance submitted for date: $selectedDate, subject: $selectedSubject');
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Attendance Successfully added")));
   }
 
   @override
@@ -176,9 +191,28 @@ class _AttendanceState extends State<Attendance> {
     final currentDate = DateFormat('dd-MM-yyyy EEEE').format(selectedDate);
 
     return Scaffold(
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(10),
+        child: SizedBox(
+          width: double.infinity,
+          height: 30,
+          child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff002233),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5))),
+              onPressed: () async {
+                _submitAttendance(selectedProgram, selectedProgramTerm, selectedDivision);
+              },
+              child: const Text(
+                "SUBMIT",
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              )),
+        ),
+      ),
       appBar: AppBar(
-        title:
-            Text('Attendance', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Attendance Stream: ${selectedProgram}',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -189,117 +223,117 @@ class _AttendanceState extends State<Attendance> {
           )
         ],
       ),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: ReusableTextField(
-                  onChanged: (value) {
-                    setState(() {
-                      searchQuery = value;
-                    });
-                  },
-                  title: 'Search By Name',
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: ReusableTextField(
+                    onChanged: (value) {
+                      setState(() {
+                        searchQuery = value;
+                      });
+                    },
+                    title: 'Search By Name',
+                  ),
                 ),
-              ),
-              DropdownButton<String>(
-                value: selectedProgram,
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedProgram = value!;
-                    selectedProgramTerm = '--Please Select--';
-                    fetchData(
-                        selectedProgram, selectedProgramTerm, selectedDivision);
-                  });
-                },
-                items: lists.programs.map<DropdownMenuItem<String>>(
-                  (String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  },
-                ).toList(),
-                hint: const Text('Program'),
-              ),
-              const SizedBox(width: 8),
-              DropdownButton<String>(
-                value: selectedProgramTerm,
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedProgramTerm = value!;
-                    fetchData(
-                        selectedProgram, selectedProgramTerm, selectedDivision);
-                  });
-                },
-                items: selectedProgram == '--Please Select--'
-                    ? []
-                    : lists.programTerms.map<DropdownMenuItem<String>>(
-                        (String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        },
-                      ).toList(),
-                hint: const Text('Program Term'),
-              ),
-              const SizedBox(width: 8),
-              DropdownButton<String>(
-                value: selectedDivision,
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedDivision = value!;
-                    fetchData(
-                        selectedProgram, selectedProgramTerm, selectedDivision);
-                  });
-                },
-                items: selectedProgramTerm == '--Please Select--'
-                    ? []
-                    : selectedProgram == "BCA"
-                        ? lists.bbaDivision
+                SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: ListTile(
+                    title: const Text(
+                      "Program Term",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    subtitle: DropdownButtonFormField(
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.zero))),
+                        value: selectedProgramTerm,
+                        items: lists.programTerms
                             .map((e) => DropdownMenuItem(
-                                  value: e,
-                                  child: Text(e),
-                                ))
+                          value: e,
+                          child: Text(e),
+                        ))
+                            .toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            selectedProgramTerm = val as String;
+                            updateSubjectList(
+                                selectedProgram, selectedProgramTerm);
+                          });
+                        }),
+                  ),
+                ),
+                Expanded(
+                  child: ListTile(
+                    title: const Text(
+                      "Division",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    subtitle: DropdownButtonFormField(
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.zero))),
+                        value: selectedDivision,
+                        items: selectedProgram == "BCA"
+                            ? lists.bcaDivision
+                            .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        ))
                             .toList()
-                        : selectedProgram == "B-Com"
+                            : selectedProgram == "B-Com"
                             ? lists.bcomDivision
-                                .map((e) => DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e),
-                                    ))
-                                .toList()
-                            : lists.bcomDivision
-                                .map((e) => DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e),
-                                    ))
-                                .toList(),
-                hint: const Text('Class'),
+                            .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        ))
+                            .toList()
+                            : lists.bbaDivision
+                            .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        ))
+                            .toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            selectedDivision = val as String;
+                            fetchData(selectedProgram, selectedProgramTerm,
+                                selectedDivision);
+                          });
+                        }),
+                  ),
+                ),
+              ],
+            ),
+            ListTile(
+              title: const Text(
+                "Subject",
+                style: TextStyle(fontSize: 15),
               ),
-              DropdownButton<String>(
-                value: selectedSubject,
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedSubject = value!;
-                  });
-                },
-                items: lists.bca_sem6.map<DropdownMenuItem<String>>(
-                  (String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  },
-                ).toList(),
-                hint: const Text('Class'),
-              ),
-            ],
-          ),
-          Expanded(
-            child: ListView.builder(
+              subtitle: DropdownButtonFormField(
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.zero))),
+                  value: selectedSubject,
+                  items: subjectList
+                      .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e),
+                  ))
+                      .toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      selectedSubject = val as String;
+                    });
+                  }),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
               itemCount: filteredStudents.length,
               itemBuilder: (context, index) {
                 Student student = filteredStudents[index];
@@ -312,7 +346,7 @@ class _AttendanceState extends State<Attendance> {
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.black,
                       backgroundColor:
-                          record.isPresent ? Colors.green : Colors.red,
+                      record.isPresent ? Colors.green : Colors.red,
                       minimumSize: Size(100, 40),
                     ),
                     onPressed: () {
@@ -326,15 +360,8 @@ class _AttendanceState extends State<Attendance> {
                 );
               },
             ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _submitAttendance(
-                  selectedProgram, selectedProgramTerm, selectedDivision);
-            },
-            child: Text('Submit Attendance'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

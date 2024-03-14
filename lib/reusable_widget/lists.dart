@@ -1,3 +1,30 @@
+class SubjectLists {
+  static List<String> getSubjects(String program, String programTerm) {
+    switch ('$program'+'_'+'$programTerm') {
+      case 'BCA_Sem - 1':
+        return lists.bca_sem1;
+      case 'BCA_Sem - 2':
+        return lists.bca_sem2;
+      case 'BCA_Sem - 3':
+        return lists.bca_sem3;
+      case 'BCA_Sem - 4':
+        return lists.bca_sem4;
+      case 'BCA_Sem - 5':
+        return lists.bca_sem5;
+      case 'BCA_Sem - 6':
+        return lists.bca_sem6;
+      case 'BBA_Sem - 1':
+        return lists.bba_sem1;
+    // Add more cases for other programs and terms
+      default:
+        return ["--Please Select--"];
+    }
+  }
+}
+
+
+
+
 class lists {
   static const List<String> programs = [
     "--Please Select--",
