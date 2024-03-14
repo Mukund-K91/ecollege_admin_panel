@@ -61,7 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       EventManagement(),
       SliderPage(),
-      Attendance(program: 'BCA',)
+      Attendance(program: '--Please Select',)
     ];
   }
 
