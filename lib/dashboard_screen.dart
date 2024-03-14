@@ -165,123 +165,133 @@ class SideMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 250,
-      color: Color(0xff002233),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          MenuItem(
-            icon: Icon(
-              FontAwesomeIcons.home,
-              color: Colors.white,
-            ),
-            title: ' Dashboard',
-            index: 0,
-            selectedIndex: selectedIndex,
-            onMenuItemSelected: onMenuItemSelected,
-          ),
-          ExpansionTile(
-            title: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Icon(
-                    FontAwesomeIcons.graduationCap,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  " Students",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
+    return
+      SingleChildScrollView(
+        child: Container(
+          width: 250,
+          height: MediaQuery.of(context).size.height,
+          color: Color(0xff002233),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               MenuItem(
-                title: 'Add Student',
-                index: 1,
+                icon: Icon(
+                  FontAwesomeIcons.home,
+                  color: Colors.white,
+                ),
+                title: ' Dashboard',
+                index: 0,
                 selectedIndex: selectedIndex,
                 onMenuItemSelected: onMenuItemSelected,
               ),
-              MenuItem(
-                title: 'Student Details',
-                index: 2,
-                selectedIndex: selectedIndex,
-                onMenuItemSelected: onMenuItemSelected,
+              ListView(
+                shrinkWrap: true,
+                children: [
+                  ExpansionTile(
+                    title: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            FontAwesomeIcons.graduationCap,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          " Students",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    children: [
+                      MenuItem(
+                        title: 'Add Student',
+                        index: 1,
+                        selectedIndex: selectedIndex,
+                        onMenuItemSelected: onMenuItemSelected,
+                      ),
+                      MenuItem(
+                        title: 'Student Details',
+                        index: 2,
+                        selectedIndex: selectedIndex,
+                        onMenuItemSelected: onMenuItemSelected,
+                      ),
+                      MenuItem(
+                        title: 'Assign Roll No.',
+                        index: 3,
+                        selectedIndex: selectedIndex,
+                        onMenuItemSelected: onMenuItemSelected,
+                      ),
+                    ],
+                  ),
+                  ExpansionTile(
+                    title: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            FontAwesomeIcons.user,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          " Faculty",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    children: [
+                      MenuItem(
+                        title: 'Add Faculty',
+                        index: 4,
+                        selectedIndex: selectedIndex,
+                        onMenuItemSelected: onMenuItemSelected,
+                      ),
+                      MenuItem(
+                        title: 'Faculty Details',
+                        index: 5,
+                        selectedIndex: selectedIndex,
+                        onMenuItemSelected: onMenuItemSelected,
+                      ),
+                    ],
+                  ),
+                ],
               ),
               MenuItem(
-                title: 'Assign Roll No.',
-                index: 3,
+                title: ' Announcement',
+                index: 6,
                 selectedIndex: selectedIndex,
                 onMenuItemSelected: onMenuItemSelected,
+                icon: Icon(
+                  FontAwesomeIcons.bullhorn,
+                  color: Colors.white,
+                ),
+              ),
+              MenuItem(
+                title: ' Sliders',
+                index: 7,
+                selectedIndex: selectedIndex,
+                onMenuItemSelected: onMenuItemSelected,
+                icon: Icon(
+                  FontAwesomeIcons.bullhorn,
+                  color: Colors.white,
+                ),
+              ),
+              MenuItem(
+                title: ' Attendance',
+                index: 8,
+                selectedIndex: selectedIndex,
+                onMenuItemSelected: onMenuItemSelected,
+                icon: Icon(
+                  FontAwesomeIcons.bullhorn,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
-          ExpansionTile(
-            title: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Icon(
-                    FontAwesomeIcons.user,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  " Faculty",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
-            children: [
-              MenuItem(
-                title: 'Add Faculty',
-                index: 4,
-                selectedIndex: selectedIndex,
-                onMenuItemSelected: onMenuItemSelected,
-              ),
-              MenuItem(
-                title: 'Faculty Details',
-                index: 5,
-                selectedIndex: selectedIndex,
-                onMenuItemSelected: onMenuItemSelected,
-              ),
-            ],
-          ),
-          MenuItem(
-            title: ' Announcement',
-            index: 6,
-            selectedIndex: selectedIndex,
-            onMenuItemSelected: onMenuItemSelected,
-            icon: Icon(
-              FontAwesomeIcons.bullhorn,
-              color: Colors.white,
-            ),
-          ),
-          MenuItem(
-            title: ' Sliders',
-            index: 7,
-            selectedIndex: selectedIndex,
-            onMenuItemSelected: onMenuItemSelected,
-            icon: Icon(
-              FontAwesomeIcons.bullhorn,
-              color: Colors.white,
-            ),
-          ),
-          MenuItem(
-            title: ' Attendance',
-            index: 8,
-            selectedIndex: selectedIndex,
-            onMenuItemSelected: onMenuItemSelected,
-            icon: Icon(
-              FontAwesomeIcons.bullhorn,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
+        ),
+      );
+
   }
 }
 

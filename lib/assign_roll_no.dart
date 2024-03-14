@@ -1,5 +1,8 @@
+import 'package:ecollege_admin_panel/reusable_widget/lists.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
 
 void main() {
   runApp(MyApp());
@@ -29,117 +32,122 @@ class _RollNumberAssignmentState extends State<RollNumberAssignment> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar:  Padding(
+        padding: const EdgeInsets.all(10),
+        child: SizedBox(
+          width: double.infinity,
+          height: 30,
+          child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff002233),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5))),
+              onPressed: () async {
+               _assignRollNumbers();
+              },
+              child: const Text(
+                "Assign",
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              )),
+        ),
+      ),
       appBar: AppBar(
         title: Text('Assign Roll Numbers'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownButtonFormField<String>(
-              value: _selectedProgram.isEmpty ? null : _selectedProgram,
-              onChanged: (value) {
-                setState(() {
-                  _selectedProgram = value!;
-                  _selectedProgramTerm = '';
-                  _selectedDivision = '';
-                });
-              },
-              items: [
-                '--Please Select--',
-                'BCA',
-                'B-Com',
-                'BBA',
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              decoration: InputDecoration(labelText: 'Program'),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedProgram.isEmpty ? null : _selectedProgram,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedProgram = value!;
+                        _selectedProgramTerm = '';
+                        _selectedDivision = '';
+                      });
+                    },
+                    items: lists.programs.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(labelText: 'Program'),
+                  ),
+                ),
+                SizedBox(width: 16.0),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedProgramTerm.isEmpty ? null : _selectedProgramTerm,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedProgramTerm = value!;
+                        _selectedDivision = '';
+                      });
+                    },
+                    items:lists.programTerms.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(labelText: 'Program Term'),
+                  ),
+                ),
+                SizedBox(width: 16.0),
+               Expanded(child:  DropdownButtonFormField<String>(
+                 value: _selectedDivision.isEmpty ? null : _selectedDivision,
+                 onChanged: (value) {
+                   setState(() {
+                     _selectedDivision = value!;
+                     _fetchStudents();
+                   });
+                 },
+                 items:  _selectedProgram == "BCA"
+                     ? lists.bcaDivision
+                     .map((e) => DropdownMenuItem(
+                   value: e,
+                   child: Text(e),
+                 ))
+                     .toList()
+                     : _selectedProgram == "B-Com"
+                     ? lists.bcomDivision
+                     .map((e) => DropdownMenuItem(
+                   value: e,
+                   child: Text(e),
+                 ))
+                     .toList()
+                     : lists.bbaDivision
+                     .map((e) => DropdownMenuItem(
+                   value: e,
+                   child: Text(e),
+                 ))
+                     .toList(),
+                 decoration: InputDecoration(labelText: 'Division'),
+               ),),
+              ],
             ),
-            SizedBox(height: 16.0),
-            DropdownButtonFormField<String>(
-              value: _selectedProgramTerm.isEmpty ? null : _selectedProgramTerm,
-              onChanged: (value) {
-                setState(() {
-                  _selectedProgramTerm = value!;
-                  _selectedDivision = '';
-                });
-              },
-              items: [
-                if (_selectedProgram == 'BCA') ...[
-                  '--Please Select--',
-                  'Sem - 1',
-                  'Sem - 2',
-                  'Sem - 3',
-                  'Sem - 4',
-                  'Sem - 5',
-                  'Sem - 6',
-                ],
-                if (_selectedProgram == 'B-Com' || _selectedProgram == 'BBA') ...[
-                  '--Please Select--',
-                  'Semester 1',
-                  'Semester 2',
-                  'Semester 3',
-                  'Semester 4',
-                  'Semester 5',
-                  'Semester 6',
-                ],
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              decoration: InputDecoration(labelText: 'Program Term'),
-            ),
-            SizedBox(height: 16.0),
-            DropdownButtonFormField<String>(
-              value: _selectedDivision.isEmpty ? null : _selectedDivision,
-              onChanged: (value) {
-                setState(() {
-                  _selectedDivision = value!;
-                  _fetchStudents();
-                });
-              },
-              items: [
-                '--Please Select--',
-                'A',
-                'B',
-                'C',
-                'D',
-                'E',
-                'F',
-                'G',
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              decoration: InputDecoration(labelText: 'Division'),
-            ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 15,),
             Expanded(
               child: ListView.builder(
                 itemCount: _students.length,
                 itemBuilder: (context, index) {
                   DocumentSnapshot student = _students[index];
-                  return ListTile(
-                    title: Text(student['First Name'] + ' ' + student['Last Name']),
-                    subtitle: Text(student['User Id']),
-                    trailing: Text('Roll Number: ${index + 1}'),
+                  return Card(
+                    child: ListTile(
+                      title: Text('${student['Last Name']} ${student['First Name']} ${student['Middle Name']}',style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold),),
+                      subtitle: Text('${student['User Id']}'),
+                      trailing:Text('Roll No. : ${index+1}',style: TextStyle(fontSize: 15),)
+                    ),
                   );
                 },
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _assignRollNumbers();
-              },
-              child: Text('Assign Roll Numbers'),
             ),
           ],
         ),
@@ -153,7 +161,7 @@ class _RollNumberAssignmentState extends State<RollNumberAssignment> {
         .doc(_selectedProgram)
         .collection(_selectedProgramTerm)
         .doc(_selectedDivision)
-        .collection('student')
+        .collection('student').orderBy('Last Name')
         .get();
     setState(() {
       _students = snapshot.docs;

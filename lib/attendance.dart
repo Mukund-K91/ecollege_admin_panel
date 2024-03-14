@@ -10,6 +10,7 @@ class Student {
   final String documentId; // Firestore document ID
   final String userID;
   final String firstname;
+  final String middlename;
   final String lastname;
   final int rollNumber;
 
@@ -17,7 +18,8 @@ class Student {
       {required this.documentId,
       required this.userID,
       required this.firstname,
-      required this.lastname,
+        required this.middlename,
+        required this.lastname,
       required this.rollNumber});
 }
 
@@ -68,7 +70,7 @@ class _AttendanceState extends State<Attendance> {
         .collection(programTerm)
         .doc(division)
         .collection('student')
-        .orderBy('User Id')
+        .orderBy('Last Name')
         .get();
 
     students = studentsQuery.docs.map((doc) {
@@ -76,7 +78,8 @@ class _AttendanceState extends State<Attendance> {
           documentId: doc.id,
           userID: doc['User Id'],
           firstname: doc['First Name'],
-          rollNumber: doc['rollNumber'],
+          middlename: doc['Middle Name'],
+          rollNumber: doc['rollNumber']??null,
           lastname: doc['Last Name']);
     }).toList();
 
@@ -99,9 +102,6 @@ class _AttendanceState extends State<Attendance> {
     // Get the subject list based on the selected program and program term
     subjectList = SubjectLists.getSubjects(Program, ProgramTerm);
     setState(() {
-      // Reset the selected subject when updating the subject list
-      // to ensure consistency if the current selected subject is not
-      // available in the new subject list
       //selectedSubject = subjectList.isNotEmpty ? subjectList[0] : null;
     });
   }
@@ -177,8 +177,8 @@ class _AttendanceState extends State<Attendance> {
 
     print(
         'Attendance submitted for date: $selectedDate, subject: $selectedSubject');
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text("Attendance Successfully added")));
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Attendance Successfully added")));
   }
 
   @override
@@ -202,7 +202,8 @@ class _AttendanceState extends State<Attendance> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5))),
               onPressed: () async {
-                _submitAttendance(selectedProgram, selectedProgramTerm, selectedDivision);
+                _submitAttendance(
+                    selectedProgram, selectedProgramTerm, selectedDivision);
               },
               child: const Text(
                 "SUBMIT",
@@ -255,9 +256,9 @@ class _AttendanceState extends State<Attendance> {
                         value: selectedProgramTerm,
                         items: lists.programTerms
                             .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(e),
-                        ))
+                                  value: e,
+                                  child: Text(e),
+                                ))
                             .toList(),
                         onChanged: (val) {
                           setState(() {
@@ -281,24 +282,24 @@ class _AttendanceState extends State<Attendance> {
                         value: selectedDivision,
                         items: selectedProgram == "BCA"
                             ? lists.bcaDivision
-                            .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(e),
-                        ))
-                            .toList()
+                                .map((e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ))
+                                .toList()
                             : selectedProgram == "B-Com"
-                            ? lists.bcomDivision
-                            .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(e),
-                        ))
-                            .toList()
-                            : lists.bbaDivision
-                            .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(e),
-                        ))
-                            .toList(),
+                                ? lists.bcomDivision
+                                    .map((e) => DropdownMenuItem(
+                                          value: e,
+                                          child: Text(e),
+                                        ))
+                                    .toList()
+                                : lists.bbaDivision
+                                    .map((e) => DropdownMenuItem(
+                                          value: e,
+                                          child: Text(e),
+                                        ))
+                                    .toList(),
                         onChanged: (val) {
                           setState(() {
                             selectedDivision = val as String;
@@ -322,9 +323,9 @@ class _AttendanceState extends State<Attendance> {
                   value: selectedSubject,
                   items: subjectList
                       .map((e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e),
-                  ))
+                            value: e,
+                            child: Text(e),
+                          ))
                       .toList(),
                   onChanged: (val) {
                     setState(() {
@@ -338,23 +339,33 @@ class _AttendanceState extends State<Attendance> {
               itemBuilder: (context, index) {
                 Student student = filteredStudents[index];
                 AttendanceRecord record = attendanceRecords[index];
-                return ListTile(
-                  leading: Text('${student.rollNumber}'),
-                  title: Text('${student.firstname} ${student.lastname}'),
-                  subtitle: Text('${student.userID}'),
-                  trailing: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      backgroundColor:
-                      record.isPresent ? Colors.green : Colors.red,
-                      minimumSize: Size(100, 40),
+                return Card(
+                  child: ListTile(
+                    leading: Text(
+                      '${student.rollNumber}',
+                      style: TextStyle(
+                          color: Color(0xff002233),
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold),
                     ),
-                    onPressed: () {
-                      _toggleAttendance(index);
-                    },
-                    child: Text(
-                      record.isPresent ? 'Present' : 'Absent',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    title: Text('${student.lastname} ${student.firstname} ${student.middlename}',style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold),),
+                    subtitle: Text('${student.userID}'),
+                    trailing: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        backgroundColor:
+                            record.isPresent ? Colors.green : Colors.red,
+                        minimumSize: Size(100, 40),
+                      ),
+                      onPressed: () {
+                        _toggleAttendance(index);
+                      },
+                      child: Text(
+                        record.isPresent ? 'Present' : 'Absent',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 );
