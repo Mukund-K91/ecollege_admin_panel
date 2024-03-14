@@ -1,5 +1,9 @@
+import 'package:ecollege_admin_panel/reusable_widget/lists.dart';
+import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 class Student {
@@ -7,13 +11,14 @@ class Student {
   final String userID;
   final String firstname;
   final String lastname;
+  final int rollNumber;
 
-  Student({
-    required this.documentId,
-    required this.userID,
-    required this.firstname,
-    required this.lastname,
-  });
+  Student(
+      {required this.documentId,
+      required this.userID,
+      required this.firstname,
+      required this.lastname,
+      required this.rollNumber});
 }
 
 class AttendanceRecord {
@@ -26,18 +31,18 @@ class AttendanceRecord {
   });
 }
 
-
 class Attendance extends StatefulWidget {
   final program;
 
   const Attendance({super.key, this.program});
+
   @override
   _AttendanceState createState() => _AttendanceState();
 }
 
 class _AttendanceState extends State<Attendance> {
   List<Student> students = [];
-  String selectedSubject = 'Math'; // Default subject
+  String selectedSubject = '--Please Select--'; // Default subject
   DateTime selectedDate = DateTime.now();
 
   List<AttendanceRecord> attendanceRecords = [];
@@ -52,10 +57,10 @@ class _AttendanceState extends State<Attendance> {
     fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
   }
 
-  Future<void> fetchData(String program, String programTerm,
-      String division) async {
-    QuerySnapshot<Map<String, dynamic>> studentsQuery =
-    await FirebaseFirestore.instance
+  Future<void> fetchData(
+      String program, String programTerm, String division) async {
+    QuerySnapshot<Map<String, dynamic>> studentsQuery = await FirebaseFirestore
+        .instance
         .collection('students')
         .doc(program)
         .collection(programTerm)
@@ -69,7 +74,8 @@ class _AttendanceState extends State<Attendance> {
           documentId: doc.id,
           userID: doc['User Id'],
           firstname: doc['First Name'],
-          lastname: doc['User Id']);
+          rollNumber: doc['rollNumber'],
+          lastname: doc['Last Name']);
     }).toList();
 
     // Initialize attendanceRecords with default values
@@ -83,15 +89,14 @@ class _AttendanceState extends State<Attendance> {
   void _toggleAttendance(int index) {
     setState(() {
       // Toggle the isPresent status for the student at the given index
-      attendanceRecords[index].isPresent =
-      !attendanceRecords[index].isPresent;
+      attendanceRecords[index].isPresent = !attendanceRecords[index].isPresent;
     });
   }
 
-  Future<void> _submitAttendance(String program, String programTerm,
-      String division) async {
-    CollectionReference studentCollection = FirebaseFirestore.instance
-        .collection('students');
+  Future<void> _submitAttendance(
+      String program, String programTerm, String division) async {
+    CollectionReference studentCollection =
+        FirebaseFirestore.instance.collection('students');
 
     WriteBatch batch = FirebaseFirestore.instance.batch();
 
@@ -106,17 +111,17 @@ class _AttendanceState extends State<Attendance> {
           .collection('student')
           .doc(student.documentId);
 
-      CollectionReference monthlyAttendanceCollection = studentDocRef
-          .collection('monthlyAttendance');
+      CollectionReference monthlyAttendanceCollection =
+          studentDocRef.collection('monthlyAttendance');
 
       String monthYear = DateFormat('MMMM_yyyy').format(selectedDate);
       String monthYearKey = '${monthYear}';
 
-      DocumentReference monthlyAttendanceDocRef = monthlyAttendanceCollection
-          .doc(monthYearKey);
+      DocumentReference monthlyAttendanceDocRef =
+          monthlyAttendanceCollection.doc(monthYearKey);
 
       DocumentSnapshot<Object?> monthlyAttendanceDoc =
-      await monthlyAttendanceDocRef.get();
+          await monthlyAttendanceDocRef.get();
 
       if (!monthlyAttendanceDoc.exists) {
         // Create new monthly attendance record if not exists for the current month and year
@@ -136,13 +141,13 @@ class _AttendanceState extends State<Attendance> {
         // Increment present count if the student is present
         batch.update(monthlyAttendanceDocRef, {
           'subjectAttendance.$selectedSubject.presentCount':
-          FieldValue.increment(1),
+              FieldValue.increment(1),
         });
       } else {
         // Increment absent count if the student is absent
         batch.update(monthlyAttendanceDocRef, {
           'subjectAttendance.$selectedSubject.absentCount':
-          FieldValue.increment(1),
+              FieldValue.increment(1),
         });
       }
     }
@@ -163,95 +168,135 @@ class _AttendanceState extends State<Attendance> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredStudents = students.where((student) =>
-        student.firstname.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+    final filteredStudents = students
+        .where((student) =>
+            student.firstname.toLowerCase().contains(searchQuery.toLowerCase()))
+        .toList();
+
+    final currentDate = DateFormat('dd-MM-yyyy EEEE').format(selectedDate);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Attendance App'),
-      ),
-      body: Row(
-        children: [
-          DropdownButton<String>(
-            value: selectedProgram,
-            onChanged: (value) {
-              setState(() {
-                selectedProgram = value!;
-                fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
-              });
-            },
-            items: [
-              "--Please Select--",
-              "BCA",
-              "B-Com",
-              "BBA"
-            ].map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-          ),
-          DropdownButton<String>(
-            value: selectedProgramTerm,
-            onChanged: (value) {
-              setState(() {
-                selectedProgramTerm = value!;
-                fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
-              });
-            },
-            items: [
-              "--Please Select--",
-              "Sem - 1",
-              "Sem - 2",
-              "Sem - 3",
-              "Sem - 4",
-              "Sem - 5",
-              "Sem - 6"
-            ].map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-          ),
-          DropdownButton<String>(
-            value: selectedDivision,
-            onChanged: (value) {
-              setState(() {
-                selectedDivision = value!;
-                fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
-              });
-            },
-            items: [
-              "--Please Select--",
-              "A",
-              "B",
-              "C",
-              "D",
-              "E",
-              "F",
-              "G"
-            ].map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-          ),
-          TextField(
-            onChanged: (value) {
-              setState(() {
-                searchQuery = value;
-              });
-            },
-            decoration: InputDecoration(
-              labelText: 'Search by Name',
-              hintText: 'Enter name to search...',
+        title:
+            Text('Attendance', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              '${currentDate}',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () => _pickDate(context),
-            child: Text('Select Date: ${selectedDate.toLocal()}'),
+          )
+        ],
+      ),
+      body: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ReusableTextField(
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                    });
+                  },
+                  title: 'Search By Name',
+                ),
+              ),
+              DropdownButton<String>(
+                value: selectedProgram,
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedProgram = value!;
+                    selectedProgramTerm = '--Please Select--';
+                    fetchData(
+                        selectedProgram, selectedProgramTerm, selectedDivision);
+                  });
+                },
+                items: lists.programs.map<DropdownMenuItem<String>>(
+                  (String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  },
+                ).toList(),
+                hint: const Text('Program'),
+              ),
+              const SizedBox(width: 8),
+              DropdownButton<String>(
+                value: selectedProgramTerm,
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedProgramTerm = value!;
+                    fetchData(
+                        selectedProgram, selectedProgramTerm, selectedDivision);
+                  });
+                },
+                items: selectedProgram == '--Please Select--'
+                    ? []
+                    : lists.programTerms.map<DropdownMenuItem<String>>(
+                        (String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        },
+                      ).toList(),
+                hint: const Text('Program Term'),
+              ),
+              const SizedBox(width: 8),
+              DropdownButton<String>(
+                value: selectedDivision,
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedDivision = value!;
+                    fetchData(
+                        selectedProgram, selectedProgramTerm, selectedDivision);
+                  });
+                },
+                items: selectedProgramTerm == '--Please Select--'
+                    ? []
+                    : selectedProgram == "BCA"
+                        ? lists.bbaDivision
+                            .map((e) => DropdownMenuItem(
+                                  value: e,
+                                  child: Text(e),
+                                ))
+                            .toList()
+                        : selectedProgram == "B-Com"
+                            ? lists.bcomDivision
+                                .map((e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ))
+                                .toList()
+                            : lists.bcomDivision
+                                .map((e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ))
+                                .toList(),
+                hint: const Text('Class'),
+              ),
+              DropdownButton<String>(
+                value: selectedSubject,
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedSubject = value!;
+                  });
+                },
+                items: lists.bca_sem6.map<DropdownMenuItem<String>>(
+                  (String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  },
+                ).toList(),
+                hint: const Text('Class'),
+              ),
+            ],
           ),
           Expanded(
             child: ListView.builder(
@@ -260,13 +305,14 @@ class _AttendanceState extends State<Attendance> {
                 Student student = filteredStudents[index];
                 AttendanceRecord record = attendanceRecords[index];
                 return ListTile(
-                  leading: Text('${index + 1}'),
-                  title: Text('${student.firstname} - Roll No: ${student.userID}'),
-                  subtitle: Text('Subject: $selectedSubject'),
+                  leading: Text('${student.rollNumber}'),
+                  title: Text('${student.firstname} ${student.lastname}'),
+                  subtitle: Text('${student.userID}'),
                   trailing: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.black,
-                      backgroundColor: record.isPresent ? Colors.green : Colors.red,
+                      backgroundColor:
+                          record.isPresent ? Colors.green : Colors.red,
                       minimumSize: Size(100, 40),
                     ),
                     onPressed: () {
@@ -308,7 +354,3 @@ class _AttendanceState extends State<Attendance> {
     }
   }
 }
-
-
-
-

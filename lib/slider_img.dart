@@ -273,7 +273,6 @@ class _SliderPageState extends State<SliderPage> {
               ],
               dataRowMaxHeight: double.infinity,
               rows: snapshot.data!.docs.map((doc) {
-                rowIndex++;
                 final imageUrl = doc['imageUrl'] ?? '';
                 final startDate = doc['startDate'] != null
                     ? DateFormat('dd-MM-yyyy hh:mm a')
@@ -290,7 +289,7 @@ class _SliderPageState extends State<SliderPage> {
                 endDate != null ? DateTime.now().isBefore(endDate) : false;
 
                 return DataRow(cells: [
-                  DataCell(Text('${rowIndex}')),
+                  DataCell(Text('${rowIndex+1}')),
                   DataCell(
                     Padding(
                       padding: const EdgeInsets.all(10),
