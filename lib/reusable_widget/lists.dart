@@ -15,6 +15,22 @@ class SubjectLists {
         return lists.bca_sem6;
       case 'BBA_Sem - 1':
         return lists.bba_sem1;
+      case 'BBA_Sem - 2':
+        return lists.bba_sem2;
+      case 'BBA_Sem - 3':
+        return lists.bba_sem3;
+      case 'BBA_Sem - 4':
+        return lists.bba_sem4;
+      case 'BBA_Sem - 5':
+        return lists.bba_sem5;
+      case 'BBA_Sem - 6':
+        return lists.bba_sem6;
+      case 'B-Com_Sem - 1':
+        return lists.b_com_sem1;
+      case 'B-Com_Sem - 3':
+        return lists.b_com_sem3;
+      case 'B-Com_Sem - 5':
+        return lists.b_com_sem5;
     // Add more cases for other programs and terms
       default:
         return ["--Please Select--"];

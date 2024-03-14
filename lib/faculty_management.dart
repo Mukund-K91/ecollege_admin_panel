@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/copyright_2024.dart';
+import 'package:ecollege_admin_panel/reusable_widget/lists.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:ecollege_admin_panel/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
@@ -133,7 +134,6 @@ late String imjUrl;
 
 String? _selectedGender = "Male";
 DateTime? _selectedDate;
-final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
 late String _selProgram = '--Please Select--';
 final _formKey = GlobalKey<FormState>();
 final TextEditingController _firstNameController = TextEditingController();
@@ -480,7 +480,7 @@ class _AddFacultyState extends State<AddFaculty> {
                                       borderRadius:
                                           BorderRadius.all(Radius.zero))),
                               value: _selProgram,
-                              items: _programs
+                              items: lists.programs
                                   .map((e) => DropdownMenuItem(
                                         value: e,
                                         child: Text(e),
@@ -540,7 +540,7 @@ class _AddFacultyState extends State<AddFaculty> {
                                 _selectedGender = "";
                                 _emailController.text = "";
                                 _phoneController.text = "";
-                                _selProgram = _programs[0];
+                                _selProgram = lists.programs[0];
                                 _Qualification.text = "";
                                 _Designation.text = "";
                               } else {
@@ -560,7 +560,7 @@ class _AddFacultyState extends State<AddFaculty> {
                                 _selectedGender = "";
                                 _emailController.text = "";
                                 _phoneController.text = "";
-                                _selProgram = _programs[0];
+                                _selProgram = lists.programs[0];
                                 _Qualification.text = "";
                                 _Designation.text = "";
                               }

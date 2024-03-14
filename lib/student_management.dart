@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecollege_admin_panel/copyright_2024.dart';
+import 'package:ecollege_admin_panel/reusable_widget/lists.dart';
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:ecollege_admin_panel/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
@@ -152,21 +153,6 @@ class FirestoreService {
             .toList());
   }
 }
-
-final _programs = ["--Please Select--", "BCA", "B-Com", "BBA"];
-final _programTerm = [
-  "--Please Select--",
-  "Sem - 1",
-  "Sem - 2",
-  "Sem - 3",
-  "Sem - 4",
-  "Sem - 5",
-  "Sem - 6"
-];
-final _Bcadivision = ["--Please Select--", "A", "B", "C", "D", "E", "F"];
-final _Bcomdivision = ["--Please Select--", "A", "B", "C", "D", "E", "F", "G"];
-final _Bbadivision = ["--Please Select--", "A", "B", "C", "D"];
-
 final TextEditingController _firstNameController = TextEditingController();
 final TextEditingController _middleNameController = TextEditingController();
 final TextEditingController _lastNameController = TextEditingController();
@@ -176,11 +162,8 @@ late TextEditingController _UserIdController;
 final TextEditingController _dobController = TextEditingController();
 late TextEditingController _fileNameController = TextEditingController();
 late TextEditingController _totalStudentsController = TextEditingController();
-TextEditingController _rollNumberController = TextEditingController();
 DateTime _activationDate = DateTime.now();
-TextEditingController _activeDate = TextEditingController();
 final FirestoreService _firestoreService = FirestoreService();
-final TextEditingController _searchController = TextEditingController();
 final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 StorageService service = StorageService();
 
@@ -605,7 +588,7 @@ class _AddStudentsState extends State<AddStudents> {
                                         borderRadius:
                                             BorderRadius.all(Radius.zero))),
                                 value: _selProgram,
-                                items: _programs
+                                items: lists.programs
                                     .map((e) => DropdownMenuItem(
                                           value: e,
                                           child: Text(e),
@@ -636,7 +619,7 @@ class _AddStudentsState extends State<AddStudents> {
                                         borderRadius:
                                             BorderRadius.all(Radius.zero))),
                                 value: _selProgramTerm,
-                                items: _programTerm
+                                items: lists.programTerms
                                     .map((e) => DropdownMenuItem(
                                           value: e,
                                           child: Text(e),
@@ -668,17 +651,17 @@ class _AddStudentsState extends State<AddStudents> {
                                             BorderRadius.all(Radius.zero))),
                                 value: _seldiv,
                                 items: _selProgram == "BCA"
-                                    ? _Bcadivision.map((e) => DropdownMenuItem(
+                                    ? lists.bcaDivision.map((e) => DropdownMenuItem(
                                           value: e,
                                           child: Text(e),
                                         )).toList()
                                     : _selProgram == "B-Com"
-                                        ? _Bcomdivision.map(
+                                        ? lists.bcomDivision.map(
                                             (e) => DropdownMenuItem(
                                                   value: e,
                                                   child: Text(e),
                                                 )).toList()
-                                        : _Bbadivision.map(
+                                        : lists.bbaDivision.map(
                                             (e) => DropdownMenuItem(
                                                   value: e,
                                                   child: Text(e),
@@ -745,8 +728,8 @@ class _AddStudentsState extends State<AddStudents> {
                                 _emailController.text = "";
                                 _mobileNoController.text = "";
                                 _dobController.text = "";
-                                _selProgram = _programs[0];
-                                _selProgramTerm = _programTerm[0];
+                                _selProgram = lists.programs[0];
+                                _selProgramTerm = lists.programTerms[0];
                                 _seldiv = "--Please Select--";
 
                                 await _incrementUserId();
@@ -899,7 +882,7 @@ class _StudentListState extends State<StudentList> {
                 _selectedProgramTerm = '--Please Select--';
               });
             },
-            items: _programs.map<DropdownMenuItem<String>>(
+            items: lists.programs.map<DropdownMenuItem<String>>(
               (String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -919,7 +902,7 @@ class _StudentListState extends State<StudentList> {
             },
             items: _selectedProgram == '--Please Select--'
                 ? []
-                : _programTerm.map<DropdownMenuItem<String>>(
+                : lists.programTerms.map<DropdownMenuItem<String>>(
                     (String value) {
                       return DropdownMenuItem<String>(
                         value: value,
@@ -940,16 +923,16 @@ class _StudentListState extends State<StudentList> {
             items: _selectedProgramTerm == '--Please Select--'
                 ? []
                 : _selectedProgram == "BCA"
-                    ? _Bcadivision.map((e) => DropdownMenuItem(
+                    ? lists.bcaDivision.map((e) => DropdownMenuItem(
                           value: e,
                           child: Text(e),
                         )).toList()
                     : _selectedProgram == "B-Com"
-                        ? _Bcomdivision.map((e) => DropdownMenuItem(
+                        ? lists.bcomDivision.map((e) => DropdownMenuItem(
                               value: e,
                               child: Text(e),
                             )).toList()
-                        : _Bbadivision.map((e) => DropdownMenuItem(
+                        : lists.bbaDivision.map((e) => DropdownMenuItem(
                               value: e,
                               child: Text(e),
                             )).toList(),
@@ -1244,7 +1227,7 @@ class _StudentListState extends State<StudentList> {
                                       borderRadius:
                                           BorderRadius.all(Radius.zero))),
                               value: selProgram,
-                              items: _programs
+                              items: lists.programs
                                   .map((e) => DropdownMenuItem(
                                         value: e,
                                         child: Text(e),
@@ -1275,7 +1258,7 @@ class _StudentListState extends State<StudentList> {
                                       borderRadius:
                                           BorderRadius.all(Radius.zero))),
                               value: selProgramTerm,
-                              items: _programTerm
+                              items: lists.programTerms
                                   .map((e) => DropdownMenuItem(
                                         value: e,
                                         child: Text(e),
@@ -1307,17 +1290,17 @@ class _StudentListState extends State<StudentList> {
                                           BorderRadius.all(Radius.zero))),
                               value: seldiv,
                               items: selProgram == "BCA"
-                                  ? _Bcadivision.map((e) => DropdownMenuItem(
+                                  ? lists.bcaDivision.map((e) => DropdownMenuItem(
                                         value: e,
                                         child: Text(e),
                                       )).toList()
                                   : selProgram == "B-Com"
-                                      ? _Bcomdivision.map(
+                                      ? lists.bcomDivision.map(
                                           (e) => DropdownMenuItem(
                                                 value: e,
                                                 child: Text(e),
                                               )).toList()
-                                      : _Bbadivision.map(
+                                      : lists.bbaDivision.map(
                                           (e) => DropdownMenuItem(
                                                 value: e,
                                                 child: Text(e),
