@@ -484,21 +484,6 @@ class _AddStudentsState extends State<AddStudents> {
                                               imjUrl = imgurl.toString();
                                               print("imj" + imjUrl);
                                             }
-
-                                            // html.FileUploadInputElement
-                                            //     uploadInput =
-                                            //     html.FileUploadInputElement()
-                                            //       ..accept = 'image/*';
-                                            // uploadInput.click();
-                                            // uploadInput.onChange
-                                            //     .listen((event) {
-                                            //   final files = uploadInput.files;
-                                            //   if (files != null &&
-                                            //       files.length == 1) {
-                                            //     final file = files[0];
-                                            //     _handleFileUpload(file);
-                                            //   }
-                                            // });
                                           },
                                           child: const Text(
                                             "Upload",
@@ -1011,8 +996,8 @@ class _StudentListState extends State<StudentList> {
                                 child: Image.network(
                                   student.profile,
                                   fit: BoxFit.cover,
-                                  height: 70,
-                                  width: 70,
+                                  height: 60,
+                                  width: 60,
                                 ),
                               ),
                             )),
@@ -1438,7 +1423,7 @@ class _StudentListState extends State<StudentList> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (_passwordController.text == 'superAdmin') {
+                if (_passwordController.text == 'superadmin') {
                   DeleteStudent(program, programTerm, division, userId);
                   _decreamentTotalStudents();
                   Navigator.of(context).pop();

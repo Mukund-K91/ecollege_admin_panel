@@ -91,8 +91,11 @@ class _SliderPageState extends State<SliderPage> {
   }
 
   Future<void> fetchSliderData() async {
-    final querySnapshot =
-    await FirebaseFirestore.instance.collection('slider_data').get();
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('slider_data')
+        .orderBy('startDate')
+        .orderBy('endDate', descending: true) // Order by end date in descending order
+        .get();
 
     final List<Map<String, dynamic>> data = [];
 
@@ -108,6 +111,7 @@ class _SliderPageState extends State<SliderPage> {
       sliderData = data;
     });
   }
+
 
   void initState() {
     super.initState();
@@ -241,7 +245,6 @@ class _SliderPageState extends State<SliderPage> {
   }
 
   Widget _SliderList() {
-    int rowIndex = 0; // Initialize the row index
 
     return
       StreamBuilder<QuerySnapshot>(
@@ -264,7 +267,6 @@ class _SliderPageState extends State<SliderPage> {
             child: DataTable(
               border: TableBorder.all(color: Colors.black),
               columns: [
-                DataColumn(label: Text('No.')),
                 DataColumn(label: Text('Image')),
                 DataColumn(label: Text('Created At')),
                 DataColumn(label: Text('End Date')),
@@ -289,7 +291,6 @@ class _SliderPageState extends State<SliderPage> {
                 endDate != null ? DateTime.now().isBefore(endDate) : false;
 
                 return DataRow(cells: [
-                  DataCell(Text('${rowIndex+1}')),
                   DataCell(
                     Padding(
                       padding: const EdgeInsets.all(10),
@@ -317,7 +318,7 @@ class _SliderPageState extends State<SliderPage> {
                     style: TextStyle(
                         color: isActive ? Colors.green : Colors.redAccent),)),
                   DataCell(IconButton(
-                      onPressed: () => _deleteImg(doc.id),
+                      onPressed: () => _deleteImg(doc.id,imageUrl),
                       icon: Icon(
                         FontAwesomeIcons.trash,
                         color: Colors.redAccent,
@@ -331,14 +332,28 @@ class _SliderPageState extends State<SliderPage> {
     );
   }
 
-  void _deleteImg(String id) {
+  void _deleteImg(String id, String imageUrl) {
     AwesomeDialog(
       width: 400,
       context: context,
       dialogType: DialogType.question,
       btnOkOnPress: () async {
+        // Delete document from Firestore
         await _sliderDataCol.doc(id).delete();
-        // for snackBar
+
+        // Delete image from Firebase Storage
+        if (imageUrl.isNotEmpty) {
+          try {
+            await firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl).delete();
+            // Image deleted successfully
+            print('Image deleted from Firebase Storage');
+          } catch (error) {
+            // Error handling for image deletion
+            print('Failed to delete image: $error');
+          }
+        }
+
+        // Show snackbar
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text("Deleted")));
       },

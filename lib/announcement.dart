@@ -20,7 +20,7 @@ class Event {
   final String id;
   final String title;
   final String description;
-  final List<String> assignTo;
+  final List<String>? assignTo;
   final String? Files;
   final String? FileName;
   final DateTime date;
@@ -29,7 +29,7 @@ class Event {
     required this.id,
     required this.title,
     required this.description,
-    required this.assignTo,
+    this.assignTo,
     this.Files,
     this.FileName,
     required this.date,
@@ -237,13 +237,11 @@ class _EventManagementState extends State<EventManagement> {
   }
 
   Widget _buildEventList() {
-    int rowIndex = 0; // Initialize the row index
     ScrollController _dataController1 = ScrollController();
     ScrollController _dataController2 = ScrollController();
 
     return StreamBuilder<QuerySnapshot>(
       stream: eventsCollection
-          // Filter events by assignTo value
           .orderBy('date', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
@@ -261,203 +259,194 @@ class _EventManagementState extends State<EventManagement> {
             child: Text('No Events found'),
           );
         }
+
         return Padding(
           padding: const EdgeInsets.all(8.0),
           child: events.docs.isEmpty
               ? Center(
-                  child: Text("No Announcement Published"),
-                )
+            child: Text("No Announcement Published"),
+          )
               : SingleChildScrollView(
-                child: Container(
-                  width: double.infinity,
-                  child: DataTable(
-                    border: TableBorder.all(color: Colors.black),
-                    columns: const [
-                      DataColumn(
-                        label: Text(
-                          'No.',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      // Add column for row number
-                      DataColumn(
-                        label: Text(
-                          'Title',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Description',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Assign To',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Files',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Date',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Text(
-                          'Action',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                    columnSpacing: 20,
-                    dataRowMaxHeight: double.infinity,
-                    // Adjust the spacing between columns
-                    rows: events.docs.map((event) {
-                      final eventData =
-                          event.data() as Map<String, dynamic>;
-                      final Timestamp timestamp =
-                          eventData['date']; // Get the Timestamp
-                      final DateTime date = timestamp.toDate();
-                      final _date = DateFormat('dd-MM-yyyy \nhh:mm')
-                          .format(date); // Convert to DateTime
-                      final _time = DateFormat('hh:mm').format(date);
-                      rowIndex++; // Increment row index for each row
-                      String fileUrl = eventData['File'];
-                      String fileName = path.basename(fileUrl);
-                
-                      return DataRow(cells: [
-                        DataCell(
-                          Text(
-                            '$rowIndex',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold),
-                          ), // Display the row index
-                        ),
-                        DataCell(
-                          Container(
-                            width:
-                                MediaQuery.of(context).size.width / 10,
-                            child: Text(
-                              eventData['title'] ??
-                                  'Title not available',
-                              // Null check
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Container(
-                            width:
-                                MediaQuery.of(context).size.width / 5,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                '${eventData['description']}',
-                              ),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              '${eventData['assignTo']}',
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                            fileUrl.toString()!="null"?InkWell(
-                            onTap: () {
-                              String fileUrl = eventData['File'];
-                              html.AnchorElement anchor =
-                                  html.AnchorElement(href: fileUrl);
-                              anchor.target = 'fileViewer';
-                              anchor.click();
-                            },
-                            child: Text(
-                              // Extract the file name from the URL
-                              eventData['FileName']??'-',
-                              style: const TextStyle(
-                                color: Colors.blue,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ): Text(
-                              // Extract the file name from the URL
-                              'No file',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                              ),
-                            ),
-                        ),
-                        // DataCell(
-                        //   Padding(
-                        //     padding: const EdgeInsets.all(8.0),
-                        //     child: Text(
-                        //       '${eventData['File']}',
-                        //     ),
-                        //   ),
-                        // ),
-                        DataCell(
-                          Text(
-                            "${_date}",
-                            style: const TextStyle(
-                              color: Color(0xff4b8fbf),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                        DataCell(Row(
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  _editEvent(
-                                    Event(
-                                        id: event.id,
-                                        title: eventData['title'],
-                                        description:
-                                            eventData['description'],
-                                        assignTo: eventData['assignTo'],
-                                        date: date,
-                                        Files: eventData['File'],
-                                        FileName:
-                                            eventData['FileName']),
-                                  );
-                                },
-                                icon: const Icon(
-                                  FontAwesomeIcons.edit,
-                                  color: Colors.green,
-                                )),
-                            IconButton(
-                                onPressed: () => _deleteEvent(event.id),
-                                icon: const Icon(
-                                  FontAwesomeIcons.trash,
-                                  color: Colors.redAccent,
-                                )),
-                          ],
-                        ))
-                      ]);
-                    }).toList(),
+            child: Container(
+              width: double.infinity,
+              child: DataTable(
+                border: TableBorder.all(color: Colors.black),
+                columns: const [
+                  DataColumn(
+                    label: Text(
+                      'No.',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
+                  DataColumn(
+                    label: Text(
+                      'Title',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Description',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Assign To',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Files',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Date',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Action',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+                columnSpacing: 20,
+                dataRowMaxHeight: double.infinity,
+                rows: events.docs.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final event = entry.value;
+                  final eventData =
+                  event.data() as Map<String, dynamic>;
+                  final Timestamp timestamp =
+                  eventData['date'];
+                  final DateTime date = timestamp.toDate();
+                  final _date = DateFormat('dd-MM-yyyy \nhh:mm')
+                      .format(date);
+                  final _time = DateFormat('hh:mm').format(date);
+                  String fileUrl = eventData['File'];
+                  String fileName = path.basename(fileUrl);
+
+                  return DataRow(cells: [
+                    DataCell(
+                      Text(
+                        '${index + 1}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: MediaQuery.of(context).size.width / 10,
+                        child: Text(
+                          eventData['title'] ??
+                              'Title not available',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: MediaQuery.of(context).size.width / 5,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            '${eventData['description']}',
+                          ),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          '${eventData['assignTo']}',
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      fileUrl.toString()!="null"?InkWell(
+                        onTap: () {
+                          String fileUrl = eventData['File'];
+                          html.AnchorElement anchor =
+                          html.AnchorElement(href: fileUrl);
+                          anchor.target = 'fileViewer';
+                          anchor.click();
+                        },
+                        child: Text(
+                          eventData['FileName']??'-',
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ): Text(
+                        'No file',
+                        style: const TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        "${_date}",
+                        style: const TextStyle(
+                          color: Color(0xff4b8fbf),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              _editEvent(
+                                Event(
+                                    id: event.id,
+                                    title: eventData['title'],
+                                    description:
+                                    eventData['description'],
+                                    Files: eventData['File'],
+                                    FileName:
+                                    eventData['FileName'], date: date),
+                              );
+                            },
+                            icon: const Icon(
+                              FontAwesomeIcons.edit,
+                              color: Colors.green,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => _deleteEvent(event.id),
+                            icon: const Icon(
+                              FontAwesomeIcons.trash,
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]);
+                }).toList(),
               ),
+            ),
+          ),
         );
       },
     );
   }
+
 
   void _addEvent(List<String> assignTo) {
     final newEvent = Event(
@@ -477,9 +466,9 @@ class _EventManagementState extends State<EventManagement> {
       'FileName':newEvent.FileName
     });
     Navigator.of(context).pop();
-    _titleController.clear();
-    _descriptionController.clear();
-    _filenameController.clear();
+    _titleController.text='';
+    _descriptionController.text='';
+    _filenameController.text='-';
   }
 
   void _editEvent(Event event) {

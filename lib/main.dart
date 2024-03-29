@@ -1,4 +1,5 @@
 import 'package:ecollege_admin_panel/internet_connection_wrapper.dart';
+import 'package:ecollege_admin_panel/result.dart';
 import 'package:ecollege_admin_panel/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,20 +26,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff002233)),
         ),
         home:
-            //TextFieldColorChangeDemo()
-            //DOBTextField()
-            //ImageUpload()
-       // InternetConnectionWrapper(child: SplashScreen())
-      SplashScreen()
-        //LoginScreen()
-      //UploadImageAndMore()
-       // DashboardScreen(userType: 'SuperAdmin',),
-        //AddStudentPage()
-      //UpdateStudentDetails()
-      //UploadImageForm()
-                //Demo()
-      //StudentListScreen()
-        //StudentEntryScreen()
+            ResultPage()
         );
   }
 }

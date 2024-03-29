@@ -48,7 +48,7 @@ class _AttendanceState extends State<Attendance> {
   DateTime selectedDate = DateTime.now();
 
   List<AttendanceRecord> attendanceRecords = [];
-  late String selectedProgram;
+  String selectedProgram="BCA";
   String selectedProgramTerm = "--Please Select--";
   String selectedDivision = "--Please Select--";
   String searchQuery = '';
@@ -124,21 +124,21 @@ class _AttendanceState extends State<Attendance> {
           .collection('student')
           .doc(student.documentId);
 
-      CollectionReference monthlyAttendanceCollection =
-          studentDocRef.collection('monthlyAttendance');
+      CollectionReference AttendanceCollection =
+          studentDocRef.collection('yearlyAttendance');
 
-      String monthYear = DateFormat('MMMM_yyyy').format(selectedDate);
-      String monthYearKey = '${monthYear}';
+      String Year = DateFormat('yyyy').format(selectedDate);
+      String monthYearKey = '${Year}';
 
-      DocumentReference monthlyAttendanceDocRef =
-          monthlyAttendanceCollection.doc(monthYearKey);
+      DocumentReference AttendanceDocRef =
+          AttendanceCollection.doc(monthYearKey);
 
       DocumentSnapshot<Object?> monthlyAttendanceDoc =
-          await monthlyAttendanceDocRef.get();
+          await AttendanceDocRef.get();
 
       if (!monthlyAttendanceDoc.exists) {
         // Create new monthly attendance record if not exists for the current month and year
-        batch.set(monthlyAttendanceDocRef, {
+        batch.set(AttendanceDocRef, {
           'subjectAttendance': {
             selectedSubject: {
               'presentCount': 0,
@@ -152,13 +152,13 @@ class _AttendanceState extends State<Attendance> {
       AttendanceRecord record = attendanceRecords[i];
       if (record.isPresent) {
         // Increment present count if the student is present
-        batch.update(monthlyAttendanceDocRef, {
+        batch.update(AttendanceDocRef, {
           'subjectAttendance.$selectedSubject.presentCount':
               FieldValue.increment(1),
         });
       } else {
         // Increment absent count if the student is absent
-        batch.update(monthlyAttendanceDocRef, {
+        batch.update(AttendanceDocRef, {
           'subjectAttendance.$selectedSubject.absentCount':
               FieldValue.increment(1),
         });

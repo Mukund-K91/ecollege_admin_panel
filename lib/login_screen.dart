@@ -1,6 +1,7 @@
 import 'package:ecollege_admin_panel/reusable_widget/reusable_textfield.dart';
 import 'package:ecollege_admin_panel/splash_screen.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ecollege_admin_panel/dashboard_screen.dart';
 import 'package:flutter/widgets.dart';
@@ -15,8 +16,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formkey = GlobalKey<FormState>();
   bool passwordObscured = true;
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _usernameController = TextEditingController(text: kDebugMode?"superadmin@123":"");
+  final _passwordController = TextEditingController(text: kDebugMode?"superadmin":"");
 
   @override
   Widget build(BuildContext context) {
@@ -71,13 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             : const Icon(Icons.visibility),
                       ),
                       title: 'Password',
-                    ),
-                    CheckboxListTile(
-                      value: true,
-                      onChanged: (value) {},
-                      checkColor: const Color(0xff002233),
-                      activeColor: Colors.grey,
-                      title: const Text("Remeber Me"),
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
