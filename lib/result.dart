@@ -24,7 +24,7 @@ class Student {
 }
 
 TextEditingController _obtainMarks = TextEditingController();
-TextEditingController _totalMarks = TextEditingController();
+TextEditingController _totalMarks = TextEditingController(text: "00");
 
 class ResultPage extends StatefulWidget {
   @override
@@ -38,14 +38,25 @@ class _ResultPageState extends State<ResultPage> {
   String selectedDivision = "C";
   String selectedSubject = "--Please Select--";
   String searchQuery = '';
+  String acYear="23-24";
   List<String> subjectList = [];
 
   @override
   void initState() {
     super.initState();
     fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
+    _totalMarks.addListener(updateTotalMarks);
   }
 
+  void updateTotalMarks() {
+    setState(() {
+      // Call setState to trigger rebuild with new value
+    });
+  }
+  void dispose() {
+    _totalMarks.removeListener(updateTotalMarks);
+    super.dispose();
+  }
   Future<void> fetchData(
       String program, String programTerm, String division) async {
     QuerySnapshot<Map<String, dynamic>> studentsQuery = await FirebaseFirestore
@@ -79,6 +90,36 @@ class _ResultPageState extends State<ResultPage> {
           subjectList.isNotEmpty ? subjectList[0] : "--Please Select--";
     });
   }
+
+  void addResult( String program, String programTerm, String division,String userId, String selectedSubject, int totalMarks, int obtainMarks) async {
+    try {
+      // Reference to the user's document
+      DocumentReference userRef = FirebaseFirestore.instance
+          .collection('students')
+          .doc(program)
+          .collection(programTerm)
+          .doc(division)
+          .collection('student')
+          .doc(userId)
+          .collection('result')
+          .doc(acYear);
+
+      // Write subject result to the user's document
+      await userRef.set({
+        'subjectresult': {
+          selectedSubject: {
+            'totalmarks': totalMarks,
+            'obtainmarks': obtainMarks,
+          }
+        }
+      }, SetOptions(merge: true)); // Merge to update only the specified fields
+    } catch (e) {
+      print('Error adding result: $e');
+    }
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -211,34 +252,41 @@ class _ResultPageState extends State<ResultPage> {
                     )
                   ],
                 ),
-                Row(children: [
-                  Expanded(
-                    child: ListTile(
-                      title: const Text(
-                        "Subject",
-                        style: TextStyle(fontSize: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ListTile(
+                        title: const Text(
+                          "Subject",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                        subtitle: DropdownButtonFormField(
+                            isExpanded: true,
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.zero))),
+                            value: selectedSubject,
+                            items: subjectList
+                                .map((e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ))
+                                .toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                selectedSubject = val as String;
+                              });
+                            }),
                       ),
-                      subtitle: DropdownButtonFormField(
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(Radius.zero))),
-                          value: selectedSubject,
-                          items: subjectList
-                              .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e),
-                          ))
-                              .toList(),
-                          onChanged: (val) {
-                            setState(() {
-                              selectedSubject = val as String;
-                            });
-                          }),
                     ),
-                  ),
-                  Expanded(child: TextField(decoration: InputDecoration(label: Text("Total marks")),)),
-                ],),
+                    Expanded(
+                        child: TextField(
+                          controller: _totalMarks,
+                      decoration: InputDecoration(label: Text("Total marks")),
+                    )),
+                  ],
+                ),
                 SizedBox(
                   width: MediaQuery.of(context).size.width,
                   child: DataTable(
@@ -267,34 +315,14 @@ class _ResultPageState extends State<ResultPage> {
                                 style: TextStyle(fontSize: 20))),
                             DataCell(Padding(
                               padding: const EdgeInsets.all(5),
-                              child: SizedBox(
-                                width: 60,
-                                child: TextFormField(
-                                  maxLength: 3,
-                                  enableSuggestions: true,
-                                  textAlign: TextAlign.center,
-                                  textAlignVertical: TextAlignVertical.center,
-                                  keyboardType: TextInputType.phone,
-                                  decoration: InputDecoration(
-                                    counterText: "",
-                                    border: OutlineInputBorder(),
-                                  ),
-                                  validator: (value) {
-                                    if (value != null) {
-                                      int? totalMarks =
-                                          int.tryParse(_totalMarks.text);
-                                      int? obtainMarks = int.tryParse(value);
-                                      if (totalMarks == null ||
-                                          obtainMarks == null) {
-                                        return 'Enter valid marks';
-                                      }
-                                      if (obtainMarks > totalMarks) {
-                                        return 'Obtain marks should not be greater than total marks';
-                                      }
-                                    }
-                                    return null;
-                                  },
+                              child: Container(
+                                decoration:BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(color: Colors.grey)
                                 ),
+                                width: 70,
+                                height: 50,
+                                child: Center(child: Text('${_totalMarks.text}',style: TextStyle(fontSize: 15),))
                               ),
                             )),
                             DataCell(Padding(
@@ -308,6 +336,7 @@ class _ResultPageState extends State<ResultPage> {
                                   textAlignVertical: TextAlignVertical.center,
                                   keyboardType: TextInputType.phone,
                                   decoration: InputDecoration(
+                                    hintText: "000",
                                     counterText: "",
                                     border: OutlineInputBorder(),
                                   ),
