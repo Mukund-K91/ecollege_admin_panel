@@ -23,6 +23,8 @@ class Student {
 }
 
 TextEditingController _totalMarks = TextEditingController();
+TextEditingController _examName = TextEditingController();
+
 
 class ResultPage extends StatefulWidget {
   @override
@@ -40,13 +42,12 @@ class _ResultPageState extends State<ResultPage> {
   String acYear = "23-24";
   List<String> subjectList = [];
 
+
   @override
   void initState() {
     super.initState();
     fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
     _totalMarks.addListener(updateTotalMarks);
-
-    // Initialize controllers for obtain marks
     obtainMarksControllers = List.generate(
       students.length,
           (_) => TextEditingController(),
@@ -100,15 +101,16 @@ class _ResultPageState extends State<ResultPage> {
       subjectList.isNotEmpty ? subjectList[0] : "--Please Select--";
     });
   }
-
-  void addResult(
+  Future<void> addResult(
       String program,
       String programTerm,
       String division,
       String userId,
       String selectedSubject,
       int totalMarks,
-      int obtainMarks) async {
+      int obtainMarks,
+      String examName,
+      ) async {
     try {
       // Reference to the user's document
       DocumentReference userRef = FirebaseFirestore.instance
@@ -121,19 +123,52 @@ class _ResultPageState extends State<ResultPage> {
           .collection('result')
           .doc(acYear);
 
-      // Write subject result to the user's document
-      await userRef.set({
-        'subjectresult': {
-          selectedSubject: {
+      // Check if the exam name already exists in the database
+      DocumentSnapshot examSnapshot = await userRef.get();
+      Map<String, dynamic>? data = examSnapshot.data() as Map<String, dynamic>?; // Cast to Map<String, dynamic> or null
+      if (data != null && data['result'] != null && data['result'][examName] != null) {
+        // Exam name already exists, update subject result under that exam entry
+        await userRef.update({
+          'result.$examName.$selectedSubject': {
             'totalmarks': totalMarks,
             'obtainmarks': obtainMarks,
-          }
-        }
-      }, SetOptions(merge: true)); // Merge to update only the specified fields
+          },
+        });
+      } else {
+        // Exam name does not exist, create a new entry
+        await userRef.set({
+          'result': {
+            examName: {
+              selectedSubject: {
+                'totalmarks': totalMarks,
+                'obtainmarks': obtainMarks,
+              },
+            },
+          },
+        }, SetOptions(merge: true));
+      }
+
+      // Clear input fields and controllers
+      _totalMarks.clear();
+      obtainMarksControllers.forEach((controller) => controller.clear());
+
+      // Show success message if all students' marks are added
+      if (userId == students.last.userId) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Marks added successfully!'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     } catch (e) {
       print('Error adding result: $e');
     }
   }
+
+
+
+
 
   void updateTotalMarks() {
     setState(() {});
@@ -152,164 +187,177 @@ class _ResultPageState extends State<ResultPage> {
       body:
       Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ReusableTextField(
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                setState(() {
-                  searchQuery = value;
-                });
-              },
-              title: 'Search By Name',
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ReusableTextField(
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      setState(() {
+                        searchQuery = value;
+                      });
+                    },
+                    title: 'Search By Name',
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: const Text(
+                    "Program",
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  subtitle: DropdownButtonFormField(
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                          border: OutlineInputBorder(
+                              borderRadius:
+                              BorderRadius.all(Radius.zero))),
+                      value: selectedProgram,
+                      items: lists.programs
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedProgram = val as String;
+                          fetchData(selectedProgram,
+                              selectedProgramTerm, selectedDivision);
+                        });
+                      }),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: const Text(
+                    "Program Term",
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  subtitle: DropdownButtonFormField(
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                          border: OutlineInputBorder(
+                              borderRadius:
+                              BorderRadius.all(Radius.zero))),
+                      value: selectedProgramTerm,
+                      items: lists.programTerms
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedProgramTerm = val as String;
+                          selectedSubject = "--Please Select--";
+                          fetchData(selectedProgram,
+                              selectedProgramTerm, selectedDivision);
+                          updateSubjectList(selectedProgram.toString(),
+                              selectedProgramTerm.toString());
+                        });
+                      }),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: const Text(
+                    "Division",
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  subtitle: DropdownButtonFormField(
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                          border: OutlineInputBorder(
+                              borderRadius:
+                              BorderRadius.all(Radius.zero))),
+                      value: selectedDivision,
+                      items: selectedProgram == "BCA"
+                          ? lists.bcaDivision
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                          .toList()
+                          : selectedProgram == "B-Com"
+                          ? lists.bcomDivision
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                          .toList()
+                          : lists.bbaDivision
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedDivision = val as String;
+                          fetchData(selectedProgram,
+                              selectedProgramTerm, selectedDivision);
+                        });
+                      }),
+                ),
+              ),
+            ],
           ),
           Expanded(
             child: SingleChildScrollView(
               physics: AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: const Text(
-                            "Program",
-                            style: TextStyle(fontSize: 15),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ListTile(
+                            title: const Text(
+                              "Subject",
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            subtitle: DropdownButtonFormField(
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                        BorderRadius.all(Radius.zero))),
+                                value: selectedSubject,
+                                items: subjectList
+                                    .map((e) => DropdownMenuItem(
+                                  value: e,
+                                  child: Text(e),
+                                ))
+                                    .toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    selectedSubject = val as String;
+                                  });
+                                }),
                           ),
-                          subtitle: DropdownButtonFormField(
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.all(Radius.zero))),
-                              value: selectedProgram,
-                              items: lists.programs
-                                  .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
-                                  .toList(),
-                              onChanged: (val) {
-                                setState(() {
-                                  selectedProgram = val as String;
-                                  fetchData(selectedProgram,
-                                      selectedProgramTerm, selectedDivision);
-                                });
-                              }),
                         ),
-                      ),
-                      Expanded(
-                        child: ListTile(
-                          title: const Text(
-                            "Program Term",
-                            style: TextStyle(fontSize: 15),
+                        Expanded(
+                          child: TextField(
+                            controller: _examName,
+                            decoration:
+                            InputDecoration(hintText: "Exam Name",label: Text("Exam Name")),
                           ),
-                          subtitle: DropdownButtonFormField(
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.all(Radius.zero))),
-                              value: selectedProgramTerm,
-                              items: lists.programTerms
-                                  .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
-                                  .toList(),
-                              onChanged: (val) {
-                                setState(() {
-                                  selectedProgramTerm = val as String;
-                                  selectedSubject = "--Please Select--";
-                                  fetchData(selectedProgram,
-                                      selectedProgramTerm, selectedDivision);
-                                  updateSubjectList(selectedProgram.toString(),
-                                      selectedProgramTerm.toString());
-                                });
-                              }),
                         ),
-                      ),
-                      Expanded(
-                        child: ListTile(
-                          title: const Text(
-                            "Division",
-                            style: TextStyle(fontSize: 15),
+                        SizedBox(width: 10,),
+                        Expanded(
+                          child: TextField(
+                            controller: _totalMarks,
+                            decoration:
+                            InputDecoration(hintText: "00",label: Text("Total marks")),
                           ),
-                          subtitle: DropdownButtonFormField(
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.all(Radius.zero))),
-                              value: selectedDivision,
-                              items: selectedProgram == "BCA"
-                                  ? lists.bcaDivision
-                                  .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
-                                  .toList()
-                                  : selectedProgram == "B-Com"
-                                  ? lists.bcomDivision
-                                  .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
-                                  .toList()
-                                  : lists.bbaDivision
-                                  .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
-                                  .toList(),
-                              onChanged: (val) {
-                                setState(() {
-                                  selectedDivision = val as String;
-                                  fetchData(selectedProgram,
-                                      selectedProgramTerm, selectedDivision);
-                                });
-                              }),
                         ),
-                      )
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: const Text(
-                            "Subject",
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          subtitle: DropdownButtonFormField(
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.all(Radius.zero))),
-                              value: selectedSubject,
-                              items: subjectList
-                                  .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e),
-                              ))
-                                  .toList(),
-                              onChanged: (val) {
-                                setState(() {
-                                  selectedSubject = val as String;
-                                });
-                              }),
-                        ),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: _totalMarks,
-                          decoration:
-                          InputDecoration(hintText: "00",label: Text("Total marks")),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
@@ -323,72 +371,67 @@ class _ResultPageState extends State<ResultPage> {
                         DataColumn(label: Text('Total')),
                         DataColumn(label: Text('Obtain')),
                       ],
-                      rows: filteredStudents
-                          .map(
-                            (student) => DataRow(cells: [
-                          DataCell(Text(
-                            '${student.userId}',
-                            style: TextStyle(fontSize: 20),
-                          )),
+                      // Inside the DataTable, update the DataRows to properly access the obtain marks
+                      rows: filteredStudents.map((student) {
+                        int index = filteredStudents.indexOf(student);
+                        return DataRow(cells: [
+                          DataCell(Text('${student.userId}', style: TextStyle(fontSize: 20))),
                           DataCell(Text('${student.rollNo}',
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold))),
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
                           DataCell(Text(
                               "${student.lastname} ${student.firstname} ${student.middlename}",
                               style: TextStyle(fontSize: 20))),
                           DataCell(
                             Padding(
-                                padding: const EdgeInsets.all(5),
-                                child: Container(
-                                    decoration: BoxDecoration(
-                                        borderRadius:
-                                        BorderRadius.circular(5),
-                                        border:
-                                        Border.all(color: Colors.grey)),
-                                    width: 70,
-                                    height: 50,
-                                    child: Center(
-                                        child: Text('${_totalMarks.text}',
-                                            style:
-                                            TextStyle(fontSize: 15))))),
-                          ),
-                          DataCell(Padding(
-                            padding: const EdgeInsets.all(5),
-                            child: SizedBox(
-                              width: 60,
-                              child: TextFormField(
-                                maxLength: 3,
-                                enableSuggestions: true,
-                                textAlign: TextAlign.center,
-                                textAlignVertical: TextAlignVertical.center,
-                                keyboardType: TextInputType.phone,
-                                decoration: InputDecoration(
-                                  hintText: "000",
-                                  counterText: "",
-                                  border: OutlineInputBorder(),
+                              padding: const EdgeInsets.all(5),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(color: Colors.grey)),
+                                width: 70,
+                                height: 50,
+                                child: Center(
+                                  child: Text('${_totalMarks.text}', style: TextStyle(fontSize: 18)),
                                 ),
-                                validator: (value) {
-                                  if (value != null) {
-                                    int? totalMarks =
-                                    int.tryParse(_totalMarks.text);
-                                    int? obtainMarks = int.tryParse(value);
-                                    if (totalMarks == null ||
-                                        obtainMarks == null) {
-                                      return 'Enter valid marks';
-                                    }
-                                    if (obtainMarks > totalMarks) {
-                                      return 'Obtain marks should not be greater than total marks';
-                                    }
-                                  }
-                                  return null;
-                                },
                               ),
                             ),
-                          )),
-                        ]),
-                      )
-                          .toList(),
+                          ),
+                          DataCell(
+                            Padding(
+                              padding: const EdgeInsets.all(5),
+                              child: SizedBox(
+                                width: 60,
+                                child: TextFormField(
+                                  controller: obtainMarksControllers[index], // Associate controller with the corresponding student
+                                  maxLength: 3,
+                                  enableSuggestions: true,
+                                  textAlign: TextAlign.center,
+                                  textAlignVertical: TextAlignVertical.center,
+                                  keyboardType: TextInputType.phone,
+                                  decoration: InputDecoration(
+                                    hintText: "000",
+                                    counterText: "",
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value != null) {
+                                      int? totalMarks = int.tryParse(_totalMarks.text);
+                                      int? obtainMarks = int.tryParse(value);
+                                      if (totalMarks == null || obtainMarks == null) {
+                                        return 'Enter valid marks';
+                                      }
+                                      if (obtainMarks > totalMarks) {
+                                        return 'Obtain marks should not be greater than total marks';
+                                      }
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ]);
+                      }).toList(),
                     ),
                   ),
                   SizedBox(
@@ -402,11 +445,8 @@ class _ResultPageState extends State<ResultPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Check if _totalMarks has a valid value before calling addResult
           if (_totalMarks.text.isNotEmpty&& obtainMarksControllers.toString()!="") {
-            // Loop through filteredStudents and call addResult for each student
             for (int i = 0; i < filteredStudents.length; i++) {
-              // Pass necessary data to addResult function
               addResult(
                 selectedProgram,
                 selectedProgramTerm,
@@ -414,16 +454,13 @@ class _ResultPageState extends State<ResultPage> {
                 filteredStudents[i].userId,
                 selectedSubject,
                 int.tryParse(_totalMarks.text) ?? 0,
-                // Convert _totalMarks.text to int, default to 0 if conversion fails
                 int.tryParse(obtainMarksControllers[i].text) ??
-                    0, // Convert _obtainMarks.text to int, default to 0 if conversion fails
+                    0,_examName.text // Convert _obtainMarks.text to int, default to 0 if conversion fails
               );
             }
-            // Clear _totalMarks and _obtainMarks after adding result for all students
             _totalMarks.clear();
             obtainMarksControllers.forEach((controller) => controller.clear());
           } else {
-            // Show a message or handle the case where _totalMarks is empty
             print('Please enter total marks');
           }
         },

@@ -1,3 +1,4 @@
+import 'package:ecollege_admin_panel/dashboard_screen.dart';
 import 'package:ecollege_admin_panel/internet_connection_wrapper.dart';
 import 'package:ecollege_admin_panel/result.dart';
 import 'package:ecollege_admin_panel/splash_screen.dart';
@@ -25,8 +26,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff002233)),
         ),
-        home:
-            ResultPage()
+        home:DashboardScreen()
         );
   }
 }
