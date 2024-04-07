@@ -40,6 +40,7 @@ class _ResultPageState extends State<ResultPage> {
   String selectedProgramTerm = "Sem - 6";
   String selectedDivision = "C";
   String selectedSubject = "--Please Select--";
+  String selectedExam = "--Please Select--";
   String searchQuery = '';
   String acYear = "23-24";
   List<String> subjectList = [];
@@ -197,7 +198,7 @@ class _ResultPageState extends State<ResultPage> {
                         searchQuery = value;
                       });
                     },
-                    title: 'Search By Name',
+                    title: 'Search By Roll No.',
                   ),
                 ),
               ),
@@ -337,11 +338,32 @@ class _ResultPageState extends State<ResultPage> {
                           ),
                         ),
                         Expanded(
-                          child: TextField(
-                            controller: _examName,
-                            decoration: InputDecoration(
-                                hintText: "Exam Name",
-                                label: Text("Exam Name")),
+                          child: ListTile(
+                            title: const Text(
+                              "Exam Type",
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            subtitle: DropdownButtonFormField(
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.zero))),
+                                value: selectedExam,
+                                items: [
+                                  '--Please Select--',
+                                  'Internal',
+                                  'Practical-Internal'
+                                ]
+                                    .map((e) => DropdownMenuItem(
+                                  value: e,
+                                  child: Text(e),
+                                ))
+                                    .toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    selectedExam = val as String;
+                                  });
+                                }),
                           ),
                         ),
                         SizedBox(
@@ -460,8 +482,7 @@ class _ResultPageState extends State<ResultPage> {
                   selectedSubject,
                   int.tryParse(_totalMarks.text) ?? 0,
                   int.tryParse(obtainMarksControllers[i].text) ?? 0,
-                  _examName
-                      .text // Convert _obtainMarks.text to int, default to 0 if conversion fails
+                  selectedExam.toString()
                   );
             }
             _totalMarks.clear();

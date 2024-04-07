@@ -4,14 +4,28 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Student {
   final String userId;
+  final String rollNo;
   final String firstName;
+  final String lastName;
+  final String middleName;
   int totalMarks = 0;
   int obtainMarks = 0;
 
   Student({
     required this.userId,
+    required this.rollNo,
     required this.firstName,
+    required this.lastName,
+    required this.middleName,
   });
+
+  bool isPass() {
+    // Calculate 33% of the total marks
+    double thirtyThreePercentOfTotalMarks = totalMarks * 0.40;
+
+    // Check if obtain marks are greater than or equal to 33% of the total marks
+    return obtainMarks >= thirtyThreePercentOfTotalMarks;
+  }
 }
 
 class StudentResultTable extends StatefulWidget {
@@ -24,7 +38,7 @@ class _StudentResultTableState extends State<StudentResultTable> {
   String selectedProgramTerm = "--Please Select--";
   String selectedDivision = "--Please Select--";
   String selectedSubject = "--Please Select--";
-  String selectedExam = "--Please Select--";
+  String selectedExamType = "--Please Select--";
 
   List<String> subjectList = [];
   List<Student> studentList = [];
@@ -58,6 +72,7 @@ class _StudentResultTableState extends State<StudentResultTable> {
               .collection(selectedProgramTerm)
               .doc(selectedDivision)
               .collection('student')
+              .orderBy('rollNumber')
               .get();
 
       studentList.clear(); // Clear existing list before fetching new data
@@ -66,6 +81,9 @@ class _StudentResultTableState extends State<StudentResultTable> {
         studentList.add(Student(
           userId: doc.id,
           firstName: doc['First Name'],
+          rollNo: doc['rollNumber'].toString(),
+          lastName: doc['Last Name'],
+          middleName: doc['Middle Name'],
         ));
       });
 
@@ -87,25 +105,25 @@ class _StudentResultTableState extends State<StudentResultTable> {
   Future<void> fetchData(Student student) async {
     try {
       DocumentSnapshot<Map<String, dynamic>> resultSnapshot =
-      await FirebaseFirestore.instance
-          .collection('students')
-          .doc(selectedProgram)
-          .collection(selectedProgramTerm)
-          .doc(selectedDivision)
-          .collection('student')
-          .doc(student.userId)
-          .collection('result')
-          .doc('23-24')
-          .get();
+          await FirebaseFirestore.instance
+              .collection('students')
+              .doc(selectedProgram)
+              .collection(selectedProgramTerm)
+              .doc(selectedDivision)
+              .collection('student')
+              .doc(student.userId)
+              .collection('result')
+              .doc('23-24')
+              .get();
 
       Map<String, dynamic> resultData = resultSnapshot.data() ?? {};
 
-      if (resultData.containsKey('Practical-Internal')) {
-        final practicalInternalData = resultData['Practical-Internal'];
-        if (practicalInternalData.containsKey('PROJECT')) {
-          final projectData = practicalInternalData['PROJECT'];
-          student.totalMarks = projectData['totalmarks'] ?? 0;
-          student.obtainMarks = projectData['obtainmarks'] ?? 0;
+      if (resultData.containsKey(selectedExamType)) {
+        final practicalInternalData = resultData[selectedExamType];
+        if (practicalInternalData.containsKey(selectedSubject)) {
+          final projectData = practicalInternalData[selectedSubject];
+          student.totalMarks = projectData['totalmarks'] ?? "Not Available";
+          student.obtainMarks = projectData['obtainmarks'] ?? "Not Available";
         }
       }
     } catch (e) {
@@ -117,7 +135,7 @@ class _StudentResultTableState extends State<StudentResultTable> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student Result Table'),
+        title: Text("Student's Result"),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -146,6 +164,7 @@ class _StudentResultTableState extends State<StudentResultTable> {
                         onChanged: (val) {
                           setState(() {
                             selectedProgram = val as String;
+                            selectedSubject = "--Please Select--";
                           });
                         }),
                   ),
@@ -171,6 +190,7 @@ class _StudentResultTableState extends State<StudentResultTable> {
                         onChanged: (val) {
                           setState(() {
                             selectedProgramTerm = val as String;
+                            selectedSubject = "--Please Select--";
                             updateSubjectList(
                                 selectedProgram, selectedProgramTerm);
                           });
@@ -231,7 +251,7 @@ class _StudentResultTableState extends State<StudentResultTable> {
                         decoration: const InputDecoration(
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.all(Radius.zero))),
-                        value: selectedExam,
+                        value: selectedExamType,
                         items: [
                           '--Please Select--',
                           'Internal',
@@ -244,7 +264,7 @@ class _StudentResultTableState extends State<StudentResultTable> {
                             .toList(),
                         onChanged: (val) {
                           setState(() {
-                            selectedExam = val as String;
+                            selectedExamType = val as String;
                           });
                         }),
                   ),
@@ -284,20 +304,54 @@ class _StudentResultTableState extends State<StudentResultTable> {
                         child: Text(
                             'No Data Found'), // Show "No Data Found" if student list is empty
                       )
-                    : DataTable(
-                        columns: const <DataColumn>[
-                          DataColumn(label: Text('Name')),
-                          DataColumn(label: Text('Total Marks')),
-                          DataColumn(label: Text('Obtain Marks')),
-                        ],
-                        rows: studentList.map((student) {
-                          return DataRow(cells: <DataCell>[
-                            DataCell(Text(student.firstName)),
-                            DataCell(Text(student.totalMarks.toString())),
-                            DataCell(Text(student.obtainMarks.toString())),
-                          ]);
-                        }).toList(),
+                    : SizedBox(
+                        width: double.infinity,
+                        child: DataTable(
+                          headingTextStyle: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xff002233)),
+                          dataTextStyle: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w500),
+                          border: TableBorder.all(
+                            style: BorderStyle.solid,
+                          ),
+                          columns: const <DataColumn>[
+                            DataColumn(label: Text('User Id')),
+                            DataColumn(label: Text('Roll No')),
+                            DataColumn(label: Text('Name')),
+                            DataColumn(label: Text('Total Marks')),
+                            DataColumn(label: Text('Obtain Marks')),
+                          ],
+                          rows: studentList.map((student) {
+                            final String name =
+                                "${student.lastName} ${student.firstName} ${student.middleName}";
+                            return DataRow(cells: <DataCell>[
+                              DataCell(Text("${student.userId}")),
+                              DataCell(Text(
+                                "${student.rollNo}",
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold),
+                              )),
+                              DataCell(Text(name)),
+                              DataCell(Text(student.totalMarks.toString(),
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold))),
+                              DataCell(Text(student.obtainMarks.toString(),
+                                  style: TextStyle(
+                                      color: student.isPass()
+                                          ? Colors.black
+                                          : Colors.redAccent,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold))),
+                            ]);
+                          }).toList(),
+                        ),
                       ),
+            SizedBox(
+              height: 30,
+            )
           ],
         ),
       ),
