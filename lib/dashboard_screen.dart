@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'add_result.dart';
 import 'assign_roll_no.dart';
 import 'attendance.dart';
 import 'faculty_management.dart';
@@ -62,9 +63,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       EventManagement(),
       SliderPage(),
       Attendance(
-        program: 'BCA',
       ),
-      ResultPage()
+      ResultPage(),
+      StudentResultTable()
     ];
   }
 
@@ -90,17 +91,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               position: PopupMenuPosition.under,
               child: Row(
                 children: [
-                  widget.userType == "Super Admin"
-                      ? Icon(FontAwesomeIcons.userTie, color: Color(0xff002233))
-                      : Icon(
-                          Icons.person,
-                          color: Color(0xff002233),
-                        ),
+                       Icon(FontAwesomeIcons.userTie, color: Color(0xff002233)),
                   SizedBox(
                     width: 5,
                   ),
                   Text(
-                    '${widget.userType}',
+                    'Super Admin',
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Color(0xff4b8bbf),
@@ -114,7 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               itemBuilder: (context) => [
                 PopupMenuItem(
                   child: Text(
-                    'User: ${widget.userName}',
+                    'User: superadmin@123',
                     style: TextStyle(color: Colors.grey),
                   ),
                 ),
@@ -169,11 +165,14 @@ class SideMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        width: 250,
-        height: MediaQuery.of(context).size.height,
-        color: Color(0xff002233),
+    return Container(
+      width: 250,
+      height: double.infinity,
+      color: Color(0xff002233),
+      constraints:
+          BoxConstraints(maxHeight: MediaQuery.of(context).size.height),
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -187,76 +186,71 @@ class SideMenu extends StatelessWidget {
               selectedIndex: selectedIndex,
               onMenuItemSelected: onMenuItemSelected,
             ),
-            ListView(
-              shrinkWrap: true,
+            ExpansionTile(
+              title: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      FontAwesomeIcons.graduationCap,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    " Students",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
               children: [
-                ExpansionTile(
-                  title: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          FontAwesomeIcons.graduationCap,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        " Students",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  children: [
-                    MenuItem(
-                      title: 'Add Student',
-                      index: 1,
-                      selectedIndex: selectedIndex,
-                      onMenuItemSelected: onMenuItemSelected,
-                    ),
-                    MenuItem(
-                      title: 'Student Details',
-                      index: 2,
-                      selectedIndex: selectedIndex,
-                      onMenuItemSelected: onMenuItemSelected,
-                    ),
-                    MenuItem(
-                      title: 'Assign Roll No.',
-                      index: 3,
-                      selectedIndex: selectedIndex,
-                      onMenuItemSelected: onMenuItemSelected,
-                    ),
-                  ],
+                MenuItem(
+                  title: 'Add Student',
+                  index: 1,
+                  selectedIndex: selectedIndex,
+                  onMenuItemSelected: onMenuItemSelected,
                 ),
-                ExpansionTile(
-                  title: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          FontAwesomeIcons.user,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        " Faculty",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
+                MenuItem(
+                  title: 'Student Details',
+                  index: 2,
+                  selectedIndex: selectedIndex,
+                  onMenuItemSelected: onMenuItemSelected,
+                ),
+                MenuItem(
+                  title: 'Assign Roll No.',
+                  index: 3,
+                  selectedIndex: selectedIndex,
+                  onMenuItemSelected: onMenuItemSelected,
+                ),
+              ],
+            ),
+            ExpansionTile(
+              title: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      FontAwesomeIcons.user,
+                      color: Colors.white,
+                    ),
                   ),
-                  children: [
-                    MenuItem(
-                      title: 'Add Faculty',
-                      index: 4,
-                      selectedIndex: selectedIndex,
-                      onMenuItemSelected: onMenuItemSelected,
-                    ),
-                    MenuItem(
-                      title: 'Faculty Details',
-                      index: 5,
-                      selectedIndex: selectedIndex,
-                      onMenuItemSelected: onMenuItemSelected,
-                    ),
-                  ],
+                  Text(
+                    " Faculty",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              children: [
+                MenuItem(
+                  title: 'Add Faculty',
+                  index: 4,
+                  selectedIndex: selectedIndex,
+                  onMenuItemSelected: onMenuItemSelected,
+                ),
+                MenuItem(
+                  title: 'Faculty Details',
+                  index: 5,
+                  selectedIndex: selectedIndex,
+                  onMenuItemSelected: onMenuItemSelected,
                 ),
               ],
             ),
@@ -280,25 +274,36 @@ class SideMenu extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            MenuItem(
-              title: ' Attendance',
-              index: 8,
-              selectedIndex: selectedIndex,
-              onMenuItemSelected: onMenuItemSelected,
-              icon: Icon(
-                FontAwesomeIcons.calendarDays,
-                color: Colors.white,
+            ExpansionTile(
+              title: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      FontAwesomeIcons.user,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    " Result",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
               ),
-            ),
-            MenuItem(
-              title: 'Result',
-              index: 9,
-              selectedIndex: selectedIndex,
-              onMenuItemSelected: onMenuItemSelected,
-              icon: Icon(
-                FontAwesomeIcons.fileContract,
-                color: Colors.white,
-              ),
+              children: [
+                MenuItem(
+                  title: 'Add Exam Marks',
+                  index: 9,
+                  selectedIndex: selectedIndex,
+                  onMenuItemSelected: onMenuItemSelected,
+                ),
+                MenuItem(
+                  title: 'Students Exam Marks',
+                  index: 10,
+                  selectedIndex: selectedIndex,
+                  onMenuItemSelected: onMenuItemSelected,
+                ),
+              ],
             )
           ],
         ),

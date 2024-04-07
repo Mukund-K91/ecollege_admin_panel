@@ -52,7 +52,7 @@ class _EventManagementState extends State<EventManagement> {
   final _filenameController = TextEditingController(text: "-");
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
   late String imjUrl="null";
-  List<ValueItem> _selectedOptions = [];
+  List<ValueItem> _selectedOptions = [ValueItem(label: 'Dashboard', value: 'Dashboard')];
 
   void initState() {
     super.initState();
@@ -125,12 +125,13 @@ class _EventManagementState extends State<EventManagement> {
                             subtitle: MultiSelectDropDown(
                               showClearIcon: true,
                               controller: _controller,
-                              hint: 'Please Select',
+                              hint:"Dashboard",
                               onOptionSelected: (value) {
                                 setState(() {
                                   _selectedOptions = value;
                                 });
                               },
+
                               options: const <ValueItem>[
                                 ValueItem(
                                     label: 'Dashboard', value: 'Dashboard'),

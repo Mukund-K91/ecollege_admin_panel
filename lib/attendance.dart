@@ -34,9 +34,7 @@ class AttendanceRecord {
 }
 
 class Attendance extends StatefulWidget {
-  final String program;
 
-  const Attendance({required this.program});
 
   @override
   _AttendanceState createState() => _AttendanceState();
@@ -48,7 +46,7 @@ class _AttendanceState extends State<Attendance> {
   DateTime selectedDate = DateTime.now();
 
   List<AttendanceRecord> attendanceRecords = [];
-  String selectedProgram="BCA";
+  String selectedProgram="--Please Select--";
   String selectedProgramTerm = "--Please Select--";
   String selectedDivision = "--Please Select--";
   String searchQuery = '';
@@ -57,7 +55,7 @@ class _AttendanceState extends State<Attendance> {
   @override
   void initState() {
     super.initState();
-    selectedProgram = widget.program;
+    selectedProgram ="--Please Select--";
     fetchData(selectedProgram, selectedProgramTerm, selectedDivision);
   }
 
@@ -185,8 +183,10 @@ class _AttendanceState extends State<Attendance> {
   Widget build(BuildContext context) {
     final filteredStudents = students
         .where((student) =>
-            student.firstname.toLowerCase().contains(searchQuery.toLowerCase()))
+        student.rollNumber.toString().toLowerCase().contains(searchQuery.toLowerCase()))
         .toList();
+
+
 
     final currentDate = DateFormat('dd-MM-yyyy EEEE').format(selectedDate);
 
@@ -212,7 +212,7 @@ class _AttendanceState extends State<Attendance> {
         ),
       ),
       appBar: AppBar(
-        title: Text('Attendance Stream: ${selectedProgram}',
+        title: Text('Attendance',
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           Padding(
@@ -231,17 +231,32 @@ class _AttendanceState extends State<Attendance> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  child: ReusableTextField(
-                    onChanged: (value) {
-                      setState(() {
-                        searchQuery = value;
-                      });
-                    },
-                    title: 'Search By Name',
+                  child: ListTile(
+                    title: const Text(
+                      "Program",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    subtitle: DropdownButtonFormField(
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.zero))),
+                        value: selectedProgram,
+                        items: lists.programs
+                            .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        ))
+                            .toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            selectedProgram = val as String;
+                            fetchData(selectedProgram, selectedProgramTerm,
+                                selectedDivision);
+                            updateSubjectList(
+                                selectedProgram, selectedProgramTerm);
+                          });
+                        }),
                   ),
-                ),
-                SizedBox(
-                  width: 10,
                 ),
                 Expanded(
                   child: ListTile(
@@ -263,6 +278,8 @@ class _AttendanceState extends State<Attendance> {
                         onChanged: (val) {
                           setState(() {
                             selectedProgramTerm = val as String;
+                            fetchData(selectedProgram, selectedProgramTerm,
+                                selectedDivision);
                             updateSubjectList(
                                 selectedProgram, selectedProgramTerm);
                           });
@@ -311,27 +328,47 @@ class _AttendanceState extends State<Attendance> {
                 ),
               ],
             ),
-            ListTile(
-              title: const Text(
-                "Subject",
-                style: TextStyle(fontSize: 15),
-              ),
-              subtitle: DropdownButtonFormField(
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.zero))),
-                  value: selectedSubject,
-                  items: subjectList
-                      .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e),
-                          ))
-                      .toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      selectedSubject = val as String;
-                    });
-                  }),
+            Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    title: const Text(
+                      "Subject",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    subtitle: DropdownButtonFormField(
+                      isExpanded: true,
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.zero))),
+                        value: selectedSubject,
+                        items: subjectList
+                            .map((e) => DropdownMenuItem(
+                                  value: e,
+                                  child: Text(e),
+                                ))
+                            .toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            selectedSubject = val as String;
+                          });
+                        }),
+                  ),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: ReusableTextField(
+                    onChanged: (value) {
+                      setState(() {
+                        searchQuery = value;
+                      });
+                    },
+                    title: 'Search By Roll No',
+                  ),
+                ),
+              ],
             ),
             ListView.builder(
               shrinkWrap: true,

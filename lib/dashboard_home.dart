@@ -89,7 +89,6 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        bottomNavigationBar: CopyrightFooter(),
         appBar: AppBar(
           title: const Text(
             'DASHBOARD',

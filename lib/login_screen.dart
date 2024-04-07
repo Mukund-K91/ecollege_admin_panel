@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
           _passwordController.text == 'superadmin') {
         var sharedPref = await SharedPreferences.getInstance();
         sharedPref.setBool(SplashScreenState.KEYLOGIN, true);
-        sharedPref.setString(SplashScreenState.KEYUSERNAME, 'superadmin@123');
+        sharedPref.setString(SplashScreenState.KEYUSERNAME, _usernameController.text);
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -115,20 +115,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 userName: _usernameController.text,
               ),
             ));
-      } else if (_usernameController.text == 'admin@123' &&
-          _passwordController.text == 'admin') {
-        var sharedPref = await SharedPreferences.getInstance();
-        sharedPref.setBool(SplashScreenState.KEYLOGIN, true);
-        sharedPref.setString(SplashScreenState.KEYUSERNAME, 'admin@123');
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DashboardScreen(
-                userType: 'Admin',
-                userName: _usernameController.text,
-              ),
-            ));
-      } else {
+      }
+      // else if (_usernameController.text == 'admin@123' &&
+      //     _passwordController.text == 'admin') {
+      //   var sharedPref = await SharedPreferences.getInstance();
+      //   sharedPref.setBool(SplashScreenState.KEYLOGIN, true);
+      //   sharedPref.setString(SplashScreenState.KEYUSERNAME, 'admin@123');
+      //   Navigator.pushReplacement(
+      //       context,
+      //       MaterialPageRoute(
+      //         builder: (context) => DashboardScreen(
+      //           userType: 'Admin',
+      //           userName: _usernameController.text,
+      //         ),
+      //       ));
+      // }
+      else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               backgroundColor: Colors.white,

@@ -60,8 +60,9 @@ class SplashScreenState extends State<SplashScreen> {
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DashboardScreen(userType: username=='superadmin@123'?'Super Admin':'Admin',userName: username,),
+                  builder: (context) => DashboardScreen(userType: 'Super Admin',userName: username,),
                 ));
+            print('${username}');
           } else {
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => LoginScreen()));

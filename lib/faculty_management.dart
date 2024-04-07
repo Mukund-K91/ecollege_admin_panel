@@ -649,7 +649,7 @@ class _FacultyListState extends State<FacultyList> {
             child: TextField(
               decoration: InputDecoration(
                 labelText: 'Search',
-                hintText: 'Search by Mobile',
+                hintText: 'Search by ID',
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) {

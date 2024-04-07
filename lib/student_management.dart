@@ -848,7 +848,7 @@ class _StudentListState extends State<StudentList> {
             child: TextField(
               decoration: const InputDecoration(
                 labelText: 'Search',
-                hintText: 'Search by name',
+                hintText: 'Search by Reg. Mobile',
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) {

@@ -26,7 +26,8 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff002233)),
         ),
-        home:DashboardScreen()
+        home://StudentResultTable(program: "BCA", programTerm: "Sem - 6", division: "C", acYear: "23-24")
+        DashboardScreen()
         );
   }
 }
